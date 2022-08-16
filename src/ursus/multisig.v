@@ -15,6 +15,10 @@ Require Import UrsusTVM.Solidity.All.
 Require Import UrsusTVM.Solidity.UrsusDefinitions.
 Require Import UrsusTVM.Solidity.ReverseTranslatorConstructions.
 
+(* Require Import UMLang.UrsusLib.
+Require Import UMLang.GlobalClassGenerator.ClassGenerator. *)
+(* Require Import UMLang.LocalClassGenerator.ClassGenerator. *)
+
 Import UrsusNotations.
 Local Open Scope xlist_scope.
 Local Open Scope record.
@@ -28,7 +32,7 @@ From elpi Require Import elpi.
 Local Open Scope struct_scope.
 Local Open Scope N_scope.
 Local Open Scope string_scope.
-Local Open Scope list_scope.
+Local Open Scope list_scope. 
 
 Definition MultisigWallet_ι_TransactionL: list Type := [
   ( uint64) : Type;
@@ -43,6 +47,7 @@ Definition MultisigWallet_ι_TransactionL: list Type := [
   ( cell_) : Type;
   ( boolean) : Type
 ].
+
 Inductive MultisigWallet_ι_TransactionFields :=
 | MultisigWallet_ι_Transaction_ι_id  (*uint64*)
 | MultisigWallet_ι_Transaction_ι_confirmationsMask  (*uint32*)
@@ -101,6 +106,8 @@ MakeInterface Class Itmp :=
  }.
 EndInterfaces.
 
+Require Import UMLang.LocalClassGenerator.ClassGenerator.
+
 Contract MultisigWallet ;
 
 Sends To  Itmp ; 
@@ -115,8 +122,8 @@ Definition MAX_CUSTODIAN_COUNT : uint8 := Build_XUBInteger (32)
 Definition EXPIRATION_TIME : uint64 := Build_XUBInteger (3600)
 Definition MAX_QUEUED_REQUESTS : uint8 := Build_XUBInteger (5);
 Record Contract := {
-   #[static] _pubkey : (* _static *) uint256;
-   #[static] _foo : (* _static *) uint256;
+   _pubkey : _static uint256;
+   _foo : _static uint256;
    m_ownerKey :  uint256;
    m_requestsMask :  uint256;
    m_transactions :  XHMap ( uint64 ) uint64 (* (MultisigWallet_ι_TransactionLRecord ) *);
@@ -143,7 +150,7 @@ UseLocal Definition _ := [
      XMaybe  ( uint8 )
 ].
 
-#[private, nonpayable]
+ #[private(* , nonpayable *)]
 Ursus Definition _deleteUpdateRequest (updateId :  uint64) (index :  uint8): UExpression PhantomType false .
    :://m_updateRequestsMask &= (uint32((β #{1})) << #{index}) ~ .
    :://m_updateRequests[#{updateId}] delete .
