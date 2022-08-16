@@ -115,8 +115,10 @@ Definition MAX_CUSTODIAN_COUNT : uint8 := Build_XUBInteger (32)
 Definition EXPIRATION_TIME : uint64 := Build_XUBInteger (3600)
 Definition MAX_QUEUED_REQUESTS : uint8 := Build_XUBInteger (5);
 Record Contract := {
-   #[static] m_ownerKey :  uint256;
-   #[static] m_requestsMask :  uint256;
+   #[static] _pubkey : (* _static *) uint256;
+   #[static] _foo : (* _static *) uint256;
+   m_ownerKey :  uint256;
+   m_requestsMask :  uint256;
    m_transactions :  XHMap ( uint64 ) uint64 (* (MultisigWallet_ι_TransactionLRecord ) *);
    m_custodians :  XHMap ( uint256 )( uint8 );
    m_custodianCount :  uint8;
