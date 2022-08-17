@@ -147,13 +147,16 @@ Ursus Definition _setConfirmed (mask :  uint32) (custodianIndex :  uint8): UExpr
   (* ::// mask1 |= (!onee << #custodianIndex) . *)
   :://return_ #{mask} |.
 Defined. 
-
+  
 #[private, nonpayable]
 Ursus Definition _confirmUpdate (updateId :  uint64) (custodianIndex :  uint8): UExpression PhantomType false .
-  ::// new 'request : ( MultisigWallet_ι_UpdateRequestLRecord ) @ "request"  := m_updateRequests[#updateId] ; _| .
-  :://!request ->MultisigWallet_ι_UpdateRequest_ι_signs ++ .
-  :://!{request}->confirmationsMask := _setConfirmed(!{request}->confirmationsMask, #{custodianIndex}) .
-  :://m_updateRequests[#{updateId}] := !{request} .
+  ::// new 'request : ( MultisigWallet_ι_UpdateRequestLRecord ) @ "request"  := {} (* m_updateRequests[#updateId] *) ; _| .
+(*   ::// { // !request -> MultisigWallet_ι_UpdateRequest_ι_signs | : ULValue  uint8} ++ . *)
+(*   :://!{request}->confirmationsMask := _setConfirmed(!{request}->confirmationsMask, #{custodianIndex}) . *)
+
+(* :://m_custodians[{}] := {} . *)
+Coersion qqq : XUInteger64 >-> uint.
+  :://m_updateRequests [#updateId] := {} (* !{request} *) .
   :://return_ {} |.
 Defined. 
 
