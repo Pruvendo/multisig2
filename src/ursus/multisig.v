@@ -15,8 +15,8 @@ Require Import UrsusTVM.Solidity.All.
 Require Import UrsusTVM.Solidity.UrsusDefinitions.
 Require Import UrsusTVM.Solidity.ReverseTranslatorConstructions.
 
-(* Require Import UMLang.UrsusLib.
-Require Import UMLang.GlobalClassGenerator.ClassGenerator. *)
+Require Import UMLang.UrsusLib.
+Require Import UMLang.GlobalClassGenerator.ClassGenerator.
 (* Require Import UMLang.LocalClassGenerator.ClassGenerator. *)
 
 Import UrsusNotations.
@@ -32,62 +32,9 @@ From elpi Require Import elpi.
 Local Open Scope struct_scope.
 Local Open Scope N_scope.
 Local Open Scope string_scope.
-Local Open Scope list_scope. 
+Local Open Scope list_scope.
 
-Definition MultisigWallet_ι_TransactionL: list Type := [
-  ( uint64) : Type;
-  ( uint32) : Type;
-  ( uint8) : Type;
-  ( uint8) : Type;
-  ( uint256) : Type;
-  ( uint8) : Type;
-  ( address) : Type;
-  ( uint128) : Type;
-  ( uint16) : Type;
-  ( cell_) : Type;
-  ( boolean) : Type
-].
-
-Inductive MultisigWallet_ι_TransactionFields :=
-| MultisigWallet_ι_Transaction_ι_id  (*uint64*)
-| MultisigWallet_ι_Transaction_ι_confirmationsMask  (*uint32*)
-| MultisigWallet_ι_Transaction_ι_signsRequired  (*uint8*)
-| MultisigWallet_ι_Transaction_ι_signsReceived  (*uint8*)
-| MultisigWallet_ι_Transaction_ι_creator  (*uint256*)
-| MultisigWallet_ι_Transaction_ι_index  (*uint8*)
-| MultisigWallet_ι_Transaction_ι_dest  (*address*)
-| MultisigWallet_ι_Transaction_ι_value  (*uint128*)
-| MultisigWallet_ι_Transaction_ι_sendFlags  (*uint16*)
-| MultisigWallet_ι_Transaction_ι_payload  (*TvmCell*)
-| MultisigWallet_ι_Transaction_ι_bounce  (*bool*)
-.
-GlobalGeneratePruvendoRecord MultisigWallet_ι_TransactionL MultisigWallet_ι_TransactionFields.
-Opaque MultisigWallet_ι_TransactionLRecord.
-
-Definition MultisigWallet_ι_UpdateRequestL: list Type := [
-  ( uint64) : Type;
-  ( uint8) : Type;
-  ( uint8) : Type;
-  ( uint32) : Type;
-  ( uint256) : Type;
-  ( uint256) : Type;
-  ( mapping uint256 uint256 (* uint256[] *)) : Type;
-  ( uint8) : Type
-].
-Inductive MultisigWallet_ι_UpdateRequestFields :=
-| MultisigWallet_ι_UpdateRequest_ι_id  (*uint64*)
-| MultisigWallet_ι_UpdateRequest_ι_index  (*uint8*)
-| MultisigWallet_ι_UpdateRequest_ι_signs  (*uint8*)
-| MultisigWallet_ι_UpdateRequest_ι_confirmationsMask  (*uint32*)
-| MultisigWallet_ι_UpdateRequest_ι_creator  (*uint256*)
-| MultisigWallet_ι_UpdateRequest_ι_codeHash  (*uint256*)
-| MultisigWallet_ι_UpdateRequest_ι_custodians  (*uint256[]*)
-| MultisigWallet_ι_UpdateRequest_ι_reqConfirms  (*uint8*)
-.
-GlobalGeneratePruvendoRecord MultisigWallet_ι_UpdateRequestL MultisigWallet_ι_UpdateRequestFields.
-Opaque MultisigWallet_ι_UpdateRequestLRecord.
-
-Definition MultisigWallet_ι_CustodianInfoL: list Type := [
+(* Definition MultisigWallet_ι_CustodianInfoL: list Type := [
   ( uint8) : Type;
   ( uint256) : Type
 ].
@@ -96,7 +43,7 @@ Inductive MultisigWallet_ι_CustodianInfoFields :=
 | MultisigWallet_ι_CustodianInfo_ι_pubkey  (*uint256*)
 .
 GlobalGeneratePruvendoRecord MultisigWallet_ι_CustodianInfoL MultisigWallet_ι_CustodianInfoFields.
-Opaque MultisigWallet_ι_CustodianInfoLRecord.
+Opaque MultisigWallet_ι_CustodianInfoLRecord. *)
 
 Interfaces.
 
@@ -112,6 +59,31 @@ Contract MultisigWallet ;
 
 Sends To  Itmp ; 
 
+Types 
+  Record MultisigWallet_ι_Transaction := {
+    MultisigWallet_ι_Transaction_ι_id : uint64;
+    MultisigWallet_ι_Transaction_ι_confirmationsMask : uint32;
+    MultisigWallet_ι_Transaction_ι_signsRequired : uint8;
+    MultisigWallet_ι_Transaction_ι_signsReceived : uint8;
+    MultisigWallet_ι_Transaction_ι_creator : uint256;
+    MultisigWallet_ι_Transaction_ι_index : uint8;
+    MultisigWallet_ι_Transaction_ι_dest : address;
+    MultisigWallet_ι_Transaction_ι_value : uint128;
+    MultisigWallet_ι_Transaction_ι_sendFlags : uint16;
+    MultisigWallet_ι_Transaction_ι_payload : TvmCell;
+    MultisigWallet_ι_Transaction_ι_bounce : boolean
+  }
+Record MultisigWallet_ι_UpdateRequest := {
+    MultisigWallet_ι_UpdateRequest_ι_id : uint64;
+    MultisigWallet_ι_UpdateRequest_ι_index : uint8;
+    MultisigWallet_ι_UpdateRequest_ι_signs : uint8;
+    MultisigWallet_ι_UpdateRequest_ι_confirmationsMask : uint32;
+    MultisigWallet_ι_UpdateRequest_ι_creator : uint256;
+    MultisigWallet_ι_UpdateRequest_ι_codeHash : uint256;
+    MultisigWallet_ι_UpdateRequest_ι_custodians : ( mapping uint256 uint256 (* uint256[] *));
+    MultisigWallet_ι_UpdateRequest_ι_reqConfirms : uint8;
+};
+
 Constants 
 
 Definition FLAG_SEND_ALL_REMAINING : uint8 := Build_XUBInteger (128)
@@ -126,16 +98,17 @@ Record Contract := {
    _foo : _static uint256;
    m_ownerKey :  uint256;
    m_requestsMask :  uint256;
-   m_transactions :  XHMap ( uint64 ) uint64 (* (MultisigWallet_ι_TransactionLRecord ) *);
+   m_transactions :  XHMap ( uint64 )  (_ResolveName "MultisigWallet_ι_Transaction") ;
    m_custodians :  XHMap ( uint256 )( uint8 );
    m_custodianCount :  uint8;
-   m_updateRequests :  XHMap ( uint64 ) uint64 (* (MultisigWallet_ι_UpdateRequestLRecord ) *);
+   m_updateRequests :  XHMap ( uint64 ) (_ResolveName "MultisigWallet_ι_UpdateRequest" ) ;
    m_updateRequestsMask :  uint32;
    m_requiredVotes :  uint8;
    m_defaultRequiredConfirmations :  uint8
 }.
 
 UseLocal Definition _ := [
+     uint32 ;
      XMaybe  (XProd ( uint64)( MultisigWallet_ι_UpdateRequestLRecord ) );
      boolean;
      uint64;
@@ -147,27 +120,52 @@ UseLocal Definition _ := [
      XMaybe  (MultisigWallet_ι_TransactionLRecord );
      XMaybe  (XProd ( uint64)( MultisigWallet_ι_TransactionLRecord ) );
      uint128;
-     XMaybe  ( uint8 )
+     XMaybe  ( uint8 );
+     XDefault MultisigWallet_ι_UpdateRequestLRecord;
+     XDefault
+  (uint64 **
+   MultisigWallet_ι_UpdateRequestLRecord)
 ].
-
- #[private(* , nonpayable *)]
+ 
+ #[private , nonpayable ]
 Ursus Definition _deleteUpdateRequest (updateId :  uint64) (index :  uint8): UExpression PhantomType false .
-   :://m_updateRequestsMask &= (uint32((β #{1})) << #{index}) ~ .
-   :://m_updateRequests[#{updateId}] delete .
+   :://m_updateRequestsMask &= ~ ((β #{1}) (* << #{index} *)) .
+
+:: // m_updateRequests := m_updateRequests ->delete ( #updateId ) .
    :://return_ {} |.
 Defined. 
 
 #[private, pure]
 Ursus Definition _getExpirationBound : UExpression ( uint64) false .
-  :://return_ ((uint64(now) - EXPIRATION_TIME) << (β #{32})) |.
+  ::// return_ (((* now - *) EXPIRATION_TIME) << (β #{32})) |.
+Defined. 
+ 
+#[private, pure]
+Ursus Definition _setConfirmed (mask :  uint32) (custodianIndex :  uint8): UExpression ( uint32) false .
+  ::// new 'mask1 : uint32 @ "mask1" := #mask ; _|.
+  ::// new 'onee  : uint32 @ "onee" := β #{1} ; _ |.
+  (* ::// mask1 |= (!onee << #custodianIndex) . *)
+  :://return_ #{mask} |.
 Defined. 
 
 #[private, nonpayable]
-Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType false .
-  ::// new 'marker : (  uint64 ) @ "marker"  := _getExpirationBound() .
-  ::// if ( m_updateRequests->empty ) then { {_:UExpression _ false} } .  :://exit_ {} .
-  :://new ('updateId , 'req ) @ (  uint64 , MultisigWallet_ι_UpdateRequestLRecord )  := m_updateRequests->min() ->get() .
-  ::// new 'needCleanup : (  boolean ) @ "needCleanup"  := (!{updateId} <= !{marker}) .
+Ursus Definition _confirmUpdate (updateId :  uint64) (custodianIndex :  uint8): UExpression PhantomType false .
+  ::// new 'request : ( MultisigWallet_ι_UpdateRequestLRecord ) @ "request"  := m_updateRequests[#updateId] ; _| .
+  :://!request ->MultisigWallet_ι_UpdateRequest_ι_signs ++ .
+  :://!{request}->confirmationsMask := _setConfirmed(!{request}->confirmationsMask, #{custodianIndex}) .
+  :://m_updateRequests[#{updateId}] := !{request} .
+  :://return_ {} |.
+Defined. 
+
+ 
+#[private, nonpayable]
+Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType true .
+  ::// new 'marker : (  uint64 ) @ "marker"  := _getExpirationBound ( ) ; _|.
+  ::// if ( m_updateRequests->empty() ) then { {_:UExpression _ true} } .  
+  :://exit_ {} |.
+  :://new ('updateId : uint64, 'req : MultisigWallet_ι_UpdateRequestLRecord ) @ ( "updateId" , "req" )  
+         := m_updateRequests->min() ->get() ; _| .
+  ::// new 'needCleanup : (  boolean ) @ "needCleanup"  := (!{updateId} <= !{marker}) ; _|.
   ::// if ( !{needCleanup} ) then { {_:UExpression _ false} } .
   :://tvm->accept() .
   :://while (!{needCleanup}) do 
@@ -185,20 +183,7 @@ Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType false .
   :://return_ {} |.
 Defined. 
 
-#[private, pure]
-Ursus Definition _setConfirmed (mask :  uint32) (custodianIndex :  uint8): UExpression ( uint32) false .
-  :://#{mask} |= (uint32((β #{1})) << #{custodianIndex}) .
-  :://return_ #{mask} |.
-Defined. 
 
-#[private, nonpayable]
-Ursus Definition _confirmUpdate (updateId :  uint64) (custodianIndex :  uint8): UExpression PhantomType false .
-  ::// new 'request : ( MultisigWallet_ι_UpdateRequestLRecord ) @ "request"  := m_updateRequests[#{updateId}] .
-  :://!{request}->signs ++ .
-  :://!{request}->confirmationsMask := _setConfirmed(!{request}->confirmationsMask, #{custodianIndex}) .
-  :://m_updateRequests[#{updateId}] := !{request} .
-  :://return_ {} |.
-Defined. 
 
 #[private, nonpayable]
 Ursus Definition _initialize (owners :  uint256[]) (reqConfirms :  uint8): UExpression PhantomType false .
