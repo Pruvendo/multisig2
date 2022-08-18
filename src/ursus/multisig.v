@@ -155,9 +155,10 @@ UseLocal Definition _ := [
  
  #[private , nonpayable ]
 Ursus Definition _deleteUpdateRequest (updateId :  uint64) (index :  uint8): UExpression PhantomType false .
-   :://m_updateRequestsMask &= ~ ((β #{1}) (* << #{index} *)) .
+   ::// new 'onee : uint32 @ "onee" := β #{1} ; _ | .
+(*    :://m_updateRequestsMask &=  ~ ( !onee  << #index ) . *)
 
-:: // m_updateRequests := m_updateRequests ->delete ( #updateId ) .
+   :: // m_updateRequests := m_updateRequests ->delete ( #updateId ) .
    :://return_ {} |.
 Defined. 
 
@@ -168,24 +169,23 @@ Defined.
  
 #[private, pure]
 Ursus Definition _setConfirmed (mask :  uint32) (custodianIndex :  uint8): UExpression ( uint32) false .
-  ::// new 'mask1 : uint32 @ "mask1" := #mask ; _|.
+  ::// new 'maskL : uint32 @ "maskL" := #mask ; _|.
   ::// new 'onee  : uint32 @ "onee" := β #{1} ; _ |.
-  (* ::// mask1 |= (!onee << #custodianIndex) . *)
-  :://return_ #{mask} |.
+(*   ::// maskL |= (!onee << #custodianIndex) . *)
+  :://return_ #mask |.
 Defined. 
   
 #[private, nonpayable]
 Ursus Definition _confirmUpdate (updateId :  uint64) (custodianIndex :  uint8): UExpression PhantomType false .
   ::// new 'request : ( MultisigWallet_ι_UpdateRequestLRecord ) @ "request"  := m_updateRequests[#updateId]  ; _| .
 (*   ::// { // !request -> MultisigWallet_ι_UpdateRequest_ι_signs | : ULValue  uint8} ++ . *)
-(*   :://!{request}->confirmationsMask := _setConfirmed(!{request}->confirmationsMask, #{custodianIndex}) . *)
+(*   :://!request ->MultisigWallet_ι_UpdateRequest_ι_confirmationsMask := 
+               _setConfirmed(!request ->confirmationsMask, #{custodianIndex}) . *)
 
-(* :://m_custodians[{}] := {} . *)
-Coersion qqq : XUInteger64 >-> uint.
-  :://m_updateRequests [#updateId] := {} (* !{request} *) .
+(*   :://m_updateRequests [#updateId] := {} (* !{request} *) . *)
   :://return_ {} |.
 Defined. 
-
+  
  
 #[private, nonpayable]
 Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType true .
@@ -195,64 +195,80 @@ Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType true .
   :://new ('updateId : uint64, 'req : MultisigWallet_ι_UpdateRequestLRecord ) @ ( "updateId" , "req" )  
          := m_updateRequests->min() ->get() ; _| .
   ::// new 'needCleanup : (  boolean ) @ "needCleanup"  := (!{updateId} <= !{marker}) ; _|.
-  ::// if ( !{needCleanup} ) then { {_:UExpression _ false} } .
+  ::// if ( !{needCleanup} ) then { {_:UExpression _ true} } .
   :://tvm->accept() .
   :://while (!{needCleanup}) do 
    {
-      _deleteUpdateRequest(!{updateId}, !{req}->index);
-       new 'reqOpt : (  XMaybe  (XProd ( uint64)( MultisigWallet_ι_UpdateRequestLRecord ) ) ) @ "reqOpt"  := m_updateRequests->next(!{updateId});
-      if ( !{reqOpt}->hasValue() ) then { {_:UExpression _ false} } else { {_:UExpression _ false} } 
-        :://[ !{updateId}, !{req} ] := !{reqOpt}->get() .
-        :://!{needCleanup} := (!{updateId} <= !{marker})  |.
+       {_:UExpression PhantomType true} } ; _ |.
+        ::// _deleteUpdateRequest( {} , {} ) .
+             (* ::// {} !updateId | .
+             ::// !req->MultisigWallet_ι_UpdateRequest_ι_index | . *)
+      ::// new 'reqOpt : (  optional  ( uint64 ** MultisigWallet_ι_UpdateRequestLRecord ) ) @ "reqOpt"  := m_updateRequests->next(!{updateId}) ; _ |.
+      ::// if ( !{reqOpt}->hasValue() ) then { {_:UExpression _ true} } 
+                                        else { {_:UExpression _ true} } .
+        (* :://[ updateId , req ] := !reqOpt ->get() . *)
+        (* :://needCleanup := (!{updateId} <= !{marker})  |. *)
+         :://exit_ {} |.
+         :://exit_ {} |.
+         :://exit_ {} |.
+         :://exit_ {} |.
+        (* :://!{needCleanup} := FALSE  |. *)
 
-        :://!{needCleanup} := FALSE  |.
-   } .
-  :://tvm->commit  |.
+  (* :://tvm->commit  |. *)
 
   :://return_ {} |.
 Defined. 
 
 
-
-#[private, nonpayable]
-Ursus Definition _initialize (owners :  uint256[]) (reqConfirms :  uint8): UExpression PhantomType false .
-  ::// new 'ownerCount : (  uint8 ) @ "ownerCount"  := (β #{0}) .
+#[private, nonpayable] 
+Ursus Definition _initialize (owners : mapping uint256 uint256 ) 
+                             (reqConfirms :  uint8)
+                            : UExpression PhantomType true (* false *) .
+  ::// new 'ownerCount : (  uint8 ) @ "ownerCount"  := (β #{0}) ; _|.
   :://m_ownerKey := #{owners}[(β #{0})] .
-  ::// new 'len : (  uint256 ) @ "len"  := #{owners}->length .
-  ::// new 'i : (  uint256 ) @ "i"  := (β #{0}) .
-  refine {{ while (*actually 'for'*)((!{i} < !{len}) && (!{ownerCount} < MAX_CUSTODIAN_COUNT))do 
-  {
-      ::// new 'key : (  uint256 ) @ "key"  := #{owners}[!{i}] .
-      ::// if ( (~ ( m_custodians->exists(!{key}))) ) then { {_:UExpression _ false} }  |.
-      :://m_custodians[!{key}] := !{ownerCount} ++  |.
-      :://!{i} ++ .
-  } .
-  :://m_defaultRequiredConfirmations := (!{ownerCount} <= #{reqConfirms}) ? #ownerCount : #reqConfirms .
+  ::// new 'len : (  uint256 ) @ "len" := {} ; _ | . (* #{owners}->length () ; _|. *)
+  ::// new 'i : (  uint256 ) @ "i"  := (β #{0}) ; _ | .
+  ::// while ((!{i} < !{len}) && (!{ownerCount} < MAX_CUSTODIAN_COUNT)) do 
+        { {_: UExpression PhantomType true (* false *)} } ; _ |.
+ 
+      ::// new 'key : (  uint256 ) @ "key"  := #{owners}[!{i}] ; _| .
+      ::// if ( (~ ( m_custodians->exists(!{key}))) ) then { {_:UExpression _ true (* false *)} }  |.
+      (* :://m_custodians[!{key}] := !{ownerCount} ++  . *)
+      (* :://!{i} ++ . *)
+         ::// exit_ {} | .
+(* } *)
+  :://m_defaultRequiredConfirmations := (!{ownerCount} <= {} (* #{reqConfirms} *)) ? {} (* (!ownerCount) *) : {} (* !{reqConfirms} *) . 
   :://m_requiredVotes := (!{ownerCount} <= (β #{2})) ? !{ownerCount} : (((!{ownerCount} * (β #{2})) + (β #{1})) / (β #{3})) .
   :://m_custodianCount := !{ownerCount} .
   :://return_ {} |.
 Defined. 
 
 #[private, nonpayable]
-Ursus Definition onCodeUpgrade (newOwners :  uint256[] (*TODO*) ) (reqConfirms :  uint8): UExpression PhantomType false .
+Ursus Definition onCodeUpgrade (newOwners :  mapping uint256 uint256 ) 
+                               (reqConfirms :  uint8)
+                               : UExpression PhantomType true .
   :://tvm->resetStorage() .
   :://_initialize(#{newOwners}, #{reqConfirms}) .
   :://return_ {} |.
 Defined. 
-
+ 
 #[public, view]
-Ursus Definition getUpdateRequests : UExpression (MultisigWallet_ι_UpdateRequest[]LRecord) false .
-  ::// new 'bound : (  uint64 ) @ "bound"  := _getExpirationBound() .
+Ursus Definition getUpdateRequests : UExpression (mapping uint256 uint256 (* MultisigWallet_ι_UpdateRequestLRecord *)) false .
+  ::// new 'bound : (  uint64 ) @ "bound"  := _getExpirationBound ( ) ; _ | .
+ (*for ((uint64 updateId, UpdateRequest req): m_updateRequests) {
+            if (updateId > bound) {
+                updates.push(req);
+            } *)
 
-  ::// if ( (!{updateId} > !{bound}) ) then { {_:UExpression _ false} }  |.
-  :://updates->push(!{req})  |.
-
+(*   ::// if ( (!{updateId} > !{bound}) ) then { {_:UExpression _ false} }  |. *)
+(*   :://updates ->push(!{req})  |. *)
+  :://return_ {} |.
 Defined. 
 
 #[public, nonpayable]
-Ursus Definition executeUpdate (updateId :  uint64) (code :  cell_): UExpression PhantomType true .
-  :://require_(m_custodians->exists(msg->pubkey()), (β #{100})) .
-  :://_removeExpiredUpdateRequests() .
+Ursus Definition executeUpdate (updateId :  uint64) (code :  TvmCell): UExpression PhantomType true .
+  :://require_(m_custodians->exists(msg->pubkey()), %100) .
+  ::// _removeExpiredUpdateRequests ( ) .
   ::// new 'requestOpt : (  XMaybe  (MultisigWallet_ι_UpdateRequestLRecord ) ) @ "requestOpt"  := m_updateRequests->fetch(#{updateId}) .
   :://require_(!{requestOpt}->hasValue(), (β #{115})) .
   ::// new 'request : ( MultisigWallet_ι_UpdateRequestLRecord ) @ "request"  := !{requestOpt}->get() .
