@@ -53,36 +53,62 @@ MakeInterface Class Itmp :=
  }.
 EndInterfaces.
 
+Definition MultisigWallet_ι_TransactionL: list Type := [
+  ( uint64) : Type;
+  ( uint32) : Type;
+  ( uint8) : Type;
+  ( uint8) : Type;
+  ( uint256) : Type;
+  ( uint8) : Type;
+  ( address) : Type;
+  ( uint128) : Type;
+  ( uint16) : Type;
+  ( cell_) : Type;
+  ( boolean) : Type
+].
+
+Inductive MultisigWallet_ι_TransactionFields :=
+| MultisigWallet_ι_Transaction_ι_id  (*uint64*)
+| MultisigWallet_ι_Transaction_ι_confirmationsMask  (*uint32*)
+| MultisigWallet_ι_Transaction_ι_signsRequired  (*uint8*)
+| MultisigWallet_ι_Transaction_ι_signsReceived  (*uint8*)
+| MultisigWallet_ι_Transaction_ι_creator  (*uint256*)
+| MultisigWallet_ι_Transaction_ι_index  (*uint8*)
+| MultisigWallet_ι_Transaction_ι_dest  (*address*)
+| MultisigWallet_ι_Transaction_ι_value  (*uint128*)
+| MultisigWallet_ι_Transaction_ι_sendFlags  (*uint16*)
+| MultisigWallet_ι_Transaction_ι_payload  (*TvmCell*)
+| MultisigWallet_ι_Transaction_ι_bounce  (*bool*)
+.
+GlobalGeneratePruvendoRecord MultisigWallet_ι_TransactionL MultisigWallet_ι_TransactionFields.
+
+Definition MultisigWallet_ι_UpdateRequestL: list Type := [
+  ( uint64) : Type;
+  ( uint8) : Type;
+  ( uint8) : Type;
+  ( uint32) : Type;
+  ( uint256) : Type;
+  ( uint256) : Type;
+  ( mapping uint256 uint256 (* uint256[] *)) : Type;
+  ( uint8) : Type
+].
+Inductive MultisigWallet_ι_UpdateRequestFields :=
+| MultisigWallet_ι_UpdateRequest_ι_id  (*uint64*)
+| MultisigWallet_ι_UpdateRequest_ι_index  (*uint8*)
+| MultisigWallet_ι_UpdateRequest_ι_signs  (*uint8*)
+| MultisigWallet_ι_UpdateRequest_ι_confirmationsMask  (*uint32*)
+| MultisigWallet_ι_UpdateRequest_ι_creator  (*uint256*)
+| MultisigWallet_ι_UpdateRequest_ι_codeHash  (*uint256*)
+| MultisigWallet_ι_UpdateRequest_ι_custodians  (*uint256[]*)
+| MultisigWallet_ι_UpdateRequest_ι_reqConfirms  (*uint8*)
+.
+GlobalGeneratePruvendoRecord MultisigWallet_ι_UpdateRequestL MultisigWallet_ι_UpdateRequestFields.
+
 Require Import UMLang.LocalClassGenerator.ClassGenerator.
 
 Contract MultisigWallet ;
 
 Sends To  Itmp ; 
-
-Types 
-  Record MultisigWallet_ι_Transaction := {
-    MultisigWallet_ι_Transaction_ι_id : uint64;
-    MultisigWallet_ι_Transaction_ι_confirmationsMask : uint32;
-    MultisigWallet_ι_Transaction_ι_signsRequired : uint8;
-    MultisigWallet_ι_Transaction_ι_signsReceived : uint8;
-    MultisigWallet_ι_Transaction_ι_creator : uint256;
-    MultisigWallet_ι_Transaction_ι_index : uint8;
-    MultisigWallet_ι_Transaction_ι_dest : address;
-    MultisigWallet_ι_Transaction_ι_value : uint128;
-    MultisigWallet_ι_Transaction_ι_sendFlags : uint16;
-    MultisigWallet_ι_Transaction_ι_payload : TvmCell;
-    MultisigWallet_ι_Transaction_ι_bounce : boolean
-  }
-Record MultisigWallet_ι_UpdateRequest := {
-    MultisigWallet_ι_UpdateRequest_ι_id : uint64;
-    MultisigWallet_ι_UpdateRequest_ι_index : uint8;
-    MultisigWallet_ι_UpdateRequest_ι_signs : uint8;
-    MultisigWallet_ι_UpdateRequest_ι_confirmationsMask : uint32;
-    MultisigWallet_ι_UpdateRequest_ι_creator : uint256;
-    MultisigWallet_ι_UpdateRequest_ι_codeHash : uint256;
-    MultisigWallet_ι_UpdateRequest_ι_custodians : ( mapping uint256 uint256 (* uint256[] *));
-    MultisigWallet_ι_UpdateRequest_ι_reqConfirms : uint8;
-};
 
 Constants 
 
@@ -98,10 +124,10 @@ Record Contract := {
    _foo : _static uint256;
    m_ownerKey :  uint256;
    m_requestsMask :  uint256;
-   m_transactions :  XHMap ( uint64 )  (_ResolveName "MultisigWallet_ι_Transaction") ;
+   m_transactions :  XHMap ( uint64 )  (MultisigWallet_ι_TransactionLRecord) ;
    m_custodians :  XHMap ( uint256 )( uint8 );
    m_custodianCount :  uint8;
-   m_updateRequests :  XHMap ( uint64 ) (_ResolveName "MultisigWallet_ι_UpdateRequest" ) ;
+   m_updateRequests :  XHMap ( uint64 ) (MultisigWallet_ι_UpdateRequestLRecord ) ;
    m_updateRequestsMask :  uint32;
    m_requiredVotes :  uint8;
    m_defaultRequiredConfirmations :  uint8
@@ -150,7 +176,7 @@ Defined.
   
 #[private, nonpayable]
 Ursus Definition _confirmUpdate (updateId :  uint64) (custodianIndex :  uint8): UExpression PhantomType false .
-  ::// new 'request : ( MultisigWallet_ι_UpdateRequestLRecord ) @ "request"  := {} (* m_updateRequests[#updateId] *) ; _| .
+  ::// new 'request : ( MultisigWallet_ι_UpdateRequestLRecord ) @ "request"  := m_updateRequests[#updateId]  ; _| .
 (*   ::// { // !request -> MultisigWallet_ι_UpdateRequest_ι_signs | : ULValue  uint8} ++ . *)
 (*   :://!{request}->confirmationsMask := _setConfirmed(!{request}->confirmationsMask, #{custodianIndex}) . *)
 
