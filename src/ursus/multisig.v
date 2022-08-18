@@ -34,7 +34,7 @@ Local Open Scope N_scope.
 Local Open Scope string_scope.
 Local Open Scope list_scope.
 
-(* Definition MultisigWallet_ι_CustodianInfoL: list Type := [
+Definition MultisigWallet_ι_CustodianInfoL: list Type := [
   ( uint8) : Type;
   ( uint256) : Type
 ].
@@ -43,7 +43,7 @@ Inductive MultisigWallet_ι_CustodianInfoFields :=
 | MultisigWallet_ι_CustodianInfo_ι_pubkey  (*uint256*)
 .
 GlobalGeneratePruvendoRecord MultisigWallet_ι_CustodianInfoL MultisigWallet_ι_CustodianInfoFields.
-Opaque MultisigWallet_ι_CustodianInfoLRecord. *)
+Opaque MultisigWallet_ι_CustodianInfoLRecord.
 
 Interfaces.
 
@@ -222,7 +222,7 @@ Ursus Definition onCodeUpgrade (newOwners :  mapping uint256 uint256 )
                                (reqConfirms :  uint8)
                                : UExpression PhantomType true .
   :://tvm->resetStorage() .
-  :://_initialize(#{newOwners}, #{reqConfirms}) .
+  :://_initialize (#{newOwners}, #{reqConfirms}) .
   :://return_ {} |.
 Defined. 
  
@@ -238,34 +238,35 @@ Ursus Definition getUpdateRequests : UExpression (mapping uint256 uint256 (* Mul
 (*   :://updates ->push(!{req})  |. *)
   :://return_ {} |.
 Defined. 
-
+ 
 #[public, nonpayable]
 Ursus Definition executeUpdate (updateId :  uint64) (code :  TvmCell): UExpression PhantomType true .
   :://require_(m_custodians->exists(msg->pubkey()), %100) .
-  ::// _removeExpiredUpdateRequests ( ) .
-  ::// new 'requestOpt : (  XMaybe  (MultisigWallet_ι_UpdateRequestLRecord ) ) @ "requestOpt"  := m_updateRequests->fetch(#{updateId}) .
-  :://require_(!{requestOpt}->hasValue(), (β #{115})) .
-  ::// new 'request : ( MultisigWallet_ι_UpdateRequestLRecord ) @ "request"  := !{requestOpt}->get() .
-  :://require_((tvm->hash(#{code})  == !{request}->codeHash), (β #{119})) .
-  :://require_((!{request}->signs >= m_requiredVotes), (β #{120})) .
+(*   ::// _removeExpiredUpdateRequests ( ) . *)
+  ::// new 'requestOpt : (  XMaybe  (MultisigWallet_ι_UpdateRequestLRecord ) ) @ "requestOpt"  := m_updateRequests->fetch(#{updateId}) ; _ | .
+  :://require_(!{requestOpt}->hasValue(), %115 ) .
+  ::// new 'request : ( MultisigWallet_ι_UpdateRequestLRecord ) @ "request"  := !{requestOpt}->get() ; _ | .
+   :://require_((tvm->hash(#{code})  == !{request}->MultisigWallet_ι_UpdateRequest_ι_codeHash ), %119 ) . 
+  :://require_(m_requiredVotes <= (!{request}->MultisigWallet_ι_UpdateRequest_ι_signs ), %120 ) .
   :://tvm->accept() .
-  :://_deleteUpdateRequest(#{updateId}, !{request}->index) .
+  :://_deleteUpdateRequest(#{updateId}, !{request}->MultisigWallet_ι_UpdateRequest_ι_index) .
   :://tvm->setcode(#{code})  .
   :://tvm->setCurrentCode(#{code})  .
-  :://onCodeUpgrade(!{request}->custodians, !{request}->reqConfirms) .
+  :://onCodeUpgrade(!{request}->MultisigWallet_ι_UpdateRequest_ι_custodians, !{request}->MultisigWallet_ι_UpdateRequest_ι_reqConfirms) .
   :://return_ {} |.
 Defined. 
 
 #[private, view]
 Ursus Definition _findCustodian (senderKey :  uint256): UExpression ( uint8) true .
-  ::// new 'custodianIndex : (  XMaybe  ( uint8 ) ) @ "custodianIndex"  := m_custodians->fetch(#{senderKey}) .
-  :://require_(!{custodianIndex}->hasValue(), (β #{100})) .
+  ::// new 'custodianIndex : (  XMaybe  ( uint8 ) ) @ "custodianIndex"  := m_custodians->fetch(#{senderKey}) ; _ | .
+  :://require_(!{custodianIndex}->hasValue(), %100 ) .
   :://return_ !{custodianIndex}->get() |.
 Defined. 
 
 #[private, pure]
 Ursus Definition _checkBit (mask :  uint32) (index :  uint8): UExpression ( boolean) false .
-  :://return_ ((#{mask} & (uint32((β #{1})) << #{index})) != (β #{0})) |.
+  ::// new 'onee : uint32 @ "onee" := (β #{1}) ; _ | .
+  :://return_ {} (* (#{mask} & !onee << #{index}) != (β #{0})) *) |.
 Defined. 
 
 #[private, pure]
@@ -275,11 +276,11 @@ Defined.
 
 #[public, nonpayable]
 Ursus Definition confirmUpdate (updateId :  uint64): UExpression PhantomType true .
-  ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(msg->pubkey()) .
-  :://_removeExpiredUpdateRequests() .
-  ::// new 'requestOpt : (  XMaybe  (MultisigWallet_ι_UpdateRequestLRecord ) ) @ "requestOpt"  := m_updateRequests->fetch(#{updateId}) .
-  :://require_(!{requestOpt}->hasValue(), (β #{115})) .
-  :://require_((~ ( _isConfirmed(!{requestOpt}->get()->confirmationsMask, !{index}))), (β #{116})) .
+  ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(msg->pubkey()) ; _ | .
+(*   :://_removeExpiredUpdateRequests ( ) . *)
+  ::// new 'requestOpt : (  XMaybe  (MultisigWallet_ι_UpdateRequestLRecord ) ) @ "requestOpt"  := m_updateRequests->fetch(#{updateId}) ; _ | .
+  :://require_(!{requestOpt}->hasValue(), %115) .
+(*   :://require_((~ ( (_isConfirmed((!{requestOpt}->  get  ())->MultisigWallet_ι_UpdateRequest_ι_confirmationsMask, !{index})))), %116) . *)
   :://tvm->accept() .
   :://_confirmUpdate(#{updateId}, !{index}) .
   :://return_ {} |.
@@ -287,7 +288,7 @@ Defined.
 
 #[private, pure]
 Ursus Definition _generateId : UExpression ( uint64) false .
-  :://return_ ((uint64(now) << (β #{32})) | (tx->timestamp & (β #{0xFFFFFFFF}))) |.
+  :://return_ {} (* ((uint64(now) << (β #{32})) | (tx->timestamp & (β #{0xFFFFFFFF}))) *) |.
 Defined. 
 
 #[private, pure]
@@ -301,48 +302,55 @@ Ursus Definition _isSubmitted (mask :  uint32) (custodianIndex :  uint8): UExpre
 Defined. 
 
 #[public, nonpayable]
-Ursus Definition submitUpdate (codeHash :  uint256) (owners :  uint256[]) (reqConfirms :  uint8): UExpression ( uint64) true .
-  ::// new 'sender : (  uint256 ) @ "sender"  := msg->pubkey() .
-  ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(!{sender}) .
-  :://require_(((#{owners}->length > (β #{0})) && (#{owners}->length <= MAX_CUSTODIAN_COUNT)), (β #{117})) .
-  :://_removeExpiredUpdateRequests() .
-  :://require_((~ ( _isSubmitted(m_updateRequestsMask, !{index}))), (β #{113})) .
+Ursus Definition submitUpdate (codeHash :  uint256) 
+                              (owners :  mapping uint256 uint256) 
+                              (reqConfirms :  uint8)
+                              : UExpression ( uint64) true .
+  ::// new 'sender : (  uint256 ) @ "sender"  := msg->pubkey() ; _ | .
+  ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(!{sender}) ; _ | .
+  :://require_(((#{owners}->length () > {}) (*β #{0}*) && (#{owners}->length () <= {} (* MAX_CUSTODIAN_COUNT *))), %117) .
+(*   :://_removeExpiredUpdateRequests ( ) . *)
+  :://require_((~ ( _isSubmitted(m_updateRequestsMask, !{index}))), %113) .
   :://tvm->accept() .
   :://m_updateRequestsMask := _setSubmitted(m_updateRequestsMask, !{index}) .
-  :://updateId := _generateId() .
-  :://m_updateRequests[updateId] := UpdateRequest(updateId, !{index}, (β #{0}), (β #{0}), !{sender}, #{codeHash}, #{owners}, #{reqConfirms}) .
-  :://_confirmUpdate(updateId, !{index})  |.
+  ::// new 'updateId : uint64 @ "uint64" := _generateId ( ) ; _ | .
+(*   :://m_updateRequests[updateId] := UpdateRequest(updateId, !{index}, (β #{0}), (β #{0}), !{sender}, #{codeHash}, #{owners}, #{reqConfirms}) . *)
+  :://_confirmUpdate ( !{updateId} , !{index} )  |.
+Defined. 
+
+(* #[public, view]
+Ursus Definition getCustodians : UExpression (mapping uint256 uint256 (* MultisigWallet_ι_CustodianInfoLRecord *)) false .
+
+(*   :://custodians->push ( CustodianInfo(!{index}, !{key}))  |. *)
+  (* :://new ('key , 'index ) @ (  uint256 ,  uint8 )   |. *)
+ ::// return_ {}.
+Defined.  *)
+
+#[public, view]
+Ursus Definition getTransactionIds : UExpression ( mapping uint256 uint64 ) false .
+       (*  for ((uint64 trId, ): m_transactions) {
+            ids.push(trId); *)
+ :://return_ {} |.
 Defined. 
 
 #[public, view]
-Ursus Definition getCustodians : UExpression (MultisigWallet_ι_CustodianInfo[]LRecord) false .
-
-  :://custodians->push(CustodianInfo(!{index}, !{key}))  |.
-  :://new ('key , 'index ) @ (  uint256 ,  uint8 )   |.m_custodians
+Ursus Definition getTransactions : UExpression (mapping uint256 uint256 (* MultisigWallet_ι_TransactionLRecord *)) false .
+  ::// new 'bound : (  uint64 ) @ "bound"  := _getExpirationBound ( ) ; _ | .
+(* for ((uint64 id, Transaction txn): m_transactions) {
+            // returns only not expired transactions
+            if (id > bound) {
+                transactions.push(txn);
+            }
+        } *)
+::// return_ {} | .
 Defined. 
 
 #[public, view]
-Ursus Definition getTransactionIds : UExpression ( uint64[]) false .
-
-  :://ids->push(!{trId})  |.
-  :://new ('trId , ' ) @ (  uint64 ,  )   |.m_transactions
-Defined. 
-
-#[public, view]
-Ursus Definition getTransactions : UExpression (MultisigWallet_ι_Transaction[]LRecord) false .
-  ::// new 'bound : (  uint64 ) @ "bound"  := _getExpirationBound() .
-
-  ::// if ( (!{id} > !{bound}) ) then { {_:UExpression _ false} }  |.
-  :://transactions->push(!{txn})  |.
-
-  :://new ('id , 'txn ) @ (  uint64 , MultisigWallet_ι_TransactionLRecord )   |.m_transactions
-Defined. 
-
-#[public, view]
-Ursus Definition getTransaction (transactionId :  uint64): UExpression (MultisigWallet_ι_TransactionLRecord) true .
-  ::// new 'txnOpt : (  XMaybe  (MultisigWallet_ι_TransactionLRecord ) ) @ "txnOpt"  := m_transactions->fetch(#{transactionId}) .
-  :://require_(!{txnOpt}->hasValue(), (β #{102})) .
-  :://trans := !{txnOpt}->get()  |.
+Ursus Definition getTransaction (transactionId :  uint64): UExpression uint256 (*MultisigWallet_ι_TransactionLRecord*) true .
+  ::// new 'txnOpt : (  XMaybe  (MultisigWallet_ι_TransactionLRecord ) ) @ "txnOpt"  := m_transactions->fetch(#{transactionId}) ; _ | .
+  :://require_(!{txnOpt}->hasValue(), %102 ) .
+  ::// new 'trans : uint256 @ "trans" := {} ; _ | .
+  ::// return_ !{trans} | .
 Defined. 
 
 #[public, view]
