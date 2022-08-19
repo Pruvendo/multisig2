@@ -39,8 +39,8 @@ Require Import UMLang.ExecGen.GenFlags.
 Require Import UMLang.ExecGen.ExecGenDefs.
 Require Import FinProof.CommonInstances.
 
-(*Require Import CommonQCEnvironment.
-Require Import LocalState.VestingPool.*)
+Require Import CommonQCEnvironment.
+(*Require Import LocalState.VestingPool.*)
 (*Notation rec := LocalStateLRecord.
 Definition computed : LocalStateLRecord  := Eval compute in default. 
 #[global]
