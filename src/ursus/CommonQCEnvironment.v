@@ -10,6 +10,7 @@ Require Import mathcomp.ssreflect.ssreflect.
 From mathcomp Require Import seq ssreflect ssrbool ssrnat eqtype.
 
 Require Import FinProof.Common. 
+Require Import FinProof.Lib.BoolEq.
 Require Import FinProof.MonadTransformers21.
 Require Import FinProof.CommonInstances.
 Require Import FinProof.StateMonad21.
@@ -293,17 +294,69 @@ extensionality x.
 destruct x; reflexivity.
 Defined.
 
+
+#[global]
+Instance ShowCellPackedValue: Show CellPackedValue := {
+  show v := match v with
+  | CPBool b => show b ++  " : bool"
+  | CPNat n => show n ++ " : coq_nat"
+  | CPXInteger i => show i ++ " : int"
+  | CPString s => show s ++ " : string"
+  | CPXUBInteger n m => show m ++ " : uint" ++ show n
+  end
+}.
+
+#[global]
+Instance ShowCellSizedValue: Show CellSizedValue := {
+  show v := match v with
+  | CellSizedV n v => show v ++ " [size " ++ show n ++ "]"
+  end
+}.
+
 #[global]
 Instance ShowPrecell: Show Precell.
-Admitted.
+exists. intros [c _].
+refine (let repeatString s := fix F n := match n with
+        | O => ""
+        | S n' => s ++ F n'
+        end in _).
+refine (let joinStrings sep := fix F ss := match ss with
+        | nil => ""
+        | s::nil => s
+        | s::ss => s ++ sep ++ F ss
+        end in _).
+refine (let indentEach ls := 
+          map (fun s => "->" ++ s) ls in _).
+refine (let showLines c := _ in joinStrings nl (showLines c)).
+refine ("" :: ((fix F (c : PrecellTree) := _) c)).
+refine (
+match c with
+| Build_PrecellTree vs Null Null Null Null => _
+| Build_PrecellTree vs (Ref r1) Null Null Null => _
+| Build_PrecellTree vs (Ref r1) (Ref r2) Null Null => _
+| Build_PrecellTree vs (Ref r1) (Ref r2) (Ref r3) Null => _
+| Build_PrecellTree vs (Ref r1) (Ref r2) (Ref r3) (Ref r4) => _
+| _ => nil
+end).
+all: refine (show vs :: indentEach _).
+{ refine nil. }
+{ refine (F r1). }
+{ refine (cat (F r1) (F r2)). }
+{ refine (cat (F r1) (cat (F r2) (F r3))). }
+{ refine (cat (F r1) (cat (F r2) (cat (F r3) (F r4)))). }
+Defined.
 
 #[global]
 Instance ShrinkPrecell: Shrink Precell.
-Admitted.
+exists. intros c.
+refine nil.
+Defined.
 
 #[global]
 Instance GenSizedPrecell: GenSized Precell.
-Admitted.
+exists.
+refine (fun _ => elems [EmptyPrecell]).
+Defined.
 
 (*cell_*)
 
@@ -619,7 +672,10 @@ Defined.
 Instance precell_Dec (a b: Precell): Dec (a = b).
 esplit.
 unfold decidable.
-Admitted.
+destruct (Common.eqb a b) eqn:Heqb.
+{ left. now apply eqb_spec_intro. }
+right. intros Heq. apply eqb_spec_intro in Heq. congruence.
+Defined.
 
 #[global]
 Instance cellEq_Dec (a b: cell_): Dec (a = b).
