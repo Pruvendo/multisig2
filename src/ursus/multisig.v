@@ -160,6 +160,7 @@ Ursus Definition _confirmUpdate (updateId :  uint64) (custodianIndex :  uint8): 
   :://return_ {} |.
 Defined. 
   
+Sync.
  
 #[private, nonpayable]
 Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType true .
@@ -217,6 +218,8 @@ Ursus Definition _initialize (owners : mapping uint256 uint256 )
   :://return_ {} |.
 Defined. 
 
+Sync.
+
 #[private, nonpayable]
 Ursus Definition onCodeUpgrade (newOwners :  mapping uint256 uint256 ) 
                                (reqConfirms :  uint8)
@@ -239,6 +242,8 @@ Ursus Definition getUpdateRequests : UExpression (mapping uint256 uint256 (* Mul
   :://return_ {} |.
 Defined. 
  
+Sync.
+
 #[public, nonpayable]
 Ursus Definition executeUpdate (updateId :  uint64) (code :  TvmCell): UExpression PhantomType true .
   :://require_(m_custodians->exists(msg->pubkey()), %100) .
@@ -268,6 +273,8 @@ Ursus Definition _checkBit (mask :  uint32) (index :  uint8): UExpression ( bool
   ::// new 'onee : uint32 @ "onee" := (β #{1}) ; _ | .
   :://return_ {} (* (#{mask} & !onee << #{index}) != (β #{0})) *) |.
 Defined. 
+
+Sync.
 
 #[private, pure]
 Ursus Definition _isConfirmed (mask :  uint32) (custodianIndex :  uint8): UExpression ( boolean) false .
@@ -300,6 +307,8 @@ Defined.
 Ursus Definition _isSubmitted (mask :  uint32) (custodianIndex :  uint8): UExpression ( boolean) false .
   :://return_ _checkBit(#{mask}, #{custodianIndex}) |.
 Defined. 
+
+Sync.
 
 #[public, nonpayable]
 Ursus Definition submitUpdate (codeHash :  uint256) 
@@ -387,6 +396,8 @@ Ursus Definition _decMaskValue (mask :  uint256) (index :  uint8): UExpression (
   :://return_ {} (*#{mask} - (!onee << (!eight * #{index}))*) |.
 Defined. 
 
+Sync. 
+
 #[private, nonpayable]
 Ursus Definition _removeExpiredTransactions : UExpression PhantomType true .
   ::// new 'marker : (  uint64 ) @ "marker"  := _getExpirationBound ( ) ; _ |  .
@@ -445,6 +456,8 @@ Ursus Definition _confirmTransaction (transactionId :  uint64)
   :://return_ {} |.
 Defined. 
 
+Sync.
+
 #[public, nonpayable]
 Ursus Definition confirmTransaction (transactionId :  uint64): UExpression PhantomType true .
   ::// new 'index : (  uint8 ) @ "index" := _findCustodian(msg->pubkey()) ; _ | .
@@ -485,6 +498,8 @@ Ursus Definition _getMaskValue (mask :  uint256) (index :  uint8): UExpression (
 
   :://return_ {} (* uint8(((#{mask} >> (!{eightt} * uint256(!{indexx}))) & (β #{0xFF}))) *) |.
 Defined. 
+
+Sync.
 
 #[public, nonpayable]
 Ursus Definition submitTransaction (dest :  address) 
