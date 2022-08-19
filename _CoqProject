@@ -1,0 +1,4 @@
+# Initial version generated with
+# { echo "-R . FinProof " ; find . -name "*.v" -print } > _CoqProject
+
+-R ./_build/default/src/ursus MultisigProject

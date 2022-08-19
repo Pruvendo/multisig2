@@ -165,7 +165,6 @@ Ursus Definition _confirmUpdate (updateId :  uint64)
   :://return_ {} |.
 Defined. 
   
-Sync.
  
 #[private, nonpayable]
 Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType true .
@@ -219,8 +218,6 @@ Ursus Definition _initialize (owners : mapping uint256 uint256 )
   :://return_ {} |.
 Defined. 
 
-Sync.
-
 #[private, nonpayable]
 Ursus Definition onCodeUpgrade (newOwners :  mapping uint256 uint256 ) 
                                (reqConfirms :  uint8)
@@ -230,24 +227,6 @@ Ursus Definition onCodeUpgrade (newOwners :  mapping uint256 uint256 )
   :://return_ {} |.
 Defined. 
  
-<<<<<<< HEAD
-=======
-#[public, view]
-Ursus Definition getUpdateRequests : UExpression (mapping uint256 uint256 (* MultisigWallet_ι_UpdateRequestLRecord *)) false .
-  ::// new 'bound : (  uint64 ) @ "bound"  := _getExpirationBound ( ) ; _ | .
- (*for ((uint64 updateId, UpdateRequest req): m_updateRequests) {
-            if (updateId > bound) {
-                updates.push(req);
-            } *)
-
-(*   ::// if ( (!{updateId} > !{bound}) ) then { {_:UExpression _ false} }  |. *)
-(*   :://updates ->push(!{req})  |. *)
-  :://return_ {} |.
-Defined. 
- 
-Sync.
-
->>>>>>> 3e304849d46b490c8f1bb96dcce895a88823505d
 #[public, nonpayable]
 Ursus Definition executeUpdate (updateId :  uint64) (code :  TvmCell)
                               : UExpression PhantomType true .
@@ -278,8 +257,6 @@ Ursus Definition _checkBit (mask :  uint32) (index :  uint8): UExpression ( bool
   ::// new 'onee : uint32 @ "onee" := (β #{1}) ; _ | .
   :://return_  ((#{mask} & !{onee} << {} (* #{index} *)) != (β #{0})) |.
 Defined. 
-
-Sync.
 
 #[private, pure]
 Ursus Definition _isConfirmed (mask :  uint32) (custodianIndex :  uint8): UExpression ( boolean) false .
@@ -313,8 +290,6 @@ Defined.
 Ursus Definition _isSubmitted (mask :  uint32) (custodianIndex :  uint8): UExpression ( boolean) false .
   :://return_ _checkBit(#{mask}, #{custodianIndex}) |.
 Defined. 
-
-Sync.
 
 #[public, nonpayable]
 Ursus Definition submitUpdate (codeHash :  uint256) 
@@ -358,8 +333,6 @@ Ursus Definition _decMaskValue (mask :  uint256) (index :  uint8)
    ::// new 'eight : uint256 @ "eight" := β #{8} ; _ | . 
   :://return_ (#{mask} - (!{onee} << (!{eight} * {} (* #{index} *)))) |.
 Defined. 
-
-Sync. 
 
 #[private, nonpayable]
 Ursus Definition _removeExpiredTransactions : UExpression PhantomType true .
@@ -415,13 +388,7 @@ Ursus Definition _confirmTransaction (transactionId :  uint64)
 
   :://return_ {} |.
 Defined. 
-<<<<<<< HEAD
    
-=======
-
-Sync.
-
->>>>>>> 3e304849d46b490c8f1bb96dcce895a88823505d
 #[public, nonpayable]
 Ursus Definition confirmTransaction (transactionId :  uint64): UExpression PhantomType true .
   ::// new 'index : (  uint8 ) @ "index" := _findCustodian(msg->pubkey()) ; _ | .
@@ -459,8 +426,6 @@ Ursus Definition _getMaskValue (mask :  uint256) (index :  uint8): UExpression (
 (*   ::// new 'indexx : uint256 @ "indexx" := (β #{index} ) ;_|. *)
   :://return_ (((* #{mask} >> (!{eightt} * {} *)  #{index} ) & (β #{0xFF})) |.
 Defined. 
-
-Sync.
 
 #[public, nonpayable]
 Ursus Definition submitTransaction (dest :  address) 

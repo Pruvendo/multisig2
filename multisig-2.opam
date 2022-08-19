@@ -1,0 +1,34 @@
+synopsis:     "Multisig-2 project checking"
+description:  "Multisig-2 project checking"
+name:         "multisig-2"
+opam-version: "2.0"
+maintainer:   "team@pruvendo.com"
+authors:      "Pruvendo Team"
+homepage:     "git@vcs.modus-ponens.com:ton/multisig-2.git"
+dev-repo:     "git+https://github.com/Pruvendo/opam-repo.git"
+bug-reports:  "git@vcs.modus-ponens.com:ton/multisig-2.git"
+doc:          "https://vcs.modus-ponens.com/ton/multisig-2"
+
+license:      "GPL 3"
+
+depends: [
+  "coq"           { >= "8.11.0" }
+  "dune"          { >= "2.8.0"  }
+  "coq-elpi"
+  "pruvendo-base" { >= "0.2.0" }
+  "pruvendo-base-lib" { >= "0.1.0" }
+  "pruvendo-umlang" 
+  "ursus-standard-library"
+  "pruvendo-ursus-tvm"
+]
+
+pin-depends: [
+  ["coq-elpi.latest-git" "../coq-elpi-mod#master"]
+  [ "pruvendo-base.latest-git" "../coq-finproof-base#master" ]
+  [ "pruvendo-base-lib.latest-git" "../pruvendo-base-lib#master" ]
+  [ "pruvendo-umlang.latest-git" "../solidity-monadic-language#changed_XProd" ]
+  [ "ursus-standard-library.latest-git" "../ursus-standard-library#changed_XProd" ]  
+  [ "pruvendo-ursus-tvm.latest-git" "../pruvendo-ursus-tvm#changed_XProd" ]  
+]
+
+build: [ "dune" "build" "-p" name "-j" jobs ]
