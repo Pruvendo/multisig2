@@ -163,7 +163,7 @@ Defined.
  
 #[private, nonpayable]
 Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType true .
-  ::// new 'marker : (  uint64 ) @ "marker"  := _getExpirationBound ( ) ; _|.
+  ::// new 'marker : (  uint64 ) @ "marker"  := _getExpirationBound ( ) ; _| .
   ::// if ( m_updateRequests->empty() ) then { {_:UExpression _ true} } .  
   :://exit_ {} |.
   :://new ('updateId : uint64, 'req : MultisigWallet_ι_UpdateRequestLRecord ) @ ( "updateId" , "req" )  
@@ -349,60 +349,80 @@ Defined.
 Ursus Definition getTransaction (transactionId :  uint64): UExpression uint256 (*MultisigWallet_ι_TransactionLRecord*) true .
   ::// new 'txnOpt : (  XMaybe  (MultisigWallet_ι_TransactionLRecord ) ) @ "txnOpt"  := m_transactions->fetch(#{transactionId}) ; _ | .
   :://require_(!{txnOpt}->hasValue(), %102 ) .
+
+(* for ((uint64 id, Transaction txn): m_transactions) {
+            // returns only not expired transactions
+            if (id > bound) {
+                transactions.push(txn);
+            }
+        } *)
+
   ::// new 'trans : uint256 @ "trans" := {} ; _ | .
   ::// return_ !{trans} | .
 Defined. 
 
 #[public, view]
-Ursus Definition getParameters : UExpression ( uint8 #  uint8 #  uint64 #  uint128 #  uint8 #  uint8) false .
-  :://maxQueuedTransactions := MAX_QUEUED_REQUESTS .
-  :://maxCustodianCount := MAX_CUSTODIAN_COUNT .
-  :://expirationTime := EXPIRATION_TIME .
-  :://minValue := (β #{0}) .
-  :://requiredTxnConfirms := m_defaultRequiredConfirmations .
-  :://requiredUpdConfirms := m_requiredVotes  |.
+Ursus Definition getParameters : UExpression ( uint8 **  uint8 **  uint64 **  uint128 **  uint8 **  uint8) false .
+
+     ::// new 'maxQueuedTransactions : uint8 @ "maxQueuedTransactions" := MAX_QUEUED_REQUESTS ; _  | .
+     ::// new 'maxCustodianCount : uint8 @ "maxCustodianCount" := MAX_CUSTODIAN_COUNT ; _  | .
+     ::// new 'expirationTime : uint64 @ "expirationTime" := EXPIRATION_TIME ; _ | .
+     ::// new 'minValue : uint128 @ "minValue" := (β #{0}) ; _ | .
+     ::// new 'requiredTxnConfirms : uint8 @ "requiredTxnConfirms" := m_defaultRequiredConfirmations ; _ | .
+     ::// new 'requiredUpdConfirms : uint8 @ "requiredUpdConfirms" := m_requiredVotes ; _ | .
+
+  ::// return_ {} | . (* [ !maxQueuedTransactions , !maxCustodianCount, !expirationTime, 
+                 !minValue, !requiredTxnConfirms, !requiredUpdConfirms ]   |. *)
 Defined. 
 
 #[public, pure]
 Ursus Definition isConfirmed (mask :  uint32) (index :  uint8): UExpression ( boolean) false .
-  :://confirmed := _isConfirmed(#{mask}, #{index})  |.
+  ::// return_ _isConfirmed(#{mask}, #{index})  |.
 Defined. 
-
+ 
 #[private, pure]
 Ursus Definition _decMaskValue (mask :  uint256) (index :  uint8): UExpression ( uint256) false .
-  :://return_ (#{mask} - ((β #{1}) << ((β #{8}) * uint256(#{index})))) |.
+   ::// new 'onee : uint256 @ "onee" := β #{1} ; _ | . 
+   ::// new 'eight : uint256 @ "eight" := β #{8} ; _ | . 
+  :://return_ {} (*#{mask} - (!onee << (!eight * #{index}))*) |.
 Defined. 
 
 #[private, nonpayable]
-Ursus Definition _removeExpiredTransactions : UExpression PhantomType false .
-  ::// new 'marker : (  uint64 ) @ "marker"  := _getExpirationBound() .
-  ::// if ( m_transactions->empty ) then { {_:UExpression _ false} } .  :://exit_ {} .
-  :://new ('trId , 'txn ) @ (  uint64 , MultisigWallet_ι_TransactionLRecord )  := m_transactions->min() ->get() .
-  ::// new 'needCleanup : (  boolean ) @ "needCleanup"  := (!{trId} <= !{marker}) .
-  ::// if ( !{needCleanup} ) then { {_:UExpression _ false} } .
-  :://tvm->accept() .
-  ::// new 'i : (  uint256 ) @ "i"  := (β #{0}) .
-  :://while ((!{needCleanup} && (!{i} < MAX_CLEANUP_TXNS))) do 
-{
-!{i} ++;
-m_requestsMask := _decMaskValue(m_requestsMask, !{txn}->index);
-m_transactions[!{trId}] delete;
- new 'nextTxn : (  XMaybe  (XProd ( uint64)( MultisigWallet_ι_TransactionLRecord ) ) ) @ "nextTxn"  := m_transactions->next(!{trId});
-if ( !{nextTxn}->hasValue() ) then { {_:UExpression _ false} } else { {_:UExpression _ false} } 
-  :://[ !{trId},  ] := !{nextTxn}->get() .
-  :://!{needCleanup} := (!{trId} <= !{marker})  |.
+Ursus Definition _removeExpiredTransactions : UExpression PhantomType true .
+  ::// new 'marker : (  uint64 ) @ "marker"  := _getExpirationBound ( ) ; _ |  .
+  ::// if ( m_transactions ->empty ()) then { {_:UExpression _ true} } .  
+      :://exit_ {} | .
+  :://new ('trId : uint64, 'txn : MultisigWallet_ι_TransactionLRecord) @ ("trId", "txn")  := m_transactions ->min() ->get() ; _ | .
+  ::// new 'needCleanup : (  boolean ) @ "needCleanup"  := (!{trId} <= !{marker}) ; _ | .
+  ::// if ( !{needCleanup} ) then { {_:UExpression _ true} } .
+      :://tvm->accept() .
+      ::// new 'i : (  uint256 ) @ "i"  := (β #{0}) ; _ | .
+      :://while ((!{needCleanup} && (!{i} < MAX_CLEANUP_TXNS))) do { {_:UExpression _ true} }  |.
 
-  :://!{needCleanup} := FALSE  |.
+         (* ::// i ++ . *)
+         ::// m_requestsMask := _decMaskValue(m_requestsMask, !{txn} ->MultisigWallet_ι_Transaction_ι_index) .
+         (* ::// m_transactions ->delete (!trId) . *)
+         ::// new 'nextTxn : (  XMaybe  (XProd ( uint64)( MultisigWallet_ι_TransactionLRecord ) ) ) @ "nextTxn"  := m_transactions->next(!{trId}) ; _ | .
+         ::// if ( !{nextTxn}->hasValue() ) then { {_:UExpression _ true} } 
+                                            else { {_:UExpression _ true} } .
+               (* :://[ trId , _ ] := !{nextTxn}->get() . *)
+               (* :://!{needCleanup} := (!{trId} <= !{marker})  |. *)
+               ::// exit_ {} | .
 
+               (* ::// needCleanup := FALSE  |. *)
+               ::// exit_ {} | .
 
-} .
-  :://tvm->commit  |.
+        (* :://tvm->commit  |. *)
+        ::// exit_ {} | .
 
   :://return_ {} |.
 Defined. 
 
 #[private, nonpayable]
-Ursus Definition _confirmTransaction (transactionId :  uint64) (txn : MultisigWallet_ι_TransactionLRecord) (custodianIndex :  uint8): UExpression PhantomType false .
+Ursus Definition _confirmTransaction (transactionId :  uint64) 
+                                     (txn : uint256 (* MultisigWallet_ι_TransactionLRecord *)) 
+                                     (custodianIndex :  uint8)
+                                     : UExpression PhantomType false .
   :://if ( ((#{txn}->signsReceived + (β #{1})) >= #{txn}->signsRequired) ) then { {_:UExpression _ false} } else { {_:UExpression _ false} }  |.
   :://tvm->transfer(#{txn}->dest, #{txn}->value, #{txn}->bounce, #{txn}->sendFlags, #{txn}->payload) .
   :://m_requestsMask := _decMaskValue(m_requestsMask, #{txn}->index) .
