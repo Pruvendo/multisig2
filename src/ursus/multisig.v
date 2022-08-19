@@ -230,8 +230,6 @@ Ursus Definition onCodeUpgrade (newOwners :  mapping uint256 uint256 )
   :://return_ {} |.
 Defined. 
  
-<<<<<<< HEAD
-=======
 #[public, view]
 Ursus Definition getUpdateRequests : UExpression (mapping uint256 uint256 (* MultisigWallet_ι_UpdateRequestLRecord *)) false .
   ::// new 'bound : (  uint64 ) @ "bound"  := _getExpirationBound ( ) ; _ | .
@@ -247,7 +245,6 @@ Defined.
  
 Sync.
 
->>>>>>> 3e304849d46b490c8f1bb96dcce895a88823505d
 #[public, nonpayable]
 Ursus Definition executeUpdate (updateId :  uint64) (code :  TvmCell)
                               : UExpression PhantomType true .
@@ -415,13 +412,9 @@ Ursus Definition _confirmTransaction (transactionId :  uint64)
 
   :://return_ {} |.
 Defined. 
-<<<<<<< HEAD
-   
-=======
 
 Sync.
 
->>>>>>> 3e304849d46b490c8f1bb96dcce895a88823505d
 #[public, nonpayable]
 Ursus Definition confirmTransaction (transactionId :  uint64): UExpression PhantomType true .
   ::// new 'index : (  uint8 ) @ "index" := _findCustodian(msg->pubkey()) ; _ | .
