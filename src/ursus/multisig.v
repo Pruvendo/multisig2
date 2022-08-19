@@ -98,7 +98,7 @@ Record Contract := {
    #[static] _foo : uint256;
    m_ownerKey :  uint256;
    m_requestsMask :  uint256;
-   m_transactions :  XHMap ( uint64 )  (_ResolveName "MultisigWallet_ι_Transaction") ;
+   m_transactions :  mapping ( uint64 )  (_ResolveName "MultisigWallet_ι_Transaction") ;
    m_custodians :  XHMap ( uint256 )( uint8 );
    m_custodianCount :  uint8;
    m_updateRequests :  XHMap ( uint64 ) (_ResolveName "MultisigWallet_ι_UpdateRequest" ) ;
@@ -420,90 +420,133 @@ Defined.
 
 #[private, nonpayable]
 Ursus Definition _confirmTransaction (transactionId :  uint64) 
-                                     (txn : uint256 (* MultisigWallet_ι_TransactionLRecord *)) 
+                                     (txn : MultisigWallet_ι_TransactionLRecord ) 
                                      (custodianIndex :  uint8)
                                      : UExpression PhantomType false .
-  :://if ( ((#{txn}->signsReceived + (β #{1})) >= #{txn}->signsRequired) ) then { {_:UExpression _ false} } else { {_:UExpression _ false} }  |.
-  :://tvm->transfer(#{txn}->dest, #{txn}->value, #{txn}->bounce, #{txn}->sendFlags, #{txn}->payload) .
-  :://m_requestsMask := _decMaskValue(m_requestsMask, #{txn}->index) .
-  :://m_transactions[#{transactionId}] delete  |.
-
-  :://#{txn}->confirmationsMask := _setConfirmed(#{txn}->confirmationsMask, #{custodianIndex}) .
-  :://#{txn}->signsReceived ++ .
-  :://m_transactions[#{transactionId}] := #{txn}  |.
+  ::// new 'eightt : uint8 @ "eightt" := (β #{1}) ; _ | .
+  ::// new 'tmp : uint8 @ "tmp" := #{txn}->MultisigWallet_ι_Transaction_ι_signsReceived ; _ | .
+  :://if ( ( !{tmp} +  !{eightt}) >= 
+             #{txn}->MultisigWallet_ι_Transaction_ι_signsRequired)  
+             then { {_:UExpression _ false} } 
+             else { {_:UExpression _ false} }  |. 
+  :://tvm->transfer(#{txn}->MultisigWallet_ι_Transaction_ι_dest, 
+                    #{txn}->MultisigWallet_ι_Transaction_ι_value, 
+                    #{txn}->MultisigWallet_ι_Transaction_ι_bounce, 
+                    #{txn}->MultisigWallet_ι_Transaction_ι_sendFlags) . (* , 
+                    #{txn}->MultisigWallet_ι_Transaction_ι_payload) . *)
+  :://m_requestsMask := _decMaskValue(m_requestsMask, #{txn}->MultisigWallet_ι_Transaction_ι_index) .
+  :://m_transactions := m_transactions | . (* ->delete ( #{transactionId} ) |. *)
+  (* ::// {//#{txn}->MultisigWallet_ι_Transaction_ι_confirmationsMask | : ULValue uint32} := 
+            _setConfirmed(#{txn}->MultisigWallet_ι_Transaction_ι_confirmationsMask, 
+              #{custodianIndex}) . *)
+(*   ::// {//#txn ->MultisigWallet_ι_Transaction_ι_signsReceived | : ULValue uint8} ++ . *)
+(*   :://m_transactions[#{transactionId}] := #{txn}  |. *)
 
   :://return_ {} |.
 Defined. 
 
 #[public, nonpayable]
 Ursus Definition confirmTransaction (transactionId :  uint64): UExpression PhantomType true .
-  ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(msg->pubkey()) .
-  :://_removeExpiredTransactions() .
-  ::// new 'txnOpt : (  XMaybe  (MultisigWallet_ι_TransactionLRecord ) ) @ "txnOpt"  := m_transactions->fetch(#{transactionId}) .
-  :://require_(!{txnOpt}->hasValue(), (β #{102})) .
-  ::// new 'txn : ( MultisigWallet_ι_TransactionLRecord ) @ "txn"  := !{txnOpt}->get() .
-  :://require_((~ ( _isConfirmed(!{txn}->confirmationsMask, !{index}))), (β #{103})) .
+  ::// new 'index : (  uint8 ) @ "index" := _findCustodian(msg->pubkey()) ; _ | .
+(*   ::// _removeExpiredTransactions ( ) . *)
+  ::// new 'txnOpt : (  XMaybe  (MultisigWallet_ι_TransactionLRecord ) ) @ "txnOpt"  := m_transactions->fetch(#{transactionId}) ;_|.
+  :://require_(!{txnOpt}->hasValue(), %102) .
+  ::// new 'txn : ( MultisigWallet_ι_TransactionLRecord ) @ "txn"  := !{txnOpt}->get() ;_|.
+  :://require_((~ ( _isConfirmed(!{txn}->MultisigWallet_ι_Transaction_ι_confirmationsMask, !{index}))), %103) .
   :://tvm->accept() .
   :://_confirmTransaction(#{transactionId}, !{txn}, !{index}) .
   :://return_ {} |.
 Defined. 
-
+ 
 #[private, pure]
-Ursus Definition _getSendFlags (value :  uint128) (allBalance :  boolean): UExpression ( uint8 #  uint128) false .
-  ::// new 'flags : (  uint8 ) @ "flags"  := (FLAG_IGNORE_ERRORS | FLAG_PAY_FWD_FEE_FROM_BALANCE) .
+Ursus Definition _getSendFlags (value :  uint128) (allBalance :  boolean): UExpression ( uint8 ** uint128) false .
+  ::// new 'valueL : uint128 @ "valueL" := #{value} ; _|.
+  ::// new 'flags : ( uint8 ) @ "flags"  := (FLAG_IGNORE_ERRORS (* | FLAG_PAY_FWD_FEE_FROM_BALANCE *)) ; _| .
   ::// if ( #{allBalance} ) then { {_:UExpression _ false} } .
-  :://!{flags} := (FLAG_IGNORE_ERRORS | FLAG_SEND_ALL_REMAINING) .
-  :://#{value} := (β #{0})  |.
-
-  :://return_ [ !{flags}, #{value} ] |.
+  (* :://flags := (FLAG_IGNORE_ERRORS | FLAG_SEND_ALL_REMAINING) . *)
+       (* :://valueL := (β #{0})  |. *)
+     :://return_ {} | .
+ 
+  :://return_ [ !{flags}, !{valueL} ] |.
 Defined. 
-
+ 
 #[private, pure]
 Ursus Definition _incMaskValue (mask :  uint256) (index :  uint8): UExpression ( uint256) false .
-  :://return_ (#{mask} + ((β #{1}) << ((β #{8}) * uint256(#{index})))) |.
+  ::// new 'onee : uint256 @ "onee" := β #{1} ; _|.
+  ::// new 'eightt : uint256 @ "eightt" := β #{8} ; _|.
+(*   ::// new 'indexx : uint256 @ "indexx" := (β #{index} ) ;_|. *)
+  :://return_ (#{mask} + (!{onee} << (!{eightt} (* * (!{indexx}) *)))) |.
 Defined. 
 
 #[private, pure]
 Ursus Definition _getMaskValue (mask :  uint256) (index :  uint8): UExpression ( uint8) false .
-  :://return_ uint8(((#{mask} >> ((β #{8}) * uint256(#{index}))) & (β #{0xFF}))) |.
+  ::// new 'eightt : uint256 @ "eightt" := β #{8} ; _|.
+(*   ::// new 'indexx : uint256 @ "indexx" := (β #{index} ) ;_|. *)
+
+  :://return_ {} (* uint8(((#{mask} >> (!{eightt} * uint256(!{indexx}))) & (β #{0xFF}))) *) |.
 Defined. 
 
 #[public, nonpayable]
-Ursus Definition submitTransaction (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_): UExpression ( uint64) true .
-  ::// new 'senderKey : (  uint256 ) @ "senderKey"  := msg->pubkey() .
-  ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(!{senderKey}) .
-  :://_removeExpiredTransactions() .
-  :://require_((_getMaskValue(m_requestsMask, !{index}) < MAX_QUEUED_REQUESTS), (β #{113})) .
+Ursus Definition submitTransaction (dest :  address) 
+                                   (value :  uint128) 
+                                   (bounce :  boolean) 
+                                   (allBalance :  boolean) 
+                                   (payload :  cell_)
+                                   : UExpression ( uint64) true .
+  ::// new 'senderKey : (  uint256 ) @ "senderKey"  := msg->pubkey() ;_|.
+  ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(!{senderKey}) ;_|.
+(*   :://_removeExpiredTransactions ( ) . *)
+  :://require_((_getMaskValue(m_requestsMask, !{index}) < MAX_QUEUED_REQUESTS), %113 ) ;_| .
   :://tvm->accept() .
-  :://new ('flags , 'realValue ) @ (  uint8 ,  uint128 )  := _getSendFlags(#{value}, #{allBalance}) .
-  ::// new 'requiredSigns : (  uint8 ) @ "requiredSigns"  := m_defaultRequiredConfirmations .
-  :://if ( (!{requiredSigns} <= (β #{1})) ) then { {_:UExpression _ false} } else { {_:UExpression _ false} } .
-  :://tvm->transfer(#{dest}, !{realValue}, #{bounce}, !{flags}, #{payload}) .
-  :://return_ (β #{0}) |.
+  :://new ('flags : uint8, 'realValue : uint128) @ (  "flags" ,  "realValue" )  := _getSendFlags(#{value}, #{allBalance}) ;_|.
+  ::// new 'requiredSigns : (  uint8 ) @ "requiredSigns"  := m_defaultRequiredConfirmations ;_|.
+  :://if ( (!{requiredSigns} <= (β #{1})) ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
+
+  :://tvm->transfer(#{dest}, !{realValue}, #{bounce}, {} (* !{flags} *)(* , #{payload} *)) .
+  :://exit_ (β #{0}) |.
 
   :://m_requestsMask := _incMaskValue(m_requestsMask, !{index}) .
-  ::// new 'trId : (  uint64 ) @ "trId"  := _generateId() .
-  ::// new 'txn : ( MultisigWallet_ι_TransactionLRecord ) @ "txn"  := Transaction(!{trId}, (β #{0}), !{requiredSigns}, (β #{0}), !{senderKey}, !{index}, #{dest}, !{realValue}, !{flags}, #{payload}, #{bounce}) .
+  ::// new 'trId : (  uint64 ) @ "trId"  := _generateId ( )  ;_|.
+  ::// new 'txn : ( MultisigWallet_ι_TransactionLRecord ) @ "txn"  := 
+  [$
+    !{trId} ⇒ {MultisigWallet_ι_Transaction_ι_id};
+    (β #{0}) ⇒ {MultisigWallet_ι_Transaction_ι_confirmationsMask};
+    !{requiredSigns} ⇒ {MultisigWallet_ι_Transaction_ι_signsRequired};
+    (β #{0}) ⇒ {MultisigWallet_ι_Transaction_ι_signsReceived};
+    !{senderKey} ⇒ {MultisigWallet_ι_Transaction_ι_creator};
+    !{index} ⇒ {MultisigWallet_ι_Transaction_ι_index};
+    #{dest} ⇒ {MultisigWallet_ι_Transaction_ι_dest};
+    !{realValue} ⇒ {MultisigWallet_ι_Transaction_ι_value};
+    (* !{flags} *) {} ⇒ {MultisigWallet_ι_Transaction_ι_sendFlags};
+    #{payload} ⇒ {MultisigWallet_ι_Transaction_ι_payload};
+    #{bounce} ⇒ {MultisigWallet_ι_Transaction_ι_bounce}
+   $] ;_|.
   :://_confirmTransaction(!{trId}, !{txn}, !{index}) .
-  :://return_ !{trId} |.
-
+  :://exit_ !{trId} |.
+::// return_ {} |.
 Defined. 
 
 #[public, view]
-Ursus Definition sendTransaction (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint8) (payload :  cell_): UExpression PhantomType true .
-  :://require_((m_custodianCount == (β #{1})), (β #{108})) .
-  :://require_((msg->pubkey() == m_ownerKey), (β #{100})) .
+Ursus Definition sendTransaction (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_): UExpression PhantomType true .
+  :://require_((m_custodianCount == (β #{1})), %108) .
+  :://require_((msg->pubkey() == m_ownerKey), %100) .
   :://tvm->accept() .
-  :://tvm->transfer(#{dest}, #{value}, #{bounce}, (#{flags} | FLAG_IGNORE_ERRORS), #{payload}) .
+  :://tvm->transfer(#{dest}, #{value}, #{bounce}, (#{flags} (* | FLAG_IGNORE_ERRORS *))(* , #{payload} *)) .
   :://return_ {} |.
 Defined. 
 
 #[public, nonpayable]
-Ursus Definition constructor (owners :  uint256[]) (reqConfirms :  uint8): UExpression PhantomType true .
-  :://require_((msg->pubkey() == tvm->pubkey()), (β #{100})) .
-  :://require_(((#{owners}->length > (β #{0})) && (#{owners}->length <= MAX_CUSTODIAN_COUNT)), (β #{117})) .
+Ursus Definition constructor (owners : mapping uint256 uint256) (reqConfirms :  uint8): UExpression PhantomType true .
+  :://require_((msg->pubkey() == tvm->pubkey()), %100 ) .
+(*   ::// new 'zeroo : uint @ "zeroo" := β #{0} ; _|. *)
+  :://require_( #{owners}->length () > {} (* !{zeroo}  && (#{owners}->length <=  MAX_CUSTODIAN_COUNT )*) , %117) .
   :://tvm->accept() .
   :://_initialize(#{owners}, #{reqConfirms}) .
   :://return_ {} |.
 Defined. 
 EndContract Implements (*интерфейсы*) .
+
+
+
+
+
