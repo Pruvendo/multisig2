@@ -143,7 +143,6 @@ contract MultisigWallet {
         m_ownerKey = owners[0];
 
         uint256 len = owners.length;
-        uint32 onee = 0;
         for (uint256 i = 0; (i < len && ownerCount < MAX_CUSTODIAN_COUNT); i++) {
             uint256 key = owners[i];
             if (!m_custodians.exists(key)) {
