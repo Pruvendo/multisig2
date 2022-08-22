@@ -57,6 +57,9 @@ Definition incr_time (l: LedgerLRecord rec) (dt: N) :=
    let newst := {$$ st with VMState_ι_now := Build_XUBInteger (uint2N t + dt) $$} in
    {$$ l with Ledger_VMState := newst $$}.
 
+(* TODO *)
+Definition correctState (l: LedgerLRecord rec) := True.
+
 (* TODO: INT_1 *)
 
 Definition INT_2 l (owners : mapping uint256 uint256) (reqConfirms :  uint8) : Prop := 
@@ -68,11 +71,54 @@ Definition INT_3 l (owners : mapping uint256 uint256) (reqConfirms :  uint8) : P
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = false ->
   length_ owners <= MAX_CUSTODIANS.
 
-(* TODO: INT_4 *)
+(* --constructor--
+   --executeUpdate--
+   1: confirmUpdate
+   2: submitUpdate
+   3: confirmTransaction
+   4: submitTransaction
+   5: sendTransaction 
+*)
+
+Definition INT_4_common l l': Prop :=
+  toValue (eval_state (sRReader (m_custodians_right rec def) ) l) =
+    toValue (eval_state (sRReader (m_custodians_right rec def) ) l') /\
+  toValue (eval_state (sRReader (m_custodianCount_right rec def) ) l) =
+    toValue (eval_state (sRReader (m_custodianCount_right rec def) ) l') /\
+  toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l) =
+    toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l') /\
+  (* INT_5_2 *)
+  toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l) =
+    toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l').
+
+Definition INT_4_1 l (updateId :  uint64) : Prop :=
+  let l_cu := exec_state (Uinterpreter (confirmUpdate rec def updateId)) l in 
+  correctState l ->
+  INT_4_common l l'.
+
+Definition INT_4_2 l (codeHash :  uint256) (owners :  mapping uint256 uint256) (reqConfirms :  uint8) : Prop :=
+  let l_cu := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l in 
+  correctState l ->
+  INT_4_common l l'.
+
+Definition INT_4_3 l (transactionId :  uint64) (txn : MultisigWallet_ι_TransactionLRecord ) (custodianIndex :  uint8) : Prop :=
+  let l_cu := exec_state (Uinterpreter (confirmTransaction rec def transactionId txn custodianIndex)) l in 
+  correctState l ->
+  INT_4_common l l'.
+
+Definition INT_4_4 l (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) : Prop :=
+  let l_cu := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload)) l in 
+  correctState l ->
+  INT_4_common l l'.
+
+Definition INT_4_5 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_) : Prop :=
+  let l_cu := exec_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l in 
+  correctState l ->
+  INT_4_common l l'.
 
 (* INT_5_1 is checked as part of INT_8_2 *)
 
-(* TODO: INT_5_2 *)
+(* INT_5_2 is checked as part of INT_4_x *)
 
 Definition INT_6 l (owners : mapping uint256 uint256) (reqConfirms :  uint8) : Prop := 
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() || ) l) in
@@ -83,7 +129,7 @@ Definition INT_6 l (owners : mapping uint256 uint256) (reqConfirms :  uint8) : P
 Definition INT_7 l (owners : mapping uint256 uint256) (reqConfirms :  uint8) : Prop := 
   let l' := exec_state (Uinterpreter (constructor rec def owners reqConfirms)) l in 
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = true ->
-  l' = l. (* TODO *)
+  l' = l. (* TODO? *)
 
 Definition INT_8_1 l (owners : mapping uint256 uint256) (reqConfirms :  uint8) : Prop := 
   let MAX_CUSTODIANS := toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT rec def) ) l) in
