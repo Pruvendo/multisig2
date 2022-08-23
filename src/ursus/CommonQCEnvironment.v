@@ -844,6 +844,14 @@ Definition isMessageSent {I}`{XBoolEquable bool I} (m: OutgoingMessage I) (a: ad
         end
   end. 
 
+Import ListNotations.
+
+Definition isOnlyMessage {I} (l: XHMap address (XQueue (OutgoingMessage I))) : bool :=
+  match unwrap l with 
+  | [(a, subm)] => eqb (length_ subm) 1
+  | _ => false
+  end.
+
 
 #[global] Instance phantom_booleq: XBoolEquable bool PhantomType := {eqb := fun _ _ => true}.
 

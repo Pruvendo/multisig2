@@ -41,24 +41,7 @@ Require Import FinProof.CommonInstances.
 
 Require Import CommonQCEnvironment.
 Require Import LocalState.
-
-Notation rec := LocalStateLRecord.
-Definition computed : LocalStateLRecord := Eval compute in default. 
-#[global]
-Instance def : XDefault LocalStateLRecord := {
-  default := computed 
-} . 
-Definition VMStateDefault : VMStateLRecord  := Eval compute in default.
-Definition LedgerDefault : LedgerLRecord LocalStateLRecord  := Eval compute in default. 
-
-Definition incr_time (l: LedgerLRecord rec) (dt: N) :=
-   let st := getPruvendoRecord Ledger_VMState l in 
-   let t := getPruvendoRecord VMState_ι_now st in
-   let newst := {$$ st with VMState_ι_now := Build_XUBInteger (uint2N t + dt) $$} in
-   {$$ l with Ledger_VMState := newst $$}.
-
-(* TODO *)
-Definition correctState (l: LedgerLRecord rec) := True.
+Require Import CommonForProps.
 
 (* TODO: INT_1 *)
 
