@@ -45,18 +45,21 @@ Require Import CommonForProps.
 
 Definition STS_1 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
+  correctState l ->
   isError (eval_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l) = false ->
   length_ custodians = 1.
 
 Definition STS_2 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+  correctState l ->
   isError (eval_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l) = false ->
   hmapIsMember msgPubkey custodians = true.
 
 Definition STS_3_1 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+  correctState l ->
   length_ custodians = 1 ->
   hmapIsMember msgPubkey custodians = true ->
   isError (eval_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l) = false.
@@ -68,6 +71,7 @@ Definition STS_3_2 l (dest :  address) (value :  uint128) (bounce :  boolean) (f
   let mes := (EmptyMessage IDefault (value, (bounce, flags'))) in
   let messageQueueDefault := (toValue (eval_state (sRReader (ULtoRValue ( IDefault_left rec def ))) l')) in
   let messageQueueTmp := (toValue (eval_state (sRReader (ULtoRValue ( Itmp_left rec def ))) l'))  in 
+  correctState l ->
   isError (eval_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l) = false ->
   isOnlyMessage messageQueueDefault = true /\
   length_ messageQueueTmp = 0 /\
