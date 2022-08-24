@@ -194,11 +194,11 @@ Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType true .
          :://{needCleanup} := (!{updateId} <= !{marker})  |.
          :://{needCleanup} := FALSE  |. 
   (*  TODO: 6*)
-   ::// tvm->accept()(*  tvm->commit *)  |. 
+   ::// tvm->commit()  |. 
 
   :://return_ {} |.
 Defined.
-
+Sync.
 
 #[private, nonpayable] 
 Ursus Definition _initialize (owners : mapping uint256 uint256 ) 
@@ -235,6 +235,7 @@ Ursus Definition onCodeUpgrade (newOwners :  mapping uint256 uint256 )
   :://_initialize (#{newOwners}, #{reqConfirms}) .
   :://return_ {} |.
 Defined. 
+Sync.
 
 (* TODO: ugly, maybe better fix? *)
 Notation "'_removeExpiredUpdateRequests' ( )" :=
@@ -257,6 +258,7 @@ Ursus Definition executeUpdate (updateId :  uint64) (code :  TvmCell)
   :://onCodeUpgrade(!{request}->MultisigWallet_ι_UpdateRequest_ι_custodians, !{request}->MultisigWallet_ι_UpdateRequest_ι_reqConfirms) .
   :://return_ {} |.
 Defined. 
+Sync.
 
 #[private, view]
 Ursus Definition _findCustodian (senderKey :  uint256): UExpression ( uint8) true .
@@ -264,6 +266,7 @@ Ursus Definition _findCustodian (senderKey :  uint256): UExpression ( uint8) tru
   :://require_(!{custodianIndex}->hasValue(), %100 ) .
   :://return_ !{custodianIndex}->get() |.
 Defined. 
+Sync.
 
 #[private, pure]
 Ursus Definition _checkBit (mask :  uint32) (index :  uint8): UExpression ( boolean) false .
@@ -390,8 +393,8 @@ Ursus Definition _removeExpiredTransactions : UExpression PhantomType true .
                :://{needCleanup} := (!{trId} <= !{marker})  |.
                ::// {needCleanup} := FALSE  |.
         (* TODO: 5 *)
-        (* :://tvm->commit  |. *)
-        ::// exit_ {} | .
+        :://tvm->commit()  |.
+        (* ::// exit_ {} | . *)
 
   :://return_ {} |.
 Defined. 
@@ -446,6 +449,7 @@ Ursus Definition confirmTransaction (transactionId :  uint64): UExpression Phant
   :://_confirmTransaction(#{transactionId}, !{txn}, !{index}) .
   :://return_ {} |.
 Defined. 
+Sync.
 
 #[private, pure]
 Ursus Definition _getSendFlags (value :  uint128) (allBalance :  boolean): UExpression ( uint8 ** uint128) false .
@@ -456,6 +460,7 @@ Ursus Definition _getSendFlags (value :  uint128) (allBalance :  boolean): UExpr
        :://{valueL} := (β #{0})  |. 
   :://return_ [ !{flags}, !{valueL} ] |.
 Defined. 
+Sync.
 
 #[private, pure]
 Ursus Definition _incMaskValue (mask :  uint256) (index :  uint8): UExpression ( uint256) false .
@@ -522,6 +527,7 @@ Ursus Definition submitTransaction (dest :  address)
   :://exit_ !{trId} |.
 ::// return_ {} |.
 Defined. 
+Sync.
 
 #[public, view]
 Ursus Definition sendTransaction (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_): UExpression PhantomType true .
@@ -532,6 +538,7 @@ Ursus Definition sendTransaction (dest :  address) (value :  uint128) (bounce : 
   :://tvm->transfer(#{dest}, #{value}, #{bounce}, (#{flags} (* | FLAG_IGNORE_ERRORS *))(* , #{payload} *)) .
   :://return_ {} |.
 Defined. 
+Sync.
 
 #[public, nonpayable]
 Ursus Definition constructor (owners : mapping uint256 uint256) (reqConfirms :  uint8): UExpression PhantomType true .
@@ -545,8 +552,3 @@ Ursus Definition constructor (owners : mapping uint256 uint256) (reqConfirms :  
   :://return_ {} |.
 Defined. 
 EndContract Implements (*интерфейсы*) .
-
-
-
-
-
