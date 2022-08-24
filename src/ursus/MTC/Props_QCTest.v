@@ -43,17 +43,13 @@ Import GenLow GenHigh.
 Set Warnings "-extraction-opaque-accessed,-extraction".
 
 Require Import CommonQCEnvironment.
-Require Import STS.Props.
+Require Import MTC.Props.
 Require Import CommonForProps.
 
 Require Import multisig.
 
-Definition STS_1_propb l
-            (dest :  address) 
-            (value :  uint128)
-            (bounce :  boolean)
-            (flags :  uint16)
-            (payload :  cell_) 
+Definition MTC_1_propb l
+            (transactionId: uint64) 
             (mpk: uint256)
             (acc: bool)
             (bal: N): bool :=
@@ -61,20 +57,16 @@ let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
 
-STS_1 {$$ 
+MTC_1 {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
                             with Ledger_VMState := v2 $$}
-       dest value bounce flags payload  ? .
+       transactionId  ? .
 
 (* OK *)
-QuickCheck STS_1_propb.
+QuickCheck MTC_1_propb.
 
-Definition STS_2_propb l
-            (dest :  address) 
-            (value :  uint128)
-            (bounce :  boolean)
-            (flags :  uint16)
-            (payload :  cell_) 
+Definition MTC_3_propb l
+            (transactionId: uint64) 
             (mpk: uint256)
             (acc: bool)
             (bal: N): bool :=
@@ -82,10 +74,10 @@ let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
 
-STS_2 {$$ 
+MTC_3 {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
                             with Ledger_VMState := v2 $$}
-       dest value bounce flags payload  ? .
+       transactionId  ? .
 
 (* OK *)
-QuickCheck STS_2_propb.
+QuickCheck MTC_3_propb.

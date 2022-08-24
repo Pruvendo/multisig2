@@ -77,5 +77,4 @@ Definition STS_3_2 l (dest :  address) (value :  uint128) (bounce :  boolean) (f
   length_ messageQueueTmp = 0 /\
   isMessageSent mes dest 0 messageQueueDefault = true
   (* TODO: transfer.this = params.this[balance = transfer.this.balance]*)
-  (* NYI: msg.name = “transfer” *)
   (* NYI: msg.params.payload = params.payload *).
