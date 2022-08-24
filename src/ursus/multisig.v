@@ -163,10 +163,10 @@ Ursus Definition _confirmUpdate (updateId :  uint64)
                                : UExpression PhantomType false .
   ::// new 'request : ( MultisigWallet_ι_UpdateRequestLRecord ) @ "request"  := m_updateRequests[#updateId]  ; _| .
 (* TODO: 2*)
-(*    ::// { // !{request} ->MultisigWallet_ι_UpdateRequest_ι_signs | : ULValue  uint8} ++ . *)
-   (* ::// { // !{request} ->MultisigWallet_ι_UpdateRequest_ι_confirmationsMask | : ULValue  uint32} := 
-               _setConfirmed(!request ->MultisigWallet_ι_UpdateRequest_ι_confirmationsMask, 
-                             #{custodianIndex}) *) 
+   ::// { // {request} ->MultisigWallet_ι_UpdateRequest_ι_signs  |: ULValue  uint8} ++ .
+   ::// { // {request} ->MultisigWallet_ι_UpdateRequest_ι_confirmationsMask | : ULValue  uint32} := 
+               _setConfirmed(!{request} ->MultisigWallet_ι_UpdateRequest_ι_confirmationsMask, 
+                             #{custodianIndex}).
     :://m_updateRequests [ #updateId ] := !{request}.
 
   :://return_ {} |.
@@ -417,11 +417,12 @@ Ursus Definition _confirmTransaction (transactionId :  uint64)
   :://m_requestsMask := _decMaskValue(m_requestsMask, #{txn}->MultisigWallet_ι_Transaction_ι_index) .
   :://m_transactions := m_transactions ->delete ( #{transactionId} ) |.
   (* TODO: 2 *) 
-  (* ::// {//#{txn}->MultisigWallet_ι_Transaction_ι_confirmationsMask | : ULValue uint32} := 
-            _setConfirmed(#{txn}->MultisigWallet_ι_Transaction_ι_confirmationsMask, 
-              #{custodianIndex}) . *)
-(*   ::// {//#txn ->MultisigWallet_ι_Transaction_ι_signsReceived | : ULValue uint8} ++ . *)
-  :://m_transactions[ #{transactionId} ] := #{txn}.
+  ::// new 'txnn : MultisigWallet_ι_TransactionLRecord @ "txnn" := #{txn} ; _ | .
+  ::// {//({txnn}->MultisigWallet_ι_Transaction_ι_confirmationsMask) | : ULValue uint32} := 
+            _setConfirmed(!{txnn}->MultisigWallet_ι_Transaction_ι_confirmationsMask, 
+              #{custodianIndex}) .
+  ::// {//{txnn} ->MultisigWallet_ι_Transaction_ι_signsReceived | : ULValue uint8} ++ .
+  :://m_transactions[ #{transactionId} ] := !{txnn}.
 
   :://return_ {} |.
 Defined. 
@@ -462,7 +463,6 @@ Ursus Definition _incMaskValue (mask :  uint256) (index :  uint8): UExpression (
   ::// new 'eightt : uint256 @ "eightt" := β #{8} ; _|.
   (* TODO: 1*)
 (*   ::// new 'indexx : uint256 @ "indexx" := (β #{index} ) ;_|. *)
-
   :://return_ (#{mask} + (!{onee} << (!{eightt} * ( (ι #{index}))))) |.
   lia.
 Defined. 
