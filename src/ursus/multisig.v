@@ -130,29 +130,33 @@ UseLocal Definition _ := [
  #[private , nonpayable ]
 Ursus Definition _deleteUpdateRequest (updateId :  uint64) (index :  uint8): UExpression PhantomType false .
    ::// new 'onee : uint32 @ "onee" := β #{1} ; _ | .
-(*    ::// new 'tmp : uint8 @ "tmp" := !{onee}  <<  #{index} ;_| . *) 
 (* TODO: 1*)
-   :://m_updateRequestsMask &=   ~  (  !{onee}  (* <<  #{index} *) ) .
-
+   :://m_updateRequestsMask &=   ~  (  !{onee}  <<  (ι #{index}) ) .
+   lia.
    :: // m_updateRequests := m_updateRequests ->delete ( #updateId ) .
    :://return_ {} |.
 Defined. 
- 
+Sync.
+
 #[private, pure]
 Ursus Definition _getExpirationBound : UExpression ( uint64) false .
 (* TODO: 1*)
-  ::// return_ (( (* now - *) EXPIRATION_TIME) << (β #{32})) |.
+  ::// return_ ( ((  (ι  now) -  ( EXPIRATION_TIME)) << ( (β #{32})))) |.
+  lia.
 Defined. 
+Sync.
 
 #[private, pure]
 Ursus Definition _setConfirmed (mask :  uint32) (custodianIndex :  uint8): UExpression ( uint32) false .
   ::// new 'maskL : uint32 @ "maskL" := #mask ; _|.
   ::// new 'onee  : uint32 @ "onee" := β #{1} ; _ |.
 (* TODO: 1 *)
-   ::// {maskL} |= (!{onee} (* << #custodianIndex *) ) . 
+   ::// {maskL} |= (!{onee} << (ι #custodianIndex) ) .
+   lia. 
   :://return_ !{maskL} |.
 Defined. 
-  
+Sync.
+
 #[private, nonpayable]
 Ursus Definition _confirmUpdate (updateId :  uint64) 
                                 (custodianIndex :  uint8)
@@ -167,7 +171,6 @@ Ursus Definition _confirmUpdate (updateId :  uint64)
 
   :://return_ {} |.
 Defined. 
-  
 Sync.
  
 #[private, nonpayable]
@@ -204,7 +207,7 @@ Ursus Definition _initialize (owners : mapping uint256 uint256 )
   ::// new 'ownerCount : (  uint8 ) @ "ownerCount"  := (β #{0}) ; _|.
   :://m_ownerKey := #{owners}[(β #{0})] .
   (* TODO: 1*)
-  ::// new 'len : (  uint256 ) @ "len" := {} (* #{owners}->length () *) ; _|.
+  ::// new 'len : (  uint256 ) @ "len" := (β (#{owners}->length())) ; _|.
   ::// new 'i : (  uint256 ) @ "i"  := (β #{0}) ; _ | .
   ::// while ((!{i} < !{len}) && (!{ownerCount} < MAX_CUSTODIAN_COUNT)) do 
         { {_: UExpression PhantomType false } } ; _ |.
@@ -222,7 +225,6 @@ Ursus Definition _initialize (owners : mapping uint256 uint256 )
   :://m_custodianCount := !{ownerCount} .
   :://return_ {} |.
 Defined. 
-
 Sync.
 
 #[private, nonpayable]
@@ -267,16 +269,15 @@ Defined.
 Ursus Definition _checkBit (mask :  uint32) (index :  uint8): UExpression ( boolean) false .
   ::// new 'onee : uint32 @ "onee" := (β #{1}) ; _ | .
   (* TODO: 1*)
-  :://return_  ((#{mask} & !{onee} << {} (* #{index} *)) != (β #{0})) |.
+  :://return_  ((#{mask} & !{onee} <<   (ι #{index}) ) != (β #{0})) |.
+  lia.
 Defined. 
-
 Sync.
 
 #[private, pure]
 Ursus Definition _isConfirmed (mask :  uint32) (custodianIndex :  uint8): UExpression ( boolean) false .
   :://return_ _checkBit(#{mask}, #{custodianIndex}) |.
 Defined. 
-
 Sync.
 
 #[public, nonpayable]
@@ -291,24 +292,27 @@ Ursus Definition confirmUpdate (updateId :  uint64): UExpression PhantomType tru
   :://_confirmUpdate(#{updateId}, !{index}) .
   :://return_ {} |.
 Defined. 
+Sync.
 
 #[private, pure]
 Ursus Definition _generateId : UExpression ( uint64) false .
   (* TODO: 1*)
   (* TODO: 9 *)
-  :://return_ {} (* (uint64(now) << (β #{32})) | (tx->timestamp & (β #{0xFFFFFFFF}))) *) |.
+  :://return_   (ι (now) << (β #{32})) (*| (tx->timestamp & (β #{0xFFFFFFFF}))) *) |.
+  lia.
 Defined. 
+Sync.
 
 #[private, pure]
 Ursus Definition _setSubmitted (mask :  uint32) (custodianIndex :  uint8): UExpression ( uint32) false .
   :://return_ _setConfirmed(#{mask}, #{custodianIndex}) |.
 Defined. 
+Sync.
 
 #[private, pure]
 Ursus Definition _isSubmitted (mask :  uint32) (custodianIndex :  uint8): UExpression ( boolean) false .
   :://return_ _checkBit(#{mask}, #{custodianIndex}) |.
 Defined. 
-
 Sync.
 
 (* TODO: ugly, maybe better fix? *)
@@ -323,7 +327,7 @@ Ursus Definition submitUpdate (codeHash :  uint256)
   ::// new 'sender : (  uint256 ) @ "sender"  := msg->pubkey() ; _ | .
   ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(!{sender}) ; _ | .
   (* TODO: 1*)
-  :://require_((#{owners}->length () > {})  && (#{owners}->length () <= {} (* MAX_CUSTODIAN_COUNT *)) , %117) .
+  :://require_((#{owners}->length () > {})  && ((β (#{owners}->length ())) <=  MAX_CUSTODIAN_COUNT) , %117) .
   :://_removeExpiredUpdateRequests_uint64 ( ) . 
   :://require_((~ ( _isSubmitted(m_updateRequestsMask, !{index}))), %113) .
   :://tvm->accept() .
@@ -344,22 +348,23 @@ Ursus Definition submitUpdate (codeHash :  uint256)
    :://_confirmUpdate ( !{updateId} , !{index} )  .
  ::// return_ !{updateId} | .
 Defined. 
-
+Sync.
 
 #[public, pure]
 Ursus Definition isConfirmed (mask :  uint32) (index :  uint8): UExpression ( boolean) false .
   ::// return_ _isConfirmed(#{mask}, #{index})  |.
 Defined. 
- 
+Sync.
+
 #[private, pure]
 Ursus Definition _decMaskValue (mask :  uint256) (index :  uint8)
                 : UExpression ( uint256) false .
    ::// new 'onee : uint256 @ "onee" := β #{1} ; _ | . 
    ::// new 'eight : uint256 @ "eight" := β #{8} ; _ | .
    (* TODO: 1*) 
-  :://return_ (#{mask} - (!{onee} << (!{eight} * {} (* #{index} *)))) |.
-Defined. 
-
+  :://return_ (#{mask} - (!{onee} << (!{eight} *  (ι #{index})))) |.
+  lia.
+Defined.
 Sync. 
 
 #[private, nonpayable]
@@ -390,6 +395,7 @@ Ursus Definition _removeExpiredTransactions : UExpression PhantomType true .
 
   :://return_ {} |.
 Defined. 
+Sync. 
 
 #[private, nonpayable]
 Ursus Definition _confirmTransaction (transactionId :  uint64) 
@@ -419,7 +425,6 @@ Ursus Definition _confirmTransaction (transactionId :  uint64)
 
   :://return_ {} |.
 Defined. 
-
 Sync.
 
 (* TODO: ugly, maybe better fix? *)
@@ -457,17 +462,20 @@ Ursus Definition _incMaskValue (mask :  uint256) (index :  uint8): UExpression (
   ::// new 'eightt : uint256 @ "eightt" := β #{8} ; _|.
   (* TODO: 1*)
 (*   ::// new 'indexx : uint256 @ "indexx" := (β #{index} ) ;_|. *)
-  :://return_ (#{mask} + (!{onee} << (!{eightt} (* * (!{indexx}) *)))) |.
+
+  :://return_ (#{mask} + (!{onee} << (!{eightt} * ( (ι #{index}))))) |.
+  lia.
 Defined. 
 
 #[private, pure]
-Ursus Definition _getMaskValue (mask :  uint256) (index :  uint8): UExpression ( uint8) false .
+Ursus Definition _getMaskValue (mask :  uint256) (index :  uint8): UExpression ((*was uint8*) uint256) false .
   ::// new 'eightt : uint256 @ "eightt" := β #{8} ; _|.
   (* TODO: 1*)
 (*   ::// new 'indexx : uint256 @ "indexx" := (β #{index} ) ;_|. *)
-  :://return_ (((* #{mask} >> (!{eightt} * {} *)  #{index} ) & (β #{0xFF})) |.
+(* :://return_ ((#{mask} >> (ι ( (β #{8}) * #{index}))) & (β #{0xFF})) |. *)
+  :://return_ ((#{mask} >> (!{eightt} * (ι #{index}) )) & (β #{0xFF})) |.
+  lia.
 Defined. 
-
 Sync.
 
 #[public, nonpayable]
@@ -480,7 +488,8 @@ Ursus Definition submitTransaction (dest :  address)
   ::// new 'senderKey : (  uint256 ) @ "senderKey"  := msg->pubkey() ;_|.
   ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(!{senderKey}) ;_|.
   :://_removeExpiredTransactions_uint64 ( ) . 
-  :://require_((_getMaskValue(m_requestsMask, !{index}) < MAX_QUEUED_REQUESTS), %113 ) ;_| .
+  :://require_((_getMaskValue(m_requestsMask, !{index}) < (ι MAX_QUEUED_REQUESTS)), %113 ) ;_| .
+  lia.
   :://tvm->accept() .
   :://new ('flags : uint8, 'realValue : uint128) @ (  "flags" ,  "realValue" )  := _getSendFlags(#{value}, #{allBalance}) ;_|.
   ::// new 'requiredSigns : (  uint8 ) @ "requiredSigns"  := m_defaultRequiredConfirmations ;_|.
@@ -504,10 +513,11 @@ Ursus Definition submitTransaction (dest :  address)
     !{index} ⇒ {MultisigWallet_ι_Transaction_ι_index};
     #{dest} ⇒ {MultisigWallet_ι_Transaction_ι_dest};
     !{realValue} ⇒ {MultisigWallet_ι_Transaction_ι_value};
-    (* !{flags} *) {} ⇒ {MultisigWallet_ι_Transaction_ι_sendFlags};
+    ι !{flags} ⇒ {MultisigWallet_ι_Transaction_ι_sendFlags};
     #{payload} ⇒ {MultisigWallet_ι_Transaction_ι_payload};
     #{bounce} ⇒ {MultisigWallet_ι_Transaction_ι_bounce}
    $] ;_|.
+   lia.
   :://_confirmTransaction(!{trId}, !{txn}, !{index}) .
   :://exit_ !{trId} |.
 ::// return_ {} |.
@@ -528,7 +538,8 @@ Ursus Definition constructor (owners : mapping uint256 uint256) (reqConfirms :  
   :://require_((msg->pubkey() == tvm->pubkey()), %100 ) .
 (*   ::// new 'zeroo : uint @ "zeroo" := β #{0} ; _|. *)
 (* TODO: 10 *)
-  :://require_( #{owners}->length () > {} (* !{zeroo}  *) (* && (#{owners}->length <=  MAX_CUSTODIAN_COUNT *), %117) .
+  ::// require_ ((#{owners}->length () > #{0}) && (β (#{owners}->length ()) <= MAX_CUSTODIAN_COUNT), #{117}).
+  (*:://require_( #{owners}->length () > {} (* !{zeroo}  *) (* && (#{owners}->length <=  MAX_CUSTODIAN_COUNT *), %117) .*)
   :://tvm->accept() .
   :://_initialize(#{owners}, #{reqConfirms}) .
   :://return_ {} |.
