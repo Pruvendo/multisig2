@@ -251,6 +251,26 @@ Instance xqueue_gensized : forall V `{GenSized V}, GenSized (XQueue V) :=
   arbitrarySized n := fmap (CommonInstances.wrap Queue) (arbitrarySized n)
 }.
 
+(* arrays *)
+#[global]
+Instance xarray_show : forall V `{Show V}, Show (listArray V) :=
+{
+  show m := show (unwrap m)
+}.
+
+#[global]
+Instance xarray_shrink : forall V `{Shrink V}, Shrink (listArray V) :=
+{
+  shrink m := List.map (CommonInstances.wrap Array) (shrink (unwrap m))
+}.
+
+#[global]
+Instance xarray_gensized : forall V `{GenSized V}, GenSized (listArray V) :=
+{
+  arbitrarySized n := fmap (CommonInstances.wrap Array) (arbitrarySized n)
+}.
+
+
 (*messages*)
 
 Definition fromMessage {I} (m: OutgoingMessage I): (unit*InternalMessageParamsLRecord)+(I*InternalMessageParamsLRecord).
@@ -868,4 +888,13 @@ esplit.
 unfold decidable.
 repeat decide equality.
 apply H0. apply H.
+Defined.
+
+#[global] Instance array_Dec: forall {V} 
+    `{forall v1 v2 : V, Dec (v1 = v2)}  (m1 m2: listArray V), Dec (m1 = m2).
+intros.
+esplit.
+unfold decidable.
+repeat decide equality.
+apply H.
 Defined.

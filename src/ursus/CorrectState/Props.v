@@ -52,7 +52,7 @@ Require Import CommonForProps.
    6: executeUpdate
 *)
 
-Definition CS_0 l (owners : mapping uint256 uint256) (reqConfirms :  uint8) : Prop := 
+Definition CS_0 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
   let l' := exec_state (Uinterpreter (constructor rec def owners reqConfirms)) l in 
   correctState l' \/ 
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = true.
@@ -62,7 +62,7 @@ Definition CS_1 l (updateId :  uint64) : Prop :=
   correctState l ->
   correctState l'.
 
-Definition CS_2 l (codeHash :  uint256) (owners :  mapping uint256 uint256) (reqConfirms :  uint8) : Prop :=
+Definition CS_2 l (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop :=
   let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l in 
   correctState l ->
   correctState l'.

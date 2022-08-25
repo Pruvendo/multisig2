@@ -8,6 +8,7 @@ Require Import Coq.Program.Equality.
 Require Import Lia.
 
 Require Import FinProof.All.
+Require Import FinProof.CommonInstances.
 Require Import UMLang.All.
 Require Import UrsusStdLib.Solidity.All.
 Require Import UrsusStdLib.Solidity.unitsNotations.
@@ -80,7 +81,7 @@ Record MultisigWallet_ι_UpdateRequest := {
     MultisigWallet_ι_UpdateRequest_ι_confirmationsMask : uint32;
     MultisigWallet_ι_UpdateRequest_ι_creator : uint256;
     MultisigWallet_ι_UpdateRequest_ι_codeHash : uint256;
-    MultisigWallet_ι_UpdateRequest_ι_custodians : ( mapping uint256 uint256 (* uint256[] *));
+    MultisigWallet_ι_UpdateRequest_ι_custodians : ( listArray uint256);
     MultisigWallet_ι_UpdateRequest_ι_reqConfirms : uint8;
 };
 
@@ -195,18 +196,20 @@ Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType true .
 Defined.
 Sync.
 
+Notation "'u' z" := (@apply_pure _ _ _ _ _ _  _ _ _ _ _ _  _ _ _ _ _ _ _ _ _ _ _ z uint2N) (in custom URValue at level 0, z custom URValue): ursus_scope.
+
 #[private, nonpayable] 
-Ursus Definition _initialize (owners : mapping uint256 uint256 ) 
+Ursus Definition _initialize (owners : listArray uint256 ) 
                              (reqConfirms :  uint8)
-                            : UExpression PhantomType false .
+                            : UExpression PhantomType true .
   ::// new 'ownerCount : (  uint8 ) @ "ownerCount"  := (β #{0}) ; _|.
-  :://m_ownerKey := #{owners}[(β #{0})] .
+  :://m_ownerKey := #{owners}[0] ->get().
   ::// new 'len : (  uint256 ) @ "len" := (β (#{owners}->length())) ; _|.
   ::// new 'i : (  uint256 ) @ "i"  := (β #{0}) ; _ | .
   ::// while ((!{i} < !{len}) && (!{ownerCount} < MAX_CUSTODIAN_COUNT)) do 
-        { {_: UExpression PhantomType false } } ; _ |.
+        { {_: UExpression PhantomType true } } ; _ |.
  
-      ::// new 'key : (  uint256 ) @ "key"  := #{owners}[!{i}] ; _| .
+      ::// new 'key : (  uint256 ) @ "key"  := #{owners}[u (!{i})]->get() ; _| .
       ::// if ( (~ ( m_custodians->exists(!{key}))) ) 
          then { {_:UExpression _ false } }  |.
         :://m_custodians[ !{key}] :=  {ownerCount} ++  . 
@@ -222,9 +225,9 @@ Defined.
 Sync.
 
 #[private, nonpayable]
-Ursus Definition onCodeUpgrade (newOwners :  mapping uint256 uint256 ) 
+Ursus Definition onCodeUpgrade (newOwners :  listArray uint256 ) 
                                (reqConfirms :  uint8)
-                               : UExpression PhantomType false .
+                               : UExpression PhantomType true .
   :://tvm->resetStorage() .
   :://_initialize (#{newOwners}, #{reqConfirms}) .
   :://return_ {} |.
@@ -308,7 +311,7 @@ Sync.
 
 #[public, nonpayable]
 Ursus Definition submitUpdate (codeHash :  uint256) 
-                              (owners :  mapping uint256 uint256) 
+                              (owners :  listArray uint256) 
                               (reqConfirms :  uint8)
                               : UExpression ( uint64) true .
   ::// new 'sender : (  uint256 ) @ "sender"  := msg->pubkey() ; _ | .
@@ -510,7 +513,7 @@ Defined.
 Sync.
 
 #[public, nonpayable]
-Ursus Definition constructor (owners : mapping uint256 uint256) (reqConfirms :  uint8): UExpression PhantomType true .
+Ursus Definition constructor (owners : listArray uint256) (reqConfirms :  uint8): UExpression PhantomType true .
   :://require_((msg->pubkey() == tvm->pubkey()), %100 ) .
   ::// require_ ((#{owners}->length () > #{0}) && (β (#{owners}->length ()) <= MAX_CUSTODIAN_COUNT), #{117}).
   :://tvm->accept() .

@@ -66,7 +66,5 @@ Defined.
 
 Definition correctState l := 
     let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
-    let custodianCount := toValue (eval_state (sRReader (m_custodianCount_right rec def) ) l) in
     let ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l) in
-    length_ custodians = uint2N custodianCount /\
     hmapIsMember ownerKey custodians = true.
