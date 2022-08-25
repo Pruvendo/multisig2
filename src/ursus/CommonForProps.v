@@ -6,6 +6,8 @@ Require Import Coq.Program.Equality.
 Require Import Lia.
 Require Import Ascii.
 
+Require Import mathcomp.ssreflect.ssreflect.
+From mathcomp Require Import seq ssreflect ssrbool ssrnat eqtype.
 Require Import FinProof.All.
 
 Require Import UMLang.All. 
@@ -28,6 +30,11 @@ Local Open Scope usolidity_scope.
 
 From elpi Require Import elpi.
 
+
+From QuickChick Require Import QuickChick.
+Import QcDefaultNotation. Open Scope qc_scope.
+Import GenLow GenHigh.
+Set Warnings "-extraction-opaque-accessed,-extraction".
 
 Local Open Scope struct_scope.
 Local Open Scope N_scope.
@@ -66,5 +73,39 @@ Defined.
 
 Definition correctState l := 
     let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
+    let custodianCount := toValue (eval_state (sRReader (m_custodianCount_right rec def) ) l) in
     let ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l) in
+    length_ custodians = uint2N custodianCount /\
     hmapIsMember ownerKey custodians = true.
+
+#[global]
+Instance xhmap_booleq {K V} `{XBoolEquable bool K} `{XBoolEquable bool V}: XBoolEquable bool (XHMap K V).
+Proof.
+  esplit. intros. apply ( @XBoolEquableList(K*V)).
+  apply pair_xbool_equable.
+  exact (unwrap X). exact (unwrap X0).
+Defined.
+
+#[global]
+Instance xarray_booleq {K} `{XBoolEquable bool K}: XBoolEquable bool (listArray K).
+Proof.
+  esplit. intros. apply ( @XBoolEquableList(K)). auto.
+  exact (unwrap X). exact (unwrap X0).
+Defined.
+
+#[global]
+Instance xqueue_booleq {K} `{XBoolEquable bool K}: XBoolEquable bool (XQueue K).
+Proof.
+  esplit. intros. apply ( @XBoolEquableList(uint*K)). 
+  apply pair_xbool_equable.
+  exact (unwrap X). exact (unwrap X0).
+Defined.
+
+#[global]
+Instance itmp_booleq : XBoolEquable bool (Itmp).
+Proof.
+  esplit. intros. exact true.
+Defined.
+
+Definition T := Eval compute in LedgerLRecord rec.
+Definition ledgerEqb : T -> T -> bool := Common.eqb.
