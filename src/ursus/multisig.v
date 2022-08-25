@@ -237,10 +237,6 @@ Ursus Definition onCodeUpgrade (newOwners :  mapping uint256 uint256 )
 Defined. 
 Sync.
 
-(* TODO: ugly, maybe better fix? *)
-Notation "'_removeExpiredUpdateRequests' ( )" :=
-  (@_removeExpiredUpdateRequests_left PhantomType) (in custom ULValue) : ursus_scope .
-
 #[public, nonpayable]
 Ursus Definition executeUpdate (updateId :  uint64) (code :  TvmCell)
                               : UExpression PhantomType true .
@@ -318,10 +314,6 @@ Ursus Definition _isSubmitted (mask :  uint32) (custodianIndex :  uint8): UExpre
 Defined. 
 Sync.
 
-(* TODO: ugly, maybe better fix? *)
-Notation "'_removeExpiredUpdateRequests_uint64' ( )" :=
-  (@_removeExpiredUpdateRequests_left uint64) (in custom ULValue): ursus_scope .
-
 #[public, nonpayable]
 Ursus Definition submitUpdate (codeHash :  uint256) 
                               (owners :  mapping uint256 uint256) 
@@ -331,7 +323,7 @@ Ursus Definition submitUpdate (codeHash :  uint256)
   ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(!{sender}) ; _ | .
   (* TODO: 1*)
   :://require_((#{owners}->length () > {})  && ((β (#{owners}->length ())) <=  MAX_CUSTODIAN_COUNT) , %117) .
-  :://_removeExpiredUpdateRequests_uint64 ( ) . 
+  :://_removeExpiredUpdateRequests ( ) . 
   :://require_((~ ( _isSubmitted(m_updateRequestsMask, !{index}))), %113) .
   :://tvm->accept() .
   :://m_updateRequestsMask := _setSubmitted(m_updateRequestsMask, !{index}) .
@@ -431,12 +423,6 @@ Ursus Definition _confirmTransaction (transactionId :  uint64)
 Defined. 
 Sync.
 
-(* TODO: ugly, maybe better fix? *)
-Notation "'_removeExpiredTransactions' ( )" :=
-  (@_removeExpiredTransactions_left PhantomType) (in custom ULValue) : ursus_scope .
-  Notation "'_removeExpiredTransactions_uint64' ( )" :=
-    (@_removeExpiredTransactions_left uint64) (in custom ULValue) : ursus_scope .
-
 #[public, nonpayable]
 Ursus Definition confirmTransaction (transactionId :  uint64): UExpression PhantomType true .
   ::// new 'index : (  uint8 ) @ "index" := _findCustodian(msg->pubkey()) ; _ | .
@@ -492,7 +478,7 @@ Ursus Definition submitTransaction (dest :  address)
                                    : UExpression ( uint64) true .
   ::// new 'senderKey : (  uint256 ) @ "senderKey"  := msg->pubkey() ;_|.
   ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(!{senderKey}) ;_|.
-  :://_removeExpiredTransactions_uint64 ( ) . 
+  :://_removeExpiredTransactions ( ) . 
   :://require_((_getMaskValue(m_requestsMask, !{index}) < (ι MAX_QUEUED_REQUESTS)), %113 ) ;_| .
   lia.
   :://tvm->accept() .
