@@ -211,8 +211,8 @@ Ursus Definition _initialize (owners : listArray uint256 )
  
       ::// new 'key : (  uint256 ) @ "key"  := #{owners}[u (!{i})]->get() ; _| .
       ::// if ( (~ ( m_custodians->exists(!{key}))) ) 
-         then { {_:UExpression _ false } }  |.
-        :://m_custodians[ !{key}] :=  {ownerCount} ++  . 
+         then { {_:UExpression _ false } }.
+        :://m_custodians[ !{key}] :=  {ownerCount} ++ | . 
        :://{i} ++ |. 
   :://m_defaultRequiredConfirmations := 
           (!{ownerCount} <=  #{reqConfirms} ) ? 

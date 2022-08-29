@@ -64,7 +64,20 @@ Definition STS_3_1 l (dest :  address) (value :  uint128) (bounce :  boolean) (f
   hmapIsMember msgPubkey custodians = true ->
   isError (eval_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l) = false.
 
-Definition STS_3_2 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_) : Prop :=
+Definition equalExceptMessagesLocalBalanceAccepted (l l': LedgerLRecord rec) := 
+  ledgerEqb {$$ {$$ {$$ l with Ledger_VMState := 
+  {$$ {$$
+   getPruvendoRecord Ledger_VMState l
+   with VMState_ι_accepted := true $$} : @field_type (LedgerLRecord rec) _ _ Ledger_VMState with 
+   VMState_ι_balance := getPruvendoRecord VMState_ι_balance 
+     (getPruvendoRecord Ledger_VMState l')
+   
+ $$} 
+$$} with Ledger_LocalState := getPruvendoRecord Ledger_LocalState l' 
+$$} with Ledger_MessagesState := getPruvendoRecord Ledger_MessagesState l' 
+$$} l'.
+
+Definition STS_3_2 (l: LedgerLRecord rec) (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_) : Prop :=
   let l' := exec_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l in 
   let FLAG_IGNORE_ERRORS := uint2N (toValue (eval_state (sRReader (FLAG_IGNORE_ERRORS_right rec def) ) l)) in
   let flags' := Build_XUBInteger (N.lor (uint2N flags) FLAG_IGNORE_ERRORS) in
@@ -75,6 +88,6 @@ Definition STS_3_2 l (dest :  address) (value :  uint128) (bounce :  boolean) (f
   isError (eval_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l) = false ->
   isOnlyMessage messageQueueDefault = true /\
   length_ messageQueueTmp = 0 /\
-  isMessageSent mes dest 0 messageQueueDefault = true
-  (* TODO: transfer.this = params.this[balance = transfer.this.balance]*)
-  (* NYI: msg.params.payload = params.payload *).
+  isMessageSent mes dest 0 messageQueueDefault = true /\
+  equalExceptMessagesLocalBalanceAccepted l l' = true.
+  (* NYI: msg.params.payload = params.payload *)

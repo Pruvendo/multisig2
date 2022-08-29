@@ -86,6 +86,7 @@ Definition MTC_5_1 l (transactionId : uint64) : Prop :=
   N.land mask (N.shiftl 1 i) = 0 ->
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false.
 
+(* TODO: add ETR1 *)
 Definition MTC_5_2 l (transactionId :  uint64) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
@@ -113,6 +114,7 @@ Definition MTC_5_2 l (transactionId :  uint64) : Prop :=
   length_ commonTransactions = length_ transactions - 1
   .
 
+(* TODO: add ETR1 *)
 Definition MTC_6 l (transactionId :  uint64) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in

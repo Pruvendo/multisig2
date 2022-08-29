@@ -8,12 +8,10 @@ Require Import Ascii.
 
 Require Import mathcomp.ssreflect.ssreflect.
 From mathcomp Require Import seq ssreflect ssrbool ssrnat eqtype.
+Require Import List.
 Require Import FinProof.All.
 
 Require Import UMLang.All. 
-Require Import UMLang.LocalClassGenerator.ClassGenerator.
-Require Import UMLang.GlobalClassGenerator.ClassGenerator.
-
 Require Import UrsusStdLib.Solidity.All.
 Require Import UrsusStdLib.Solidity.unitsNotations.
 Require Import UrsusTVM.Solidity.All.
@@ -24,7 +22,6 @@ Import UrsusNotations.
 Local Open Scope xlist_scope.
 Local Open Scope record.
 Local Open Scope program_scope.
-Local Open Scope glist_scope.
 Local Open Scope ursus_scope.
 Local Open Scope usolidity_scope.
 
@@ -71,12 +68,63 @@ destruct H, H0.
 refine true.
 Defined.
 
+Definition transactionsCorrect (txs: Datatypes.list (uint64 * MultisigWallet_ι_TransactionLRecord)) (defaultRequired: uint8) :=
+  List.forallb (fun tx : (uint64 * _) => andb (Common.eqb (fst tx) 
+    (getPruvendoRecord MultisigWallet_ι_Transaction_ι_id (snd tx)))
+    (Common.eqb (defaultRequired) (getPruvendoRecord MultisigWallet_ι_Transaction_ι_signsRequired (snd tx)))
+  ) txs.
+
+Definition noDuplicates (txs: Datatypes.list (uint64 * MultisigWallet_ι_TransactionLRecord)) :=
+  List.forallb (fun tx => Common.eqb (length_ (List.filter
+    (fun tx' => Common.eqb tx tx') txs)) 1) txs.
+
 Definition correctState l := 
     let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
     let custodianCount := toValue (eval_state (sRReader (m_custodianCount_right rec def) ) l) in
     let ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l) in
+    let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
+    let defaultRequired := toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l) in
     length_ custodians = uint2N custodianCount /\
-    hmapIsMember ownerKey custodians = true.
+    hmapIsMember ownerKey custodians = true /\
+    transactionsCorrect (unwrap transactions) defaultRequired = true /\
+    noDuplicates (unwrap transactions) = true
+    .
+
+Import ListNotations.
+Definition get_id (tx : MultisigWallet_ι_TransactionLRecord) : N := 
+  uint2N (MultisigWallet_ι_TransactionLGetField MultisigWallet_ι_Transaction_ι_id tx).
+Fixpoint dedupTransactions (txs: Datatypes.list (uint64 * MultisigWallet_ι_TransactionLRecord))  (mem: mapping N bool) := 
+  match txs with 
+  | []%list => []%list
+  | (tx :: txs)%list => 
+  let id := get_id (snd tx) in
+  if hmapIsMember id mem then dedupTransactions txs mem
+  else let mem' := xHMapInsert id true mem in
+  (tx :: dedupTransactions txs mem')%list
+  end.
+
+Definition quickFixState (l: LedgerLRecord rec) : LedgerLRecord rec :=
+  let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
+  let ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l) in
+  let custodians' := if hmapIsMember ownerKey custodians then custodians 
+    else xHMapInsert ownerKey (Build_XUBInteger (length_ custodians)) custodians in
+  let defaultRequired := toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l) in
+  let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
+  let transactions':= (CommonInstances.wrap Map (dedupTransactions (map 
+    (fun tx : (uint64 * MultisigWallet_ι_TransactionLRecord) => (fst tx, {$$
+      {$$ snd tx with MultisigWallet_ι_Transaction_ι_id := fst tx $$}
+      with MultisigWallet_ι_Transaction_ι_signsRequired := defaultRequired $$} : MultisigWallet_ι_TransactionLRecord))
+  (unwrap transactions)) (CommonInstances.wrap Map Datatypes.nil))) in
+  {$$ l with Ledger_MainState := 
+    {$$ {$$ {$$getPruvendoRecord Ledger_MainState l with 
+      _m_custodianCount := Build_XUBInteger (length_ custodians')
+    $$} with
+      _m_custodians := custodians' 
+    $$}
+     with
+      _m_transactions := transactions'
+    $$}
+  $$}.
 
 #[global]
 Instance xhmap_booleq {K V} `{XBoolEquable bool K} `{XBoolEquable bool V}: XBoolEquable bool (XHMap K V).

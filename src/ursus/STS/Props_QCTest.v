@@ -9,6 +9,7 @@ Require Import mathcomp.ssreflect.ssreflect.
 From mathcomp Require Import seq ssreflect ssrbool ssrnat eqtype.
 
 Require Import FinProof.All.
+Require Import FinProof.CommonInstances.
 
 Require Import UMLang.ExecGenerator.
 Require Import UMLang.ExecGen.GenFlags.
@@ -61,9 +62,9 @@ let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
 
-STS_1 {$$ 
+STS_1 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$}
+                            with Ledger_VMState := v2 $$})
        dest value bounce flags payload  ? .
 
 (* OK *)
@@ -82,10 +83,56 @@ let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
 
-STS_2 {$$ 
+STS_2 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$}
+                            with Ledger_VMState := v2 $$})
        dest value bounce flags payload  ? .
 
 (* OK *)
 QuickCheck STS_2_propb.
+
+Definition STS_3_1_propb l
+            (dest :  address) 
+            (value :  uint128)
+            (bounce :  boolean)
+            (flags :  uint16)
+            (payload :  cell_) 
+            (mpk: uint256)
+            (acc: bool)
+            (bal: N): bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
+let custodians := CommonInstances.wrap Map (Datatypes.cons (mpk, Build_XUBInteger 0) Datatypes.nil) in
+
+STS_3_1 (quickFixState {$$ 
+        {$$ LedgerDefault with Ledger_MainState := 
+                {$$ l with  _m_custodians := custodians $$}
+         $$}with Ledger_VMState := v2 $$})
+       dest value bounce flags payload  ? .
+
+(* OK *)
+QuickCheck STS_3_1_propb.
+
+Definition STS_3_2_propb l
+            (dest :  address) 
+            (value :  uint128)
+            (bounce :  boolean)
+            (flags :  uint16)
+            (payload :  cell_) 
+            (mpk: uint256)
+            (acc: bool)
+            (bal: N): bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
+let custodians := CommonInstances.wrap Map (Datatypes.cons (mpk, Build_XUBInteger 0) Datatypes.nil) in
+
+STS_3_2 (quickFixState {$$ 
+        {$$ LedgerDefault with Ledger_MainState := 
+                {$$ l with  _m_custodians := custodians $$}
+         $$}with Ledger_VMState := v2 $$})
+       dest value bounce flags payload  ? .
+
+(* OK *)
+QuickCheck STS_3_2_propb.

@@ -144,7 +144,7 @@ Definition INT_7_2 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop 
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = false ->
   (* result.m_custodians.size <= params.owners.size *)
   custodians_sz <= owners_sz /\
-  checkMap custodians (N.to_nat custodians_sz) owners = true /\
+  checkMap custodians (N.to_nat owners_sz) owners = true /\
   (* result.m_defaultRequiredConfirmations = min (result.this.m_custodians.size, params.reqConfirms) *)
   toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l') = reqConfirms' /\
   (* result.m_ownerKey = params.this.owners[0] *)
