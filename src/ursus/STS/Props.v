@@ -81,7 +81,7 @@ Definition STS_3_2 (l: LedgerLRecord rec) (dest :  address) (value :  uint128) (
   let l' := exec_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l in 
   let FLAG_IGNORE_ERRORS := uint2N (toValue (eval_state (sRReader (FLAG_IGNORE_ERRORS_right rec def) ) l)) in
   let flags' := Build_XUBInteger (N.lor (uint2N flags) FLAG_IGNORE_ERRORS) in
-  let mes := (EmptyMessage IDefault (value, (bounce, flags'))) in
+  let mes := (EmptyMessage IDefault (value, (bounce, (flags', payload)))) in
   let messageQueueDefault := (toValue (eval_state (sRReader (ULtoRValue ( IDefault_left rec def ))) l')) in
   let messageQueueTmp := (toValue (eval_state (sRReader (ULtoRValue ( Itmp_left rec def ))) l'))  in 
   correctState l ->

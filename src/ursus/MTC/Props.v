@@ -136,7 +136,7 @@ Definition MTC_6 l (transactionId :  uint64) : Prop :=
   let bounce := getPruvendoRecord MultisigWallet_ι_Transaction_ι_bounce transaction in
   let flags := getPruvendoRecord MultisigWallet_ι_Transaction_ι_sendFlags transaction in
   let payload := getPruvendoRecord MultisigWallet_ι_Transaction_ι_payload transaction in
-  let mes := (EmptyMessage IDefault (value, (bounce, flags))) in
+  let mes := (EmptyMessage IDefault (value, (bounce, (flags, payload)))) in
   correctState l ->
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false ->
   requiredConfirmations <= signsReceived + 1 ->
@@ -146,4 +146,3 @@ Definition MTC_6 l (transactionId :  uint64) : Prop :=
   isOnlyMessage messageQueueDefault = true /\
   length_ messageQueueTmp = 0 /\
   isMessageSent mes dest 0 messageQueueDefault = true.
-  (* NYI: msg.params.payload = transaction.payload *)

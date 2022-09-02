@@ -398,8 +398,8 @@ Ursus Definition _confirmTransaction (transactionId :  uint64)
   :://tvm->transfer(#{txn}->MultisigWallet_ι_Transaction_ι_dest, 
                     #{txn}->MultisigWallet_ι_Transaction_ι_value, 
                     #{txn}->MultisigWallet_ι_Transaction_ι_bounce, 
-                    #{txn}->MultisigWallet_ι_Transaction_ι_sendFlags) . (* , 
-                    #{txn}->MultisigWallet_ι_Transaction_ι_payload) . *)
+                    #{txn}->MultisigWallet_ι_Transaction_ι_sendFlags , 
+                    #{txn}->MultisigWallet_ι_Transaction_ι_payload) . 
   :://m_requestsMask := _decMaskValue(m_requestsMask, #{txn}->MultisigWallet_ι_Transaction_ι_index) .
   :://m_transactions := m_transactions ->delete ( #{transactionId} ) |.
   ::// new 'txnn : MultisigWallet_ι_TransactionLRecord @ "txnn" := #{txn} ; _ | .
@@ -473,7 +473,7 @@ Ursus Definition submitTransaction (dest :  address)
                                             else { {_:UExpression _ true} } .
 
   (* TODO: 12 *)
-  :://tvm->transfer(#{dest}, !{realValue}, #{bounce}, ι (!{flags}) (* , #{payload} *)) .
+  :://tvm->transfer(#{dest}, !{realValue}, #{bounce}, ι (!{flags})  , #{payload} ) .
   lia.
   :://exit_ (β #{0}) |.
 
@@ -506,7 +506,7 @@ Ursus Definition sendTransaction (dest :  address) (value :  uint128) (bounce : 
   :://require_((msg->pubkey() == m_ownerKey), %100) .
   :://tvm->accept() .
   (* TODO: 12*)
-  :://tvm->transfer(#{dest}, #{value}, #{bounce}, (#{flags} \ ι (FLAG_IGNORE_ERRORS) )(* , #{payload} *)) .
+  :://tvm->transfer(#{dest}, #{value}, #{bounce}, (#{flags} \ ι (FLAG_IGNORE_ERRORS) ) , #{payload} ) .
   lia.
   :://return_ {} |.
 Defined. 
