@@ -48,7 +48,6 @@ Definition dummyTransaction : MultisigWallet_ι_TransactionLRecord := Eval compu
 
 Definition REU_1 l id (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
   let EXPIRATION_TIME := uint2N (toValue (eval_state (sRReader (EXPIRATION_TIME_right rec def) ) l)) in
-  let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
   let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
   let l' := exec_state (Uinterpreter (_removeExpiredTransactions rec def)) l in 
   let ret_l := exec_state (Uinterpreter (_removeExpiredUpdateRequests rec def)) l in 
