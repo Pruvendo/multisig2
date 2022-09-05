@@ -56,14 +56,16 @@ Definition CUR_1_propb l
               (reqConfirms :  uint8)
               (mpk: uint256)
               (acc: bool)
-              (pk: uint256): bool :=
+              (pk: uint256)
+              now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
 
 CUR_1 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
+                            with Ledger_VMState := v3 $$})
        codeHash owners reqConfirms ? .
 
 (* OK *)
@@ -76,14 +78,16 @@ Definition CUR_2_propb l
               (reqConfirms :  uint8)
               (mpk: uint256)
               (acc: bool)
-              (pk: uint256): bool :=
+              (pk: uint256)
+              now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
 
 CUR_2 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
+                            with Ledger_VMState := v3 $$})
        codeHash owners reqConfirms  ? .
 
 (* OK *)
@@ -96,14 +100,16 @@ Definition CUR_3_propb l
               (reqConfirms :  uint8)
               (mpk: uint256)
               (acc: bool)
-              (pk: uint256): bool :=
+              (pk: uint256)
+              now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
 
 CUR_3 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
+                            with Ledger_VMState := v3 $$})
        codeHash owners reqConfirms  ? .
 
 (* OK *)
@@ -117,14 +123,16 @@ Definition CUR_4_propb l id
               (reqConfirms :  uint8)
               (mpk: uint256)
               (acc: bool)
-              (pk: uint256): bool :=
+              (pk: uint256)
+              now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
 
 CUR_4 id (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
+                            with Ledger_VMState := v3 $$})
        codeHash owners reqConfirms  ? .
 
 (* OK *)
@@ -137,14 +145,16 @@ Definition CUR_5_propb l id
               (reqConfirms :  uint8)
               (mpk: uint256)
               (acc: bool)
-              (pk: uint256): bool :=
+              (pk: uint256)
+              now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
 
 CUR_5 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
+                            with Ledger_VMState := v3 $$})
         id codeHash owners reqConfirms  ? .
 
 (* FAILS *)
@@ -157,14 +167,16 @@ Definition CUR_7_propb l id
               (reqConfirms :  uint8)
               (mpk: uint256)
               (acc: bool)
-              (pk: uint256): bool :=
+              (pk: uint256)
+              now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
 
 CUR_7 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
+                            with Ledger_VMState := v3 $$})
         id codeHash owners reqConfirms  ? .
 
 (* OK *)

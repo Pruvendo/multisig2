@@ -81,10 +81,87 @@ INT_2 {$$ LedgerDefault with Ledger_VMState := v2 $$}
 (* OK *)
 QuickCheck INT_2_propb.
 
-(* TODO: INT_3_1 *)
-(* TODO: INT_3_2 *)
-(* TODO: INT_3_3 *)
-(* TODO: INT_3_4 *)
+Definition INT_3_1_propb l
+       (updateId :  uint64)
+       (mpk: uint256)
+       (acc: bool)
+       (bal: N): bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
+let custodians := CommonInstances.wrap Map (Datatypes.cons (mpk, Build_XUBInteger 0) Datatypes.nil) in
+
+INT_3_1 (quickFixState {$$ 
+        {$$ LedgerDefault with Ledger_MainState := 
+                {$$ l with  _m_custodians := custodians $$}
+         $$}with Ledger_VMState := v2 $$})
+       updateId  ? .
+
+(* OK *)
+QuickCheck INT_3_1_propb.
+
+Definition INT_3_2_propb l
+       (codeHash :  uint256) 
+       (owners :  listArray uint256) 
+       (reqConfirms :  uint8)
+       (mpk: uint256)
+       (acc: bool)
+       (bal: N): bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
+let custodians := CommonInstances.wrap Map (Datatypes.cons (mpk, Build_XUBInteger 0) Datatypes.nil) in
+
+INT_3_2 (quickFixState {$$ 
+        {$$ LedgerDefault with Ledger_MainState := 
+                {$$ l with  _m_custodians := custodians $$}
+         $$}with Ledger_VMState := v2 $$})
+       codeHash owners reqConfirms  ? .
+
+(* OK *)
+QuickCheck INT_3_2_propb.
+
+Definition INT_3_3_propb l
+       (transactionId :  uint64)
+       (mpk: uint256)
+       (acc: bool)
+       (bal: N): bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
+let custodians := CommonInstances.wrap Map (Datatypes.cons (mpk, Build_XUBInteger 0) Datatypes.nil) in
+
+INT_3_3 (quickFixState {$$ 
+        {$$ LedgerDefault with Ledger_MainState := 
+                {$$ l with  _m_custodians := custodians $$}
+         $$}with Ledger_VMState := v2 $$})
+       transactionId  ? .
+
+(* OK *)
+QuickCheck INT_3_3_propb.
+
+Definition INT_3_4_propb l
+       (dest :  address) 
+       (value :  uint128) 
+       (bounce :  boolean) 
+       (allBalance :  boolean) 
+       (payload :  cell_)
+       (mpk: uint256)
+       (acc: bool)
+       (bal: N): bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
+let custodians := CommonInstances.wrap Map (Datatypes.cons (mpk, Build_XUBInteger 0) Datatypes.nil) in
+
+INT_3_4 (quickFixState {$$ 
+        {$$ LedgerDefault with Ledger_MainState := 
+                {$$ l with  _m_custodians := custodians $$}
+         $$}with Ledger_VMState := v2 $$})
+       dest value bounce allBalance payload  ? .
+
+(* OK *)
+QuickCheck INT_3_4_propb.
 
 Definition INT_3_5_propb l
             (dest :  address) 

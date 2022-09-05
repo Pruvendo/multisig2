@@ -43,6 +43,23 @@ Require Import CommonQCEnvironment.
 Require Import LocalState.
 Require Import CommonForProps.
 
+Definition ETR_1 l u (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) : Prop := 
+  let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
+  let EXPIRATION_TIME := uint2N (toValue (eval_state (sRReader (EXPIRATION_TIME_right rec def) ) l)) in
+  let MAX_CLEANUP_TXNS := uint2N (toValue (eval_state (sRReader (MAX_CLEANUP_TXNS_right rec def) ) l)) in
+  let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let id := (getPruvendoRecord MultisigWallet_ι_Transaction_ι_id u) in
+  let l' := exec_state (Uinterpreter (_removeExpiredTransactions rec def)) l in 
+  let m_transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
+  isError (eval_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload)) l) = false -> 
+  hmapIsMember id m_updateRequests = true ->
+  (N.shiftr (uint2N id) 32) + EXPIRATION_TIME <= tvm_now  ->
+  length_ (xHMapFilter (fun _k t => (eqb (getPruvendoRecord MultisigWallet_ι_Transaction_ι_id t) id)) transactions) < MAX_CLEANUP_TXNS  <->
+  hmapIsMember id transactions = true /\
+  hmapIsMember id m_transactions = false.
+
+
 Definition MTC_1 l (transactionId :  uint64) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
@@ -50,9 +67,21 @@ Definition MTC_1 l (transactionId :  uint64) : Prop :=
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false ->
   hmapIsMember msgPubkey custodians = true.
 
-(* TODO: MTC_2 (need ETR1) *)
-
 Definition dummyTransaction : MultisigWallet_ι_TransactionLRecord := Eval compute in default. 
+
+Definition MTC_2 l id (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) : Prop := 
+  let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+  let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload)) l in 
+  let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
+  let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in  
+  correctState l ->
+  isError (eval_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload)) l) = true ->
+  hmapIsMember msgPubkey custodians = true ->
+  hmapIsMember id transactions = true -> 
+  ETR_1 l' u dest value bounce allBalance payload. 
+
+
 
 Definition MTC_3 l (transactionId :  uint64) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
@@ -86,8 +115,8 @@ Definition MTC_5_1 l (transactionId : uint64) : Prop :=
   N.land mask (N.shiftl 1 i) = 0 ->
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false.
 
-(* TODO: add ETR1 *)
-Definition MTC_5_2 l (transactionId :  uint64) : Prop := 
+
+Definition MTC_5_2 l id (transactionId :  uint64) (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
   let transaction := hmapFindWithDefault dummyTransaction transactionId transactions in
@@ -104,8 +133,10 @@ Definition MTC_5_2 l (transactionId :  uint64) : Prop :=
   let commonTransactions := xHMapFilter (fun k v => 
     andb (hmapIsMember k transactions)
     (eqb v (hmapFindWithDefault dummyTransaction k transactions))) transactions' in
+  let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in  
   correctState l ->
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false ->
+  ETR_1 l' u dest value bounce allBalance payload ->
   requiredConfirmations > signsReceived + 1 ->
   hmapIsMember transactionId transactions' = true /\
   signsReceived' = signsReceived + 1 /\
@@ -114,8 +145,8 @@ Definition MTC_5_2 l (transactionId :  uint64) : Prop :=
   length_ commonTransactions = length_ transactions - 1
   .
 
-(* TODO: add ETR1 *)
-Definition MTC_6 l (transactionId :  uint64) : Prop := 
+
+Definition MTC_6 l id (transactionId :  uint64) (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_): Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
   let transaction := hmapFindWithDefault dummyTransaction transactionId transactions in
@@ -137,8 +168,10 @@ Definition MTC_6 l (transactionId :  uint64) : Prop :=
   let flags := getPruvendoRecord MultisigWallet_ι_Transaction_ι_sendFlags transaction in
   let payload := getPruvendoRecord MultisigWallet_ι_Transaction_ι_payload transaction in
   let mes := (EmptyMessage IDefault (value, (bounce, (flags, payload)))) in
+  let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in  
   correctState l ->
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false ->
+  ETR_1 l' u dest value bounce allBalance payload ->
   requiredConfirmations <= signsReceived + 1 ->
   length_ transactions' = length_ transactions - 1 /\
   length_ commonTransactions = length_ transactions' /\

@@ -53,14 +53,15 @@ Definition CUE_1_propb l
 (updateId :  uint64) (code : cell_)
               (mpk: uint256)
               (acc: bool)
-              (pk: uint256): bool :=
+              (pk: uint256)
+              now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
-
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
 CUE_1 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
+                            with Ledger_VMState := v3 $$})
         updateId code  ? .
 
 (* OK *)
@@ -70,14 +71,15 @@ Definition CUE_2_propb l
 id (updateId :  uint64) (code : cell_) (custodianIndex :  uint8) (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8)
               (mpk: uint256)
               (acc: bool)
-              (pk: uint256): bool :=
+              (pk: uint256)
+              now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
-
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
 CUE_2 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
+                            with Ledger_VMState := v3 $$})
         id updateId code custodianIndex codeHash owners reqConfirms ? .
 
 (* OK *)
@@ -87,14 +89,16 @@ Definition CUE_3_propb l
 id (updateId :  uint64) (code : cell_) (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8)
               (mpk: uint256)
               (acc: bool)
-              (pk: uint256): bool :=
+              (pk: uint256)
+              now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
 
 CUE_3 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
+                            with Ledger_VMState := v3 $$})
         id updateId code codeHash owners reqConfirms  ? .
 
 (* OK *)
@@ -105,14 +109,16 @@ Definition CUE_4_propb l id
 (updateId :  uint64)  (code : cell_) (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8)
               (mpk: uint256)
               (acc: bool)
-              (pk: uint256): bool :=
+              (pk: uint256)
+              now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
 
 CUE_4  (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
+                            with Ledger_VMState := v3 $$})
         id updateId code codeHash owners reqConfirms  ? .
 
 (* OK *)
