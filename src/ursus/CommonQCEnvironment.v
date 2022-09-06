@@ -738,6 +738,7 @@ Defined.
 
 
 
+
 Require Import FinProof.Common.
 Require Import FinProof.CommonInstances.
 
@@ -898,3 +899,86 @@ unfold decidable.
 repeat decide equality.
 apply H.
 Defined.
+
+#[global]
+Program Instance MultisigWallet_ι_UpdateRequestLRecord_eqdec : forall (req1 req2 : MultisigWallet_ι_UpdateRequestLRecord),
+Dec (req1 = req2).
+Next Obligation.
+destruct req1, req2.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply array_Dec.
+eapply XUBIntegerEq_Dec.
+Defined.
+Fail Next Obligation.
+
+
+
+#[global]
+Program Instance int64_deceq : forall n,  Dec_Eq (XUBInteger n).
+Next Obligation.
+eapply XUBIntegerEq_Dec.
+Defined.
+Print Dec_Eq.
+#[global]
+Program Instance ListArray_deceq : forall x, Dec_Eq x ->  Dec_Eq (listArray x).
+Next Obligation.
+eapply array_Dec.
+Defined.
+
+#[global]
+Program Instance MultisigWallet_ι_TransactionLRecord_eqdec : forall (req1 req2 : MultisigWallet_ι_TransactionLRecord),
+Dec (req1 = req2).
+Next Obligation.
+destruct req1, req2.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply addressEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply cellEq_Dec.
+esplit.
+unfold decidable.
+decide equality.
+Defined.
+Fail Next Obligation.

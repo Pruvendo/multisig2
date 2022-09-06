@@ -179,7 +179,6 @@ MTS_7 (quickFixState {$$
 (* OK *)
 QuickCheck MTS_7_propb.
 
-(* 
 Definition MTS_6_1_1_propb l tr1 tr2 tr3 tr4 (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8)
                           (mpk: uint256)
                           (acc: bool)
@@ -193,5 +192,5 @@ MTS_6_1_2 (quickFixState {$$
                             with Ledger_VMState := v2 $$})
         tr1 tr2 tr3 tr4 codeHash owners reqConfirms ? .
 
-(* OK *)
-QuickCheck MTS_6_1_1_propb. *)
+(* Fail *)
+QuickCheck MTS_6_1_1_propb.

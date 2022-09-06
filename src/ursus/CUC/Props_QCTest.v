@@ -125,7 +125,7 @@ CUC_4 (quickFixState {$$
 
 (* OK *)
 QuickCheck CUC_4_propb.
-(* 
+
 Definition CUC_5_propb l id (updateId :  uint64) (custodianIndex :  uint8) (code : cell_) (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8)
               (mpk: uint256)
               (acc: bool)
@@ -140,4 +140,4 @@ CUC_5 (quickFixState {$$
         id updateId custodianIndex code  codeHash owners reqConfirms ? .
 
 (* FAILS *)
-QuickCheck CUC_5_propb. *)
+QuickCheck CUC_5_propb.

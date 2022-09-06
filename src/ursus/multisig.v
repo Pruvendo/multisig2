@@ -291,8 +291,7 @@ Sync.
 
 #[private, pure]
 Ursus Definition _generateId : UExpression ( uint64) false .
-  (* TODO: 9 *)
-  :://return_   (ι (now) << (β #{32})) \ ((* tx->timestamp & *) (β #{0xFFFFFFFF}))  |.
+  :://return_   (ι (now) << (β #{32})) \ ( tx->timestamp & (β #{0xFFFFFFFF}))  |.
   lia.
 Defined. 
 Sync.
@@ -394,7 +393,6 @@ Ursus Definition _confirmTransaction (transactionId :  uint64)
              #{txn}->MultisigWallet_ι_Transaction_ι_signsRequired)  
              then { {_:UExpression _ false} } 
              else { {_:UExpression _ false} }  |. 
-  (* TODO: 12*)
   :://tvm->transfer(#{txn}->MultisigWallet_ι_Transaction_ι_dest, 
                     #{txn}->MultisigWallet_ι_Transaction_ι_value, 
                     #{txn}->MultisigWallet_ι_Transaction_ι_bounce, 
@@ -472,7 +470,6 @@ Ursus Definition submitTransaction (dest :  address)
   :://if ( (!{requiredSigns} <= (β #{1})) ) then { {_:UExpression _ true} } 
                                             else { {_:UExpression _ true} } .
 
-  (* TODO: 12 *)
   :://tvm->transfer(#{dest}, !{realValue}, #{bounce}, ι (!{flags})  , #{payload} ) .
   lia.
   :://exit_ (β #{0}) |.
@@ -505,7 +502,6 @@ Ursus Definition sendTransaction (dest :  address) (value :  uint128) (bounce : 
   :://require_((m_custodianCount == (β #{1})), %108) .
   :://require_((msg->pubkey() == m_ownerKey), %100) .
   :://tvm->accept() .
-  (* TODO: 12*)
   :://tvm->transfer(#{dest}, #{value}, #{bounce}, (#{flags} \ ι (FLAG_IGNORE_ERRORS) ) , #{payload} ) .
   lia.
   :://return_ {} |.

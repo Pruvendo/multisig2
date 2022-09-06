@@ -119,13 +119,15 @@ Definition CUR_7 l id (codeHash :  uint256) (owners :  listArray uint256) (reqCo
   hmapIsMember id transactions = true ->
   REU_1 l' id codeHash owners reqConfirms. 
 
-Definition CUR_6_1_common l l' req1 req2 req3 req4: Prop := 
+Definition dummyRequest : MultisigWallet_ι_UpdateRequestLRecord := Eval compute in default. 
+
+Definition CUR_6_1_common l l' k1 k2 k3 k4: Prop := 
   let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
   let m_updateRequests_2 := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l') in
-  let k1 := getPruvendoRecord MultisigWallet_ι_UpdateRequest_ι_id req1 in 
-  let k2 := getPruvendoRecord MultisigWallet_ι_UpdateRequest_ι_id req2 in 
-  let k3 := getPruvendoRecord MultisigWallet_ι_UpdateRequest_ι_id req3 in 
-  let k4 := getPruvendoRecord MultisigWallet_ι_UpdateRequest_ι_id req4 in 
+  let req1 := xMaybeMapDefault (fun x => x) (hmapLookup k1 m_updateRequests) dummyRequest  in 
+  let req2 := xMaybeMapDefault (fun x => x) (hmapLookup k2 m_updateRequests) dummyRequest  in 
+  let req3 := xMaybeMapDefault (fun x => x) (hmapLookup k3 m_updateRequests_2) dummyRequest  in 
+  let req4 := xMaybeMapDefault (fun x => x) (hmapLookup k4 m_updateRequests_2) dummyRequest  in 
   req1 <> req2 ->
   k1 <> k2 -> 
   hmapIsMember k1 m_updateRequests = true ->
