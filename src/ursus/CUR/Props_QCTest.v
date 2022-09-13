@@ -49,6 +49,52 @@ Require Import CommonForProps.
 
 Require Import multisig.
 
+Require Import UrsusStdLib.Solidity.All.
+Require Import UrsusStdLib.Solidity.unitsNotations.
+Require Import UrsusTVM.Solidity.All.
+Require Import UrsusTVM.Solidity.UrsusDefinitions.
+Require Import UrsusTVM.Solidity.ReverseTranslatorConstructions.
+
+Definition CUR_5 l id (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
+  let MAX_CUSTODIAN_COUNT := uint2N (toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l)) in
+  let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+  let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l in
+  let m_updateRequestsMask := (uint2N (toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) l'))) in
+  let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
+  correctState l ->
+  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l) = false ->
+  hmapIsMember msgPubkey custodians = true ->
+  length_ owners > 0 ->
+  length_ owners <= MAX_CUSTODIAN_COUNT ->
+  hmapIsMember id transactions = true ->
+  REU_1 l' id codeHash owners reqConfirms ->
+  N.land m_updateRequestsMask (uint2N id) = 0.
+
+Definition CUR_5_propb l id
+              (codeHash :  uint256) 
+              (reqConfirms :  uint8)
+              (owners : listArray uint256)
+              (reqConfirms :  uint8)
+              (mpk: uint256)
+              (acc: bool)
+              (pk: uint256)
+              now: bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let custodians := CommonInstances.wrap Map (Datatypes.cons (mpk, Build_XUBInteger 0) Datatypes.nil) in
+CUR_5 (quickFixState {$$ 
+        {$$ LedgerDefault with Ledger_MainState := {$$ l with  _m_custodians := custodians $$} $$}
+                            with Ledger_VMState := v3 $$})
+
+        id codeHash owners reqConfirms  ? .
+
+(* FAILS *)
+QuickCheck CUR_5_propb.
+
+
 Definition CUR_1_propb l
               (codeHash :  uint256) 
               (reqConfirms :  uint8)

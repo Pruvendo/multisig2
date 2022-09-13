@@ -70,6 +70,37 @@ QuickCheck CS_0_propb.
 (* TODO -- CS_3 *)
 (* TODO -- CS_4 *)
 
+Definition CS_1_propb
+              (updateId :  uint64)
+            (acc: bool)
+            (pk: uint256): bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+
+CS_1 {$$ LedgerDefault with Ledger_VMState := v2 $$}
+       updateId  ? .
+
+(* OK *)
+QuickCheck CS_1_propb.
+
+Definition CS_2_propb
+              (codeHash :  uint256) 
+              (owners :  listArray uint256) 
+              (reqConfirms :  uint8)
+            (acc: bool)
+            (pk: uint256): bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+
+CS_2 {$$ LedgerDefault with Ledger_VMState := v2 $$}
+codeHash owners reqConfirms ? .
+
+(* OK *)
+QuickCheck CS_2_propb.
+
+
 Definition CS_5_propb l
             (dest :  address) 
             (value :  uint128)
