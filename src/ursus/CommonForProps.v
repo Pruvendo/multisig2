@@ -85,7 +85,7 @@ Definition correctState l :=
     let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
     let defaultRequired := toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l) in
     length_ custodians = uint2N custodianCount /\
-    hmapIsMember ownerKey custodians = true /\
+    hmapIsMember ownerKey custodians = true /\ (* For executeUpdate its not True *)
     transactionsCorrect (unwrap transactions) defaultRequired = true /\
     noDuplicates (unwrap transactions) = true
     .

@@ -132,10 +132,10 @@ Definition CUR_6_1_common l l' k1 k2 k3 k4: Prop :=
   k1 <> k2 -> 
   hmapIsMember k1 m_updateRequests = true ->
   hmapIsMember k2 m_updateRequests_2 = true -> 
-  req3 <> req4 ->
+  (req3 <> req4 ->
   k3 <> k4 -> 
   hmapIsMember k3 m_updateRequests = true ->
-  hmapIsMember k4 m_updateRequests_2 = true.
+  hmapIsMember k4 m_updateRequests_2 = true).
 
 Definition CUR_6_1_1 l req1 req2 req3 req4 (updateId :  uint64) : Prop :=
   let l' := exec_state (Uinterpreter (confirmUpdate rec def updateId)) l in 

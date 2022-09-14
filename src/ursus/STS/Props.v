@@ -90,4 +90,3 @@ Definition STS_3_2 (l: LedgerLRecord rec) (dest :  address) (value :  uint128) (
   length_ messageQueueTmp = 0 /\
   isMessageSent mes dest 0 messageQueueDefault = true /\
   equalExceptMessagesLocalBalanceAccepted l l' = true.
-  (* NYI: msg.params.payload = params.payload *)

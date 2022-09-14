@@ -179,7 +179,23 @@ MTS_7 (quickFixState {$$
 (* OK *)
 QuickCheck MTS_7_propb.
 
-Definition MTS_6_1_1_propb l tr1 tr2 tr3 tr4 (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8)
+Definition MTS_6_1_1_propb l tr1 tr2 tr3 tr4 (updateId :  uint64)
+                          (mpk: uint256)
+                          (acc: bool)
+                          (pk: uint256): bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+
+MTS_6_1_1 (quickFixState {$$ 
+        {$$ LedgerDefault with Ledger_MainState := l $$}
+                            with Ledger_VMState := v2 $$})
+        tr1 tr2 tr3 tr4 updateId ? .
+
+(* Fail *)
+QuickCheck MTS_6_1_1_propb.
+
+Definition MTS_6_1_2_propb l tr1 tr2 tr3 tr4 (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8)
                           (mpk: uint256)
                           (acc: bool)
                           (pk: uint256): bool :=
@@ -193,4 +209,4 @@ MTS_6_1_2 (quickFixState {$$
         tr1 tr2 tr3 tr4 codeHash owners reqConfirms ? .
 
 (* Fail *)
-QuickCheck MTS_6_1_1_propb.
+QuickCheck MTS_6_1_2_propb.

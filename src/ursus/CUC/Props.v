@@ -103,9 +103,9 @@ Definition CUC_4 l id (updateId :  uint64)  (code : cell_) (codeHash :  uint256)
   REU_1 l' id codeHash owners reqConfirms ->
   tr_id = id. 
 
-Definition CUC_5 l id (updateId :  uint64) (custodianIndex :  uint8) (code : cell_) (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition CUC_5 l id (updateId :  uint64) (code : cell_) (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
   let l' := exec_state (Uinterpreter (executeUpdate rec def updateId code)) l in
-  let l_res := exec_state (Uinterpreter (_confirmUpdate rec def updateId custodianIndex)) l in
+  let l_res := exec_state (Uinterpreter (confirmUpdate rec def updateId )) l in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l') in
@@ -121,6 +121,7 @@ Definition CUC_5 l id (updateId :  uint64) (custodianIndex :  uint8) (code : cel
   REU_1 l' id codeHash owners reqConfirms ->
   tr_id = id -> 
   N.shiftl (uint2N id) (uint2N confirmationsMask) = 0 ->
-  isError (eval_state (Uinterpreter (_confirmUpdate rec def updateId custodianIndex)) l) = false  /\
+  isError (eval_state (Uinterpreter (confirmUpdate rec def updateId )) l) = false  /\
+  isError (eval_state (Uinterpreter (executeUpdate rec def updateId code)) l) = false  /\
   (u2 <> u -> hmapIsMember id_u2 m_updateRequests = true -> hmapIsMember id_u2 m_updateRequests_res = true) /\
   length_ m_updateRequests_res = length_ m_updateRequests.

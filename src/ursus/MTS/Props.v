@@ -121,7 +121,7 @@ Definition MTS_5 l id (dest :  address) (value :  uint128) (bounce :  boolean) (
   let FLAG_IGNORE_ERRORS := uint2N (toValue (eval_state (sRReader (FLAG_IGNORE_ERRORS_right rec def) ) l)) in
   let FLAG_PAY_FWD_FEE_FROM_BALANCE := uint2N (toValue (eval_state (sRReader (FLAG_PAY_FWD_FEE_FROM_BALANCE_right rec def) ) l)) in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
-  let requestsMask := uint2N (toValue (eval_state (sRReader (m_requestsMask_right rec def) ) l)) in (* ???? *)
+  let requestsMask := uint2N (toValue (eval_state (sRReader (m_requestsMask_right rec def) ) l)) in 
   let m_defaultRequiredConfirmations :=  uint2N (toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l)) in (* ???? *)
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload)) l in
@@ -160,10 +160,10 @@ Definition MTS_6_1_common l l' tr1 tr2 tr3 tr4: Prop :=
   hmapIsMember id1 transactions = true ->
   hmapIsMember id2 transactions = true ->
   id1 <> id2 ->
-  tr3 <> tr4 ->
+ (tr3 <> tr4 ->
   hmapIsMember id3 transactions_2 = true ->
   hmapIsMember id4 transactions_2 = true ->
-  id3 <> id4.
+  id3 <> id4).
 
 
 Definition MTS_6_1_1 l tr1 tr2 tr3 tr4 (updateId :  uint64) : Prop :=

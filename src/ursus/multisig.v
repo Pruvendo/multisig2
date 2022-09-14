@@ -242,7 +242,7 @@ Ursus Definition executeUpdate (updateId :  uint64) (code :  TvmCell)
   ::// new 'requestOpt : (  XMaybe  (MultisigWallet_ι_UpdateRequestLRecord ) ) @ "requestOpt"  := m_updateRequests->fetch(#{updateId}) ; _ | .
   :://require_(!{requestOpt}->hasValue(), %115 ) .
   ::// new 'request : ( MultisigWallet_ι_UpdateRequestLRecord ) @ "request"  := !{requestOpt}->get() ; _ | .
-   :://require_((tvm->hash(#{code})  == !{request}->MultisigWallet_ι_UpdateRequest_ι_codeHash ), %119 ) . 
+  :://require_((tvm->hash(#{code})  == !{request}->MultisigWallet_ι_UpdateRequest_ι_codeHash ), %119 ) . 
   :://require_(m_requiredVotes <= (!{request}->MultisigWallet_ι_UpdateRequest_ι_signs ), %120 ) .
   :://tvm->accept() .
   :://_deleteUpdateRequest(#{updateId}, !{request}->MultisigWallet_ι_UpdateRequest_ι_index) .
@@ -250,7 +250,7 @@ Ursus Definition executeUpdate (updateId :  uint64) (code :  TvmCell)
   :://tvm->setCurrentCode(#{code})  .
   :://onCodeUpgrade(!{request}->MultisigWallet_ι_UpdateRequest_ι_custodians, !{request}->MultisigWallet_ι_UpdateRequest_ι_reqConfirms) .
   :://return_ {} |.
-Defined. 
+Defined.
 Sync.
 
 #[private, view]

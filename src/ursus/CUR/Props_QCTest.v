@@ -204,7 +204,7 @@ CUR_5 (quickFixState {$$
 
         id codeHash owners reqConfirms  ? .
 
-(* FAILS *)
+(* FAILS because while *)
 QuickCheck CUR_5_propb.
 
 Definition CUR_6_1_1_propb l req1 req2 req3 req4
