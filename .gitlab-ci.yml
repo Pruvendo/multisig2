@@ -1,0 +1,15 @@
+stages:
+  - install_coqc
+  - install_solc
+  - install_sct
+  - translating
+  - .post
+
+before_script:
+  - cat /etc/os-release
+
+dummy job:
+  stage: install_coqc
+  script:
+    - echo ok
+  
