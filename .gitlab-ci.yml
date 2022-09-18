@@ -1,5 +1,6 @@
 stages:
-  - install_coqc
+  - install_opam_coqc
+  - preliminaires
   - install_solc
   - install_sct
   - translating
@@ -8,11 +9,36 @@ stages:
 before_script:
   - cat /etc/os-release
 
-dummy job:
-  stage: install_coqc
+opam-coq-job:
+  stage: install_opam_coqc
+  script:
+    - bash -c "sh <(curl -fsSL https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh)"
+    - opam init -n --compiler=ocaml-base-compiler.4.11.2
+    - eval $(opam env)
+    - opam pin add coq 8.15.2
+    - echo ok
+
+mkdir-job:
+  - stage: preliminaires
+  script:
+    - cmake --version
+    - mkdir container_dir
+
+solc-job:
+  stage: install_solc
   script:
     - ls
-    - cd ..
+    - cd container_dir
+    - git clone git@github.com:tonlabs/TON-Solidity-Compiler.git
+    - cd TON-Solidity-Compiler
+    - sh ./compiler/scripts/install_deps.sh
+    - mkdir build
+    - cd build
+    - cmake ../compiler/ -DCMAKE_BUILD_TYPE=Release
+    - cmake --build . -- -j8
+    - cd ../..
     - ls
-    - echo ok
+
+# sct-job:
+#   stage: install_sct
   
