@@ -19,7 +19,7 @@ opam-coq-job:
     - echo ok
 
 mkdir-job:
-  - stage: preliminaires
+  stage: preliminaires
   script:
     - cmake --version
     - mkdir container_dir
