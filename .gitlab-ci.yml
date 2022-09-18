@@ -14,7 +14,7 @@ translating-job:
     - echo ok
     - if mkdir container_dir; then echo "container_dir created"; fi
     - cd container_dir
-    - git clone git@github.com:tonlabs/TON-Solidity-Compiler.git
+    - git clone https://github.com/tonlabs/TON-Solidity-Compiler.git
     - cd TON-Solidity-Compiler
     - sh ./compiler/scripts/install_deps.sh
     - mkdir build
