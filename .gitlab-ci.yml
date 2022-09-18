@@ -7,19 +7,20 @@ before_script:
 translating-job:
   stage: translating
   script:
-    - if eval opam switch create alt 4.11.2; then eval echo ok; else eval opam switch alt; fi
-    - opam switch alt
-    - eval $(opam env)
-    - opam pin add coq 8.15.2 -y
-    - echo ok
-    - if mkdir container_dir; then echo "container_dir created"; fi
-    - cd container_dir
-    - git clone https://github.com/tonlabs/TON-Solidity-Compiler.git
-    - cd TON-Solidity-Compiler
-    - sh ./compiler/scripts/install_deps.sh
-    - mkdir build
-    - cd build
-    - cmake ../compiler/ -DCMAKE_BUILD_TYPE=Release
-    - cmake --build . -- -j8
-    - cd ../..
-    - ls
+    - ~/.everdev/solidity/solc
+    # - if eval opam switch create alt 4.11.2; then eval echo ok; else eval opam switch alt; fi
+    # - opam switch alt
+    # - eval $(opam env)
+    # - opam pin add coq 8.15.2 -y
+    # - echo ok
+    # - if mkdir container_dir; then echo "container_dir created"; fi
+    # - cd container_dir
+    # - git clone https://github.com/tonlabs/TON-Solidity-Compiler.git
+    # - cd TON-Solidity-Compiler
+    # - sh ./compiler/scripts/install_deps.sh
+    # - mkdir build
+    # - cd build
+    # - cmake ../compiler/ -DCMAKE_BUILD_TYPE=Release
+    # - cmake --build . -- -j8
+    # - cd ../..
+    # - ls
