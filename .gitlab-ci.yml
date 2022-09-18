@@ -22,21 +22,11 @@ opam-coq-job:
 mkdir-job:
   stage: preliminaires
   script:
-    - if sudo apt-get install build-essential libssl-dev -y; then echo "build-essential not ok"; else echo "build-essential ok"; fi
-    - if mkdir container_dir; then echo "container_dir created"; fi
-    - cd container_dir
-    - if wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0.tar.gz; then echo "cmake downloaded"; fi
-    - tar -zxvf cmake-3.20.0.tar.gz
-    - cd cmake-3.20.0
-    - ./bootstrap
-    - make
-    - echo -e "\n" | sudo -S make install
-    - cmake --version
+  - if mkdir container_dir; then echo "container_dir created"; fi
 
 solc-job:
   stage: install_solc
   script:
-    - ls
     - cd container_dir
     - git clone git@github.com:tonlabs/TON-Solidity-Compiler.git
     - cd TON-Solidity-Compiler
@@ -46,4 +36,4 @@ solc-job:
     - cmake ../compiler/ -DCMAKE_BUILD_TYPE=Release
     - cmake --build . -- -j8
     - cd ../..
-    - ls  
+    - ls
