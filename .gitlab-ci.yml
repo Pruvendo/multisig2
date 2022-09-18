@@ -21,7 +21,7 @@ opam-coq-job:
 mkdir-job:
   stage: preliminaires
   script:
-    - if sudo apt-get install build-essential libssl-dev -y; then echo "build-essential not ok"; else echo "build-essential ok"
+    - if sudo apt-get install build-essential libssl-dev -y; then echo "build-essential not ok"; else echo "build-essential ok"; fi
     - if mkdir container_dir; then echo "container_dir created"; fi
     - cd container_dir
     - if wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0.tar.gz; then echo "cmake downloaded"; fi
