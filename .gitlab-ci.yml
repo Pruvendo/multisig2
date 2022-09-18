@@ -12,6 +12,7 @@ before_script:
 opam-coq-job:
   stage: install_opam_coqc
   script:
+    - cmake -version
     - if eval opam switch create alt 4.11.2; then eval echo ok; else eval opam switch alt; fi
     - opam switch alt
     - eval $(opam env)
