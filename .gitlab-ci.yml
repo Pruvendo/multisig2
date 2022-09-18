@@ -7,7 +7,7 @@ before_script:
 translating-job:
   stage: translating
   script:
-    - ~/.everdev/solidity/solc
+    - ~/.everdev/solidity/solc/solc
     # - if eval opam switch create alt 4.11.2; then eval echo ok; else eval opam switch alt; fi
     # - opam switch alt
     # - eval $(opam env)
