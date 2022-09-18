@@ -37,8 +37,4 @@ solc-job:
     - cmake ../compiler/ -DCMAKE_BUILD_TYPE=Release
     - cmake --build . -- -j8
     - cd ../..
-    - ls
-
-# sct-job:
-#   stage: install_sct
-  
+    - ls  
