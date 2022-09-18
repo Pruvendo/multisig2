@@ -12,8 +12,8 @@ before_script:
 opam-coq-job:
   stage: install_opam_coqc
   script:
-    - bash -c "sh <(curl -fsSL https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh)"
-    - opam init -n --compiler=ocaml-base-compiler.4.11.2
+    - opam switch create alt 4.11.2
+    - opam switch alt
     - eval $(opam env)
     - opam pin add coq 8.15.2
     - echo ok
