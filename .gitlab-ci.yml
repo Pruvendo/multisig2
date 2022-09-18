@@ -11,5 +11,8 @@ before_script:
 dummy job:
   stage: install_coqc
   script:
+    - ls
+    - cd ..
+    - ls
     - echo ok
   
