@@ -29,7 +29,7 @@ mkdir-job:
     - cd cmake-3.20.0
     - ./bootstrap
     - make
-    - sudo make install
+    - echo "" | sudo -S make install
     - cmake --version
 
 solc-job:
