@@ -1,0 +1,13 @@
+
+uint256 static botch1;
+uint256 static botch2;
+uint256  m_ownerKey;
+uint256  m_requestsMask;
+mapping (uint256 => uint8)  m_custodians;
+uint8  m_custodianCount;
+uint32  m_updateRequestsMask;
+uint8  m_requiredVotes;
+uint8  m_defaultRequiredConfirmations;
+uint64  m_lifetime;
+
+}
