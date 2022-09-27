@@ -47,7 +47,7 @@ Require Import CommonQCEnvironment.
 Require Import CUR.Props.
 Require Import CommonForProps.
 
-Require Import multisig.
+Require Import multisig2.
 
 Definition CUR_1_propb l
               (codeHash :  uint256) 

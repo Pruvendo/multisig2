@@ -15,8 +15,8 @@ Require Import UMLang.GlobalClassGenerator.ClassGenerator.
 Require Import UrsusStdLib.Solidity.All.
 Require Import UrsusStdLib.Solidity.unitsNotations.
 Require Import UrsusTVM.Solidity.All.
-Require Import UrsusTVM.Solidity.UrsusDefinitions.
-Require Import UrsusTVM.Solidity.ReverseTranslatorConstructions.
+Require Export UrsusContractCreator.UrsusDefinitions.
+Require Export UrsusContractCreator.ReverseTranslatorConstructions.
 
 Import UrsusNotations.
 Local Open Scope xlist_scope.
@@ -32,7 +32,7 @@ From elpi Require Import elpi.
 Local Open Scope struct_scope.
 Local Open Scope N_scope.
 Local Open Scope string_scope.
-Require Import multisig. 
+Require Import multisig2. 
 
 Require Import UMLang.ExecGenerator.
 Require Import UMLang.ExecGen.GenFlags.
@@ -43,21 +43,21 @@ Require Import CommonQCEnvironment.
 Require Import LocalState.
 Require Import CommonForProps.
 
-Definition dummyTransaction : MultisigWallet_ι_TransactionLRecord := Eval compute in default. 
-
+Definition dummyTransaction : TransactionLRecord := Eval compute in default. 
+Set Typeclasses Debug.
 Definition ETR_1 l u (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) : Prop := 
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
-  let EXPIRATION_TIME := uint2N (toValue (eval_state (sRReader (EXPIRATION_TIME_right rec def) ) l)) in
+  (* let EXPIRATION_TIME := uint2N (toValue (eval_state (sRReader (EXPIRATION_TIME_right rec def) ) l)) in *)
   let MAX_CLEANUP_TXNS := uint2N (toValue (eval_state (sRReader (MAX_CLEANUP_TXNS_right rec def) ) l)) in
   let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
   let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
-  let id := (getPruvendoRecord MultisigWallet_ι_Transaction_ι_id u) in
+  let id := (getPruvendoRecord Transaction_ι_id u) in
   let l' := exec_state (Uinterpreter (_removeExpiredTransactions rec def)) l in 
   let m_transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
   isError (eval_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload)) l) = false -> 
   hmapIsMember id m_updateRequests = true ->
-  (N.shiftr (uint2N id) 32) + EXPIRATION_TIME <= tvm_now  ->
-  length_ (xHMapFilter (fun _k t => (eqb (getPruvendoRecord MultisigWallet_ι_Transaction_ι_id t) id)) transactions) < MAX_CLEANUP_TXNS  <->
+  (* (N.shiftr (uint2N id) 32) + EXPIRATION_TIME <= tvm_now  -> *)
+  length_ (xHMapFilter (fun _k t => (eqb (getPruvendoRecord Transaction_ι_id t) id)) transactions) < MAX_CLEANUP_TXNS  <->
   hmapIsMember id transactions = true /\
   hmapIsMember id m_transactions = false.
 

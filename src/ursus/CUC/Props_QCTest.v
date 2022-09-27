@@ -47,7 +47,7 @@ Require Import CommonQCEnvironment.
 Require Import CUC.Props.
 Require Import CommonForProps.
 
-Require Import multisig.
+Require Import multisig2.
 
 Definition CUC_1_propb l
 (updateId :  uint64) (code : cell_)(mpk: uint256)

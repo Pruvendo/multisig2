@@ -15,8 +15,8 @@ Require Import UMLang.GlobalClassGenerator.ClassGenerator.
 Require Import UrsusStdLib.Solidity.All.
 Require Import UrsusStdLib.Solidity.unitsNotations.
 Require Import UrsusTVM.Solidity.All.
-Require Import UrsusTVM.Solidity.UrsusDefinitions.
-Require Import UrsusTVM.Solidity.ReverseTranslatorConstructions.
+Require Export UrsusContractCreator.UrsusDefinitions.
+Require Export UrsusContractCreator.ReverseTranslatorConstructions.
 
 Import UrsusNotations.
 Local Open Scope xlist_scope.
@@ -32,7 +32,7 @@ From elpi Require Import elpi.
 Local Open Scope struct_scope.
 Local Open Scope N_scope.
 Local Open Scope string_scope.
-Require Import multisig. 
+Require Import multisig2. 
 
 Require Import UMLang.ExecGenerator.
 Require Import UMLang.ExecGen.GenFlags.
@@ -67,7 +67,7 @@ Definition MTC_1 l (transactionId :  uint64) : Prop :=
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false ->
   hmapIsMember msgPubkey custodians = true.
 
-Definition dummyTransaction : MultisigWallet_ι_TransactionLRecord := Eval compute in default. 
+Definition dummyTransaction : _ResolveName "TransactionLRecord" := Eval compute in default. 
 
 Definition MTC_2 l id (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in

@@ -15,8 +15,8 @@ Require Import UMLang.GlobalClassGenerator.ClassGenerator.
 Require Import UrsusStdLib.Solidity.All.
 Require Import UrsusStdLib.Solidity.unitsNotations.
 Require Import UrsusTVM.Solidity.All.
-Require Import UrsusTVM.Solidity.UrsusDefinitions.
-Require Import UrsusTVM.Solidity.ReverseTranslatorConstructions.
+Require Export UrsusContractCreator.UrsusDefinitions.
+Require Export UrsusContractCreator.ReverseTranslatorConstructions.
 
 Import UrsusNotations.
 Local Open Scope xlist_scope.
@@ -32,7 +32,7 @@ From elpi Require Import elpi.
 Local Open Scope struct_scope.
 Local Open Scope N_scope.
 Local Open Scope string_scope.
-Require Import multisig. 
+Require Import multisig2. 
 
 Require Import UMLang.ExecGenerator.
 Require Import UMLang.ExecGen.GenFlags.
@@ -44,7 +44,7 @@ Require Import LocalState.
 Require Import CommonForProps.
 
 
-Definition dummyTransaction : MultisigWallet_ι_TransactionLRecord := Eval compute in default. 
+Definition dummyTransaction : _ResolveName "TransactionLRecord" := Eval compute in default. 
 
 Definition REU_1 l id (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
   let EXPIRATION_TIME := uint2N (toValue (eval_state (sRReader (EXPIRATION_TIME_right rec def) ) l)) in

@@ -15,8 +15,8 @@ Require Import UMLang.All.
 Require Import UrsusStdLib.Solidity.All.
 Require Import UrsusStdLib.Solidity.unitsNotations.
 Require Import UrsusTVM.Solidity.All.
-Require Import UrsusTVM.Solidity.UrsusDefinitions.
-Require Import UrsusTVM.Solidity.ReverseTranslatorConstructions.
+Require Export UrsusContractCreator.UrsusDefinitions.
+Require Export UrsusContractCreator.ReverseTranslatorConstructions.
 
 Import UrsusNotations.
 Local Open Scope xlist_scope.
@@ -36,7 +36,7 @@ Set Warnings "-extraction-opaque-accessed,-extraction".
 Local Open Scope struct_scope.
 Local Open Scope N_scope.
 Local Open Scope string_scope.
-Require Import multisig. 
+Require Import multisig2. 
 
 Require Import UMLang.ExecGenerator.
 Require Import UMLang.ExecGen.GenFlags.
@@ -68,16 +68,19 @@ destruct H, H0.
 refine true.
 Defined.
 
-Definition transactionsCorrect (txs: Datatypes.list (uint64 * MultisigWallet_ι_TransactionLRecord)) (defaultRequired: uint8) :=
+Definition transactionsCorrect (txs: Datatypes.list (uint64 * TransactionLRecord)) (defaultRequired: uint8) :=
   List.forallb (fun tx : (uint64 * _) => andb (Common.eqb (fst tx) 
-    (getPruvendoRecord MultisigWallet_ι_Transaction_ι_id (snd tx)))
-    (Common.eqb (defaultRequired) (getPruvendoRecord MultisigWallet_ι_Transaction_ι_signsRequired (snd tx)))
+    (getPruvendoRecord Transaction_ι_id (snd tx)))
+    (Common.eqb (defaultRequired) (getPruvendoRecord Transaction_ι_signsRequired (snd tx)))
   ) txs.
 
-Definition noDuplicates (txs: Datatypes.list (uint64 * MultisigWallet_ι_TransactionLRecord)) :=
+Definition noDuplicates (txs: Datatypes.list (uint64 * TransactionLRecord)) :=
   List.forallb (fun tx => Common.eqb (length_ (List.filter
     (fun tx' => Common.eqb tx tx') txs)) 1) txs.
+Variable (l : Type).
 
+Check toValue (eval_state (sRReader (m_transactions_right rec def) ) l).
+Print toValue.
 Definition correctState l := 
     let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
     let custodianCount := toValue (eval_state (sRReader (m_custodianCount_right rec def) ) l) in
@@ -86,14 +89,14 @@ Definition correctState l :=
     let defaultRequired := toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l) in
     length_ custodians = uint2N custodianCount /\
     hmapIsMember ownerKey custodians = true /\
-    transactionsCorrect (unwrap transactions) defaultRequired = true /\
-    noDuplicates (unwrap transactions) = true
+    transactionsCorrect (unwrap transactions) defaultRequired = true 
+    (* noDuplicates (unwrap transactions) = true *)
     .
 
 Import ListNotations.
-Definition get_id (tx : MultisigWallet_ι_TransactionLRecord) : N := 
-  uint2N (MultisigWallet_ι_TransactionLGetField MultisigWallet_ι_Transaction_ι_id tx).
-Fixpoint dedupTransactions (txs: Datatypes.list (uint64 * MultisigWallet_ι_TransactionLRecord))  (mem: mapping N bool) := 
+Definition get_id (tx : TransactionLRecord) : N := 
+  uint2N (TransactionLGetField Transaction_ι_id tx).
+Fixpoint dedupTransactions (txs: Datatypes.list (uint64 * TransactionLRecord))  (mem: mapping N bool) := 
   match txs with 
   | []%list => []%list
   | (tx :: txs)%list => 
@@ -103,7 +106,7 @@ Fixpoint dedupTransactions (txs: Datatypes.list (uint64 * MultisigWallet_ι_Tran
   (tx :: dedupTransactions txs mem')%list
   end.
 
-Definition quickFixState (l: LedgerLRecord rec) : LedgerLRecord rec :=
+(* Definition quickFixState (l: LedgerLRecord rec) : LedgerLRecord rec :=
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l) in
   let custodians' := if hmapIsMember ownerKey custodians then custodians 
@@ -111,9 +114,9 @@ Definition quickFixState (l: LedgerLRecord rec) : LedgerLRecord rec :=
   let defaultRequired := toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
   let transactions':= (CommonInstances.wrap Map (dedupTransactions (map 
-    (fun tx : (uint64 * MultisigWallet_ι_TransactionLRecord) => (fst tx, {$$
-      {$$ snd tx with MultisigWallet_ι_Transaction_ι_id := fst tx $$}
-      with MultisigWallet_ι_Transaction_ι_signsRequired := defaultRequired $$} : MultisigWallet_ι_TransactionLRecord))
+    (fun tx : (uint64 * TransactionLRecord) => (fst tx, {$$
+      {$$ snd tx with Transaction_ι_id := fst tx $$}
+      with Transaction_ι_signsRequired := defaultRequired $$} : TransactionLRecord))
   (unwrap transactions)) (CommonInstances.wrap Map Datatypes.nil))) in
   {$$ l with Ledger_MainState := 
     {$$ {$$ {$$getPruvendoRecord Ledger_MainState l with 
@@ -124,7 +127,7 @@ Definition quickFixState (l: LedgerLRecord rec) : LedgerLRecord rec :=
      with
       _m_transactions := transactions'
     $$}
-  $$}.
+  $$}. *)
 
 #[global]
 Instance xhmap_booleq {K V} `{XBoolEquable bool K} `{XBoolEquable bool V}: XBoolEquable bool (XHMap K V).
@@ -148,12 +151,12 @@ Proof.
   apply pair_xbool_equable.
   exact (unwrap X). exact (unwrap X0).
 Defined.
-
+(* 
 #[global]
 Instance itmp_booleq : XBoolEquable bool (Itmp).
 Proof.
   esplit. intros. exact true.
-Defined.
+Defined. *)
 
 Definition T := Eval compute in LedgerLRecord rec.
-Definition ledgerEqb : T -> T -> bool := Common.eqb.
+(* Definition ledgerEqb : T -> T -> bool := Common.eqb. *)

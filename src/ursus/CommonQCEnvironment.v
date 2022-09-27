@@ -461,10 +461,11 @@ Defined.
 
 (*interfaces*)
 
-Require Import multisig.
-Derive Show for Itmp.
-Derive Shrink for Itmp.
-Derive GenSized for Itmp.
+Require Import multisig2.
+(* TODO *)
+(* Derive Show for Itmp. *)
+(* Derive Shrink for Itmp. *)
+(* Derive GenSized for Itmp. *)
 
 (*PhantomType*)
 

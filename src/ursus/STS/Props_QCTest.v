@@ -47,7 +47,7 @@ Require Import CommonQCEnvironment.
 Require Import STS.Props.
 Require Import CommonForProps.
 
-Require Import multisig.
+Require Import multisig2.
 
 Definition STS_1_propb l
             (dest :  address) 

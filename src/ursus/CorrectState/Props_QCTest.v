@@ -48,7 +48,7 @@ Require Import LocalState.
 Require Import CorrectState.Props.
 Require Import CommonForProps.
 
-Require Import multisig.
+Require Import multisig2.
 
 Definition CS_0_propb
             (owners : listArray uint256)

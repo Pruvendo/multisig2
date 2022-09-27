@@ -12,13 +12,13 @@ Require Import UMLang.All.
 Require Import UrsusStdLib.Solidity.All.
 Require Import UrsusStdLib.Solidity.unitsNotations.
 Require Import UrsusTVM.Solidity.All.
-Require Import UrsusTVM.Solidity.UrsusDefinitions.
-Require Import UrsusTVM.Solidity.ReverseTranslatorConstructions.
+Require Export UrsusContractCreator.UrsusDefinitions.
+Require Export UrsusContractCreator.ReverseTranslatorConstructions.
 
 Require Import UMLang.UrsusLib.
 Require Import UMLang.GlobalClassGenerator.ClassGenerator.
 (* Require Import UMLang.LocalClassGenerator.ClassGenerator. *)
-Require Import multisig.
+Require Import multisig2.
 Import UrsusNotations.
 Local Open Scope xlist_scope.
 Local Open Scope record.
@@ -42,7 +42,7 @@ Set Typeclasses Depth 100.
 
 
 Inductive LocalFields0000I := | ι00000 | ι00001 .
-Definition LocalState0000L := [( XHMap (string*nat) ( XMaybe  (XProd ( uint64)( MultisigWallet_ι_UpdateRequestLRecord ) ))) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState0000L := [( XHMap (string*nat) ( XMaybe  (XProd ( uint64)( UpdateRequestLRecord ) ))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState0000L LocalFields0000I . 
 Opaque LocalState0000LRecord . 
 Inductive LocalFields0001I := | ι00010 | ι00011 .
@@ -54,11 +54,11 @@ Definition LocalState0010L := [( XHMap (string*nat) ( uint64)) : Type; ( XHMap s
 GlobalGeneratePruvendoRecord LocalState0010L LocalFields0010I . 
 Opaque LocalState0010LRecord . 
 Inductive LocalFields0011I := | ι00110 | ι00111 .
-Definition LocalState0011L := [( XHMap (string*nat) (MultisigWallet_ι_UpdateRequestLRecord)) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState0011L := [( XHMap (string*nat) (UpdateRequestLRecord)) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState0011L LocalFields0011I . 
 Opaque LocalState0011LRecord . 
 Inductive LocalFields0100I := | ι01000 | ι01001 .
-Definition LocalState0100L := [( XHMap (string*nat) ( XMaybe  (MultisigWallet_ι_UpdateRequestLRecord ))) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState0100L := [( XHMap (string*nat) ( XMaybe  (UpdateRequestLRecord ))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState0100L LocalFields0100I . 
 Opaque LocalState0100LRecord . 
 Inductive LocalFields0101I := | ι01010 | ι01011 .
@@ -70,15 +70,15 @@ Definition LocalState0110L := [( XHMap (string*nat) ( uint256)) : Type; ( XHMap 
 GlobalGeneratePruvendoRecord LocalState0110L LocalFields0110I . 
 Opaque LocalState0110LRecord . 
 Inductive LocalFields0111I := | ι01110 | ι01111 .
-Definition LocalState0111L := [( XHMap (string*nat) (MultisigWallet_ι_TransactionLRecord)) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState0111L := [( XHMap (string*nat) ( TransactionLRecord)) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState0111L LocalFields0111I . 
 Opaque LocalState0111LRecord . 
 Inductive LocalFields1000I := | ι10000 | ι10001 .
-Definition LocalState1000L := [( XHMap (string*nat) ( XMaybe  (MultisigWallet_ι_TransactionLRecord ))) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState1000L := [( XHMap (string*nat) ( XMaybe  ( TransactionLRecord ))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState1000L LocalFields1000I . 
 Opaque LocalState1000LRecord . 
 Inductive LocalFields1001I := | ι10010 | ι10011 .
-Definition LocalState1001L := [( XHMap (string*nat) ( XMaybe  (XProd ( uint64)( MultisigWallet_ι_TransactionLRecord ) ))) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState1001L := [( XHMap (string*nat) ( XMaybe  (XProd ( uint64)(  TransactionLRecord ) ))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState1001L LocalFields1001I . 
 Opaque LocalState1001LRecord . 
 Inductive LocalFields1010I := | ι10100 | ι10101 .
@@ -199,7 +199,7 @@ Transparent LocalStateLRecord.
 
 Notation LocalStateField := (LocalStateField XHMap LocalStateLRecord). 
 
-        #[global, program] Instance LocalStateField0000 : LocalStateField ( XMaybe  (XProd ( uint64)( MultisigWallet_ι_UpdateRequestLRecord ) )).
+        #[global, program] Instance LocalStateField0000 : LocalStateField ( XMaybe  (XProd ( uint64)( UpdateRequestLRecord ) )).
         Next Obligation. 
         
 eapply TransEmbedded. eapply (_ ι0). 
@@ -265,7 +265,7 @@ eapply TransEmbedded. eapply (_ ι0010).
         Remove Hints LocalStateField0010 : typeclass_instances. 
         
 
-        #[global, program] Instance LocalStateField0011 : LocalStateField (MultisigWallet_ι_UpdateRequestLRecord).
+        #[global, program] Instance LocalStateField0011 : LocalStateField (UpdateRequestLRecord).
         Next Obligation. 
         
 eapply TransEmbedded. eapply (_ ι0). 
@@ -287,7 +287,7 @@ eapply TransEmbedded. eapply (_ ι0011).
         Remove Hints LocalStateField0011 : typeclass_instances. 
         
 
-        #[global, program] Instance LocalStateField0100 : LocalStateField ( XMaybe  (MultisigWallet_ι_UpdateRequestLRecord )).
+        #[global, program] Instance LocalStateField0100 : LocalStateField ( XMaybe  (UpdateRequestLRecord )).
         Next Obligation. 
         
 eapply TransEmbedded. eapply (_ ι0). 
@@ -353,7 +353,7 @@ eapply TransEmbedded. eapply (_ ι0110).
         Remove Hints LocalStateField0110 : typeclass_instances. 
         
 
-        #[global, program] Instance LocalStateField0111 : LocalStateField (MultisigWallet_ι_TransactionLRecord).
+        #[global, program] Instance LocalStateField0111 : LocalStateField ( TransactionLRecord).
         Next Obligation. 
         
 eapply TransEmbedded. eapply (_ ι0). 
@@ -375,7 +375,7 @@ eapply TransEmbedded. eapply (_ ι0111).
         Remove Hints LocalStateField0111 : typeclass_instances. 
         
 
-        #[global, program] Instance LocalStateField1000 : LocalStateField ( XMaybe  (MultisigWallet_ι_TransactionLRecord )).
+        #[global, program] Instance LocalStateField1000 : LocalStateField ( XMaybe  ( TransactionLRecord )).
         Next Obligation. 
         
 eapply TransEmbedded. eapply (_ ι1). 
@@ -397,8 +397,8 @@ eapply TransEmbedded. eapply (_ ι1000).
         Remove Hints LocalStateField1000 : typeclass_instances. 
         
 
-        #[global, program] Instance LocalStateField1001 : LocalStateField ( XMaybe  (XProd ( uint64)( MultisigWallet_ι_TransactionLRecord ) )).
-        Next Obligation. 
+#[global, program] Instance LocalStateField1001 : LocalStateField ( XMaybe  (XProd ( uint64)( TransactionLRecord ) )).
+Next Obligation. 
         
 eapply TransEmbedded. eapply (_ ι1). 
 eapply TransEmbedded. eapply (_ ι10). 

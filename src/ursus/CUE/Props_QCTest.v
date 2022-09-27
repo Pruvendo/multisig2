@@ -47,7 +47,7 @@ Require Import CommonQCEnvironment.
 Require Import CUE.Props.
 Require Import CommonForProps.
 
-Require Import multisig.
+Require Import multisig2.
 
 Definition CUE_1_propb l
 (updateId :  uint64) (code : cell_)
