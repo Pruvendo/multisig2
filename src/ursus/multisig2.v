@@ -82,10 +82,10 @@ Record Contract := {
    #[static] botch2: uint256;
     m_ownerKey: uint256;
     m_requestsMask: uint256;
-    m_transactions: mapping  ( uint64 )(( _ResolveName "TransactionLRecord") );
+    m_transactions: mapping  ( uint64 )(( _ResolveName "Transaction") );
     m_custodians: mapping  ( uint256 )( uint8 );
     m_custodianCount: uint8;
-    m_updateRequests: mapping  ( uint64 )(( _ResolveName "UpdateRequestLRecord") );
+    m_updateRequests: mapping  ( uint64 )(( _ResolveName "UpdateRequest") );
     m_updateRequestsMask: uint32;
     m_requiredVotes: uint8;
     m_defaultRequiredConfirmations: uint8;
@@ -121,6 +121,8 @@ Ursus Definition _getExpirationBound : UExpression ( uint64) false .
    :://return_ ((uint64(now) - m_lifetime) << #{32}) |.
 Defined. 
 
+Sync.
+
 #[private, nonpayable]
 Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType true .
    ::// new 'marker : (  uint64 ) @ "marker"  := _getExpirationBound( ) ;_|.
@@ -153,6 +155,8 @@ Ursus Definition _setConfirmed (mask :  uint32) (custodianIndex :  uint8): UExpr
    ::// {mask_} |= (uint32(#{1}) << #{custodianIndex}) .
    :://return_ !{mask_} |.
 Defined. 
+
+Sync.
 
 #[private, nonpayable]
 Ursus Definition _confirmUpdate (updateId :  uint64) (custodianIndex :  uint8): UExpression PhantomType false .
@@ -198,6 +202,8 @@ Ursus Definition _initialize (ownersOpt :  optional  ( listArray uint256 )) (req
    :://return_ {} |.
 Defined. 
 
+Sync.
+
 (* TODO нужно поддержать механику когда вместо типа optional A кладут тип A (newOwners) *)
 
 #[private, nonpayable]
@@ -220,6 +226,8 @@ Ursus Definition getUpdateRequests : UExpression (listArray UpdateRequestLRecord
       :://{updates}->push(!{req})  |. *)
    :://return_ !{updates} |.
 Defined. 
+
+Sync.
 
 (* TODO проблемы с функциями без аргументов *)
 #[public, nonpayable]
@@ -267,10 +275,14 @@ Ursus Definition _checkBit (mask :  uint32) (index :  uint8): UExpression ( bool
    :://return_  {}|.
 Defined. 
 
+Sync.
+
 #[private, pure]
 Ursus Definition _isConfirmed (mask :  uint32) (custodianIndex :  uint8): UExpression ( boolean) false .
    :://return_ _checkBit(#{mask}, #{custodianIndex}) |.
 Defined. 
+
+Sync.
 
 #[public, nonpayable]
 Ursus Definition confirmUpdate (updateId :  uint64): UExpression PhantomType true .
@@ -300,6 +312,8 @@ Defined.
 Ursus Definition _isSubmitted (mask :  uint32) (custodianIndex :  uint8): UExpression ( boolean) false .
    :://return_ _checkBit(#{mask}, #{custodianIndex}) |.
 Defined. 
+
+Sync.
 
 #[public, nonpayable]
 Ursus Definition submitUpdate (codeHash :  optional  ( uint256 )) (owners :  optional  ( listArray uint256 )) (reqConfirms :  optional  ( uint8 )) (lifetime :  optional  ( uint64 )): UExpression ( uint64) true .
@@ -377,10 +391,14 @@ Ursus Definition isConfirmed (mask :  uint32) (index :  uint8): UExpression ( bo
    :://(*confirmed :=*) return_ _isConfirmed(#{mask}, #{index})  |.
 Defined. 
 
+Sync.
+
 #[private, pure]
 Ursus Definition _decMaskValue (mask :  uint256) (index :  uint8): UExpression ( uint256) false .
    :://return_ (#{mask} - (#{1} << (#{8} * uint256(#{index})))) |.
 Defined. 
+
+Sync.
 
 #[private, nonpayable]
 Ursus Definition _removeExpiredTransactions : UExpression PhantomType true .
@@ -442,6 +460,8 @@ Ursus Definition _confirmTransaction (txn : TransactionLRecord) (custodianIndex 
    :://return_ {} |.
 Defined. 
 
+Sync.
+
 #[public, nonpayable]
 Ursus Definition confirmTransaction (transactionId :  uint64): UExpression PhantomType true .
    ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(msg->pubkey()) ;_|.
@@ -476,6 +496,8 @@ Defined.
 Ursus Definition _getMaskValue (mask :  uint256) (index :  uint8): UExpression ( uint8) false .
    :://return_ (*uint8(((#{mask} >> (#{8} * uint256(#{index}))) & #{0xFF}))*) {} |.
 Defined. 
+
+Sync.
 
 #[public, nonpayable]
 Ursus Definition submitTransaction (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  TvmCell) (stateInit :  optional  ( TvmCell )): UExpression ( uint64) true .
