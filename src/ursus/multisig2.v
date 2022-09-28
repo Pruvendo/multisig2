@@ -1,41 +1,6 @@
 (*/Users/petrlarockin/Downloads/TON/solidity-coq-translator/ref*)
-Require Import Coq.Program.Basics. 
-Require Import Coq.Strings.String.
-Require Import Setoid. 
-Require Import ZArith.
-Require Import QArith.
-Require Import Coq.Program.Equality.
-Require Import Lia.
-
-Require Import FinProof.All.
-Require Import FinProof.CommonInstances.
-Require Import UMLang.All.
-Require Import UrsusStdLib.Solidity.All.
-Require Import UrsusStdLib.Solidity.unitsNotations.
-Require Import UrsusStdLib.Solidity.uintCasting.
-Require Import UrsusStdLib.Solidity.stdNotationsNew.
-Require Import UrsusTVM.Solidity.All.
-Require Export UrsusContractCreator.UrsusDefinitions.
-Require Export UrsusContractCreator.ReverseTranslatorConstructions.
-
-Require Import UMLang.UrsusLib.
-(* Require Import UMLang.LocalClassGenerator.ClassGenerator. *)
-Require Import UMLang.GlobalClassGenerator.ClassGenerator.
-
-Import UrsusNotations.
-Local Open Scope xlist_scope.
-Local Open Scope record.
-Local Open Scope program_scope.
-Local Open Scope glist_scope.
-Local Open Scope ursus_scope.
-Local Open Scope usolidity_scope.
-
-From elpi Require Import elpi.
-
-Local Open Scope struct_scope.
-Local Open Scope N_scope.
-Local Open Scope string_scope.
-Local Open Scope list_scope.
+Require Import Enviroment.Enviroment.
+Require Import Enviroment.LocalGenerator.
 Contract MultisigWallet ;
 Sends To (*need fix*) ; 
 (* Inherits   ; *)
@@ -128,13 +93,13 @@ Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType true .
    ::// new 'marker : (  uint64 ) @ "marker"  := _getExpirationBound( ) ;_|.
    ::// if ( m_updateRequests->empty() ) then { {_:UExpression _ true} } .   :://exit_ {} |.
    (* TODO *)
-   ::// new ('updateId : uint64, 'req : UpdateRequestLRecord ) @ ( "updateId" , "req" )  := {} (*m_updateRequests->min()->get()*) ; _| . 
+   ::// new ('updateId : uint64, 'req : UpdateRequestLRecord ) @ ( "updateId" , "req" )  := m_updateRequests->min()->get() ; _| . 
    ::// new 'needCleanup : (  boolean ) @ "needCleanup"  := (!{updateId} <= !{marker});_| .
    ::// if ( !{needCleanup} ) then { {_:UExpression _ true} } .
    ::// tvm->accept() .
    ::// while (!{needCleanup}) do { {_:UExpression PhantomType true} } ; _ |.
       ::// _deleteUpdateRequest( !{updateId} , !{req}->UpdateRequest_ι_index  ) .
-      ::// new 'reqOpt : (  optional  (tuple ( uint64)( UpdateRequestLRecord ) ) ) @ "reqOpt"  := {} (*m_updateRequests->next(!{updateId})*);_|.
+      ::// new 'reqOpt : (  optional  (tuple ( uint64)( UpdateRequestLRecord ) ) ) @ "reqOpt"  :=  m_updateRequests->next(!{updateId});_|.
       :://if ( !{reqOpt}->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ false} } |.
          ::// [ {updateId}, {req} ] := !{reqOpt}->get() .
          ::// {needCleanup} := (!{updateId} <= !{marker})  |.
@@ -161,10 +126,10 @@ Sync.
 #[private, nonpayable]
 Ursus Definition _confirmUpdate (updateId :  uint64) (custodianIndex :  uint8): UExpression PhantomType false .
 (* TODO *)
-   ::// new 'request : ( UpdateRequestLRecord ) @ "request"  := {} (*m_updateRequests[#{updateId}]*);_| .
+   ::// new 'request : ( UpdateRequestLRecord ) @ "request"  :=  m_updateRequests[#{updateId}];_| .
    ::// {request}->UpdateRequest_ι_signs ++ .
    ::// {request}->UpdateRequest_ι_confirmationsMask := _setConfirmed(!{request}->UpdateRequest_ι_confirmationsMask, #{custodianIndex}) .
-   ::// m_updateRequests := {} (*m_updateRequests->set(#{updateId}, !{request})*) .
+   ::// m_updateRequests := m_updateRequests->set(#{updateId}, !{request}) .
    :://return_ {} |.
 Defined. 
 
@@ -173,12 +138,14 @@ Ursus Definition _initialize (ownersOpt :  optional  ( listArray uint256 )) (req
    ::// if ( #{ownersOpt}->hasValue() ) then { {_:UExpression _ true} } .
    ::// new 'ownerCount : (  uint8 ) @ "ownerCount"  := uint8(#{0}) ;_|.
    ::// new 'owners : ( listArray uint256 ) @ "owners"  := #{ownersOpt}->get() ;_|.
+   (* HasLookup *)
    ::// m_ownerKey := {} (*!{owners}[#{0}]*) ;_|.
    ::// new 'len : (  uint256 ) @ "len"  := uint256(!{owners}->length()) ;_|.
    (* TODO *)
    (* :://( ( m_custodians)) ->delete . *)
    ::// new 'i : (  uint256 ) @ "i"  := uint256(#{0}) ;_|.
    ::// while ((!{i} < !{len}) && (!{ownerCount} < MAX_CUSTODIAN_COUNT)) do  { {_: UExpression PhantomType false } } ; _ |.
+      (* HasLookup *)
       ::// new 'key : (  uint256 ) @ "key"  := {} (*!{owners}[!{i}]*) ;_|.
       ::// if ( (~ (* ! *) ( m_custodians->exists(!{key}))) ) then { {_:UExpression _ false} }  .
          ::// {ownerCount} ++ .
@@ -201,7 +168,6 @@ Ursus Definition _initialize (ownersOpt :  optional  ( listArray uint256 )) (req
 
    :://return_ {} |.
 Defined. 
-
 Sync.
 
 (* TODO нужно поддержать механику когда вместо типа optional A кладут тип A (newOwners) *)
@@ -215,7 +181,7 @@ Defined.
 
 (* TODO нужно поддержать мехнику с returns, нужен push для array *)
 Context `{LocalStateField' (listArray UpdateRequestLRecord)}.
-Context `{LocalStateField' (_ResolveName "UpdateRequestLRecord")} `{ XDefault (_ResolveName "UpdateRequestLRecord")}.
+(* Context `{LocalStateField' (_ResolveName "UpdateRequestLRecord")} `{ XDefault (_ResolveName "UpdateRequestLRecord")}. *)
 #[public, view]
 Ursus Definition getUpdateRequests : UExpression (listArray UpdateRequestLRecord) false .
    ::// new 'updates : (  listArray UpdateRequestLRecord ) @ "updates"  := newArray(0);_| .
@@ -226,7 +192,6 @@ Ursus Definition getUpdateRequests : UExpression (listArray UpdateRequestLRecord
       :://{updates}->push(!{req})  |. *)
    :://return_ !{updates} |.
 Defined. 
-
 Sync.
 
 (* TODO проблемы с функциями без аргументов *)
@@ -234,17 +199,17 @@ Sync.
 Ursus Definition executeUpdate (updateId :  uint64) (code :  optional  ( TvmCell )): UExpression PhantomType true .
    ::// require_(m_custodians->exists(msg->pubkey()), #{100}) .
    (* ::// _removeExpiredUpdateRequests( ) ;_|. *)
-   ::// new 'requestOpt : (  optional  (UpdateRequestLRecord ) ) @ "requestOpt"  := {} (*m_updateRequests->fetch(#{updateId})*) ;_|.
+   ::// new 'requestOpt : (  optional  (UpdateRequestLRecord ) ) @ "requestOpt"  :=  m_updateRequests->fetch(#{updateId}) ;_|.
    ::// require_(!{requestOpt}->hasValue(), #{115}) .
    ::// new 'request : ( UpdateRequestLRecord ) @ "request"  := !{requestOpt}->get() ;_|.
    ::// if ( !{request}->UpdateRequest_ι_codeHash->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } ;_|.
-   ::// require_(#{code}->hasValue(), #{119}) | (*на самом деле без |*).
+   ::// require_(#{code}->hasValue(), #{119}) | (*на самом деле без |. *).
    (* TODO поправить проверку равенства *)
    (* :://require_((tvm->hash(#{code}->get())  == !{request}->UpdateRequest_ι_codeHash->get())), #{119})  |. *)
 
    ::// require_((~ (* ! *) ( #{code}->hasValue())), #{125})  |.
    (* поправить приведение типа, а вообще он не может отличить ResolveType A от A *)
-   (* :://require_((!{request}->UpdateRequest_ι_signs) >= uint128(m_requiredVotes), #{120}) . *)
+   :://require_( ((!{request}->UpdateRequest_ι_signs) >=  (m_requiredVotes)), #{120}) .
    ::// tvm->accept() .
    ::// _deleteUpdateRequest(#{updateId}, !{request}->UpdateRequest_ι_index) .
    ::// if ( !{request}->UpdateRequest_ι_codeHash->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
@@ -535,4 +500,4 @@ Ursus Definition constructor (owners :  listArray uint256) (reqConfirms :  uint8
    :://_initialize({}, {}, {}(* #{owners}, #{reqConfirms}, #{lifetime}*)) .
    :://return_ {} |.
 Defined. 
-EndContract Implements (*интерфейсы*) .
+EndContract Implements (*interfaces*) .
