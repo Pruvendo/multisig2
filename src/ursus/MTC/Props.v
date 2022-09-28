@@ -45,17 +45,17 @@ Require Import CommonForProps.
 
 Definition ETR_1 l u (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) : Prop := 
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
-  let EXPIRATION_TIME := uint2N (toValue (eval_state (sRReader (EXPIRATION_TIME_right rec def) ) l)) in
+  let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
   let MAX_CLEANUP_TXNS := uint2N (toValue (eval_state (sRReader (MAX_CLEANUP_TXNS_right rec def) ) l)) in
   let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
   let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
-  let id := (getPruvendoRecord MultisigWallet_ι_Transaction_ι_id u) in
+  let id := (getPruvendoRecord Transaction_ι_id u) in
   let l' := exec_state (Uinterpreter (_removeExpiredTransactions rec def)) l in 
   let m_transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
   isError (eval_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload)) l) = false -> 
   hmapIsMember id m_updateRequests = true ->
-  (N.shiftr (uint2N id) 32) + EXPIRATION_TIME <= tvm_now  ->
-  length_ (xHMapFilter (fun _k t => (eqb (getPruvendoRecord MultisigWallet_ι_Transaction_ι_id t) id)) transactions) < MAX_CLEANUP_TXNS  <->
+  (N.shiftr (uint2N id) 32) + lifetime <= tvm_now  ->
+  length_ (xHMapFilter (fun _k t => (eqb (getPruvendoRecord Transaction_ι_id t) id)) transactions) < MAX_CLEANUP_TXNS  <->
   hmapIsMember id transactions = true /\
   hmapIsMember id m_transactions = false.
 

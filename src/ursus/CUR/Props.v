@@ -44,7 +44,7 @@ Require Import LocalState.
 Require Import CommonForProps.
 
 
-Definition dummyTransaction : _ResolveName "TransactionLRecord" := Eval compute in default. 
+Definition dummyTransaction : TransactionLRecord := Eval compute in default. 
 
 Definition REU_1 l id (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
   let EXPIRATION_TIME := uint2N (toValue (eval_state (sRReader (EXPIRATION_TIME_right rec def) ) l)) in

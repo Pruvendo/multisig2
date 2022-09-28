@@ -46,6 +46,13 @@ Require Import FinProof.CommonInstances.
 Require Import CommonQCEnvironment.
 Require Import LocalState.
 
+#[global, program]
+Instance listInfinite : listInfiniteFunRec_gen XList.
+Next Obligation.
+(* TODO!!!!*)
+exact Datatypes.nil.
+Defined.
+
 Notation rec := LocalStateLRecord.
 Definition computed : LocalStateLRecord := Eval compute in default. 
 #[global]
@@ -77,10 +84,8 @@ Definition transactionsCorrect (txs: Datatypes.list (uint64 * TransactionLRecord
 Definition noDuplicates (txs: Datatypes.list (uint64 * TransactionLRecord)) :=
   List.forallb (fun tx => Common.eqb (length_ (List.filter
     (fun tx' => Common.eqb tx tx') txs)) 1) txs.
-Variable (l : Type).
 
-Check toValue (eval_state (sRReader (m_transactions_right rec def) ) l).
-Print toValue.
+
 Definition correctState l := 
     let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
     let custodianCount := toValue (eval_state (sRReader (m_custodianCount_right rec def) ) l) in
@@ -89,8 +94,8 @@ Definition correctState l :=
     let defaultRequired := toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l) in
     length_ custodians = uint2N custodianCount /\
     hmapIsMember ownerKey custodians = true /\
-    transactionsCorrect (unwrap transactions) defaultRequired = true 
-    (* noDuplicates (unwrap transactions) = true *)
+    transactionsCorrect (unwrap transactions) defaultRequired = true /\
+    noDuplicates (unwrap transactions) = true
     .
 
 Import ListNotations.
@@ -106,7 +111,7 @@ Fixpoint dedupTransactions (txs: Datatypes.list (uint64 * TransactionLRecord))  
   (tx :: dedupTransactions txs mem')%list
   end.
 
-(* Definition quickFixState (l: LedgerLRecord rec) : LedgerLRecord rec :=
+ Definition quickFixState (l: LedgerLRecord rec) : LedgerLRecord rec :=
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l) in
   let custodians' := if hmapIsMember ownerKey custodians then custodians 
@@ -127,7 +132,7 @@ Fixpoint dedupTransactions (txs: Datatypes.list (uint64 * TransactionLRecord))  
      with
       _m_transactions := transactions'
     $$}
-  $$}. *)
+  $$}. 
 
 #[global]
 Instance xhmap_booleq {K V} `{XBoolEquable bool K} `{XBoolEquable bool V}: XBoolEquable bool (XHMap K V).
@@ -159,4 +164,4 @@ Proof.
 Defined. *)
 
 Definition T := Eval compute in LedgerLRecord rec.
-(* Definition ledgerEqb : T -> T -> bool := Common.eqb. *)
+Definition ledgerEqb : T -> T -> bool := Common.eqb.

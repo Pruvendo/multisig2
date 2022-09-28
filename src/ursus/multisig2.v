@@ -209,7 +209,7 @@ Ursus Definition executeUpdate (updateId :  uint64) (code :  optional  ( TvmCell
 
    ::// require_((~ (* ! *) ( #{code}->hasValue())), #{125})  |.
    (* поправить приведение типа, а вообще он не может отличить ResolveType A от A *)
-   :://require_( ((!{request}->UpdateRequest_ι_signs) >=  (m_requiredVotes)), #{120}) .
+   (*:://require_( ((!{request}->UpdateRequest_ι_signs) >=  (m_requiredVotes)), #{120}) .*)
    ::// tvm->accept() .
    ::// _deleteUpdateRequest(#{updateId}, !{request}->UpdateRequest_ι_index) .
    ::// if ( !{request}->UpdateRequest_ι_codeHash->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .

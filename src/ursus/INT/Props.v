@@ -101,18 +101,18 @@ Definition INT_3_5 l (dest :  address) (value :  uint128) (bounce :  boolean) (f
 
 (* INT_4_2 is checked as part of INT_3_x *)
 
-Definition INT_5 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition INT_6 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey()  ) l) in
   let tvmPubkey := toValue (eval_state (sRReader || tvm->pubkey() ) l) in
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = false ->
   msgPubkey = tvmPubkey.
 
-Definition INT_6 (l: LedgerLRecord rec) (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition INT_7 (l: LedgerLRecord rec) (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
   let l' := exec_state (Uinterpreter (constructor rec def owners reqConfirms)) l in 
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = true ->
   ledgerEqb l l' = true. 
 
-Definition INT_7_1 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition INT_8_1 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
   let MAX_CUSTODIANS := toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let tvmPubkey := toValue (eval_state (sRReader || tvm->pubkey() ) l) in
@@ -134,7 +134,7 @@ Fixpoint checkMap m n (owners: listArray uint256):=
   | S n' => andb (checkMap m n' owners) (checkMap' m (N.of_nat n') (arrLookup (N.of_nat n') owners))
   end.
 
-Definition INT_7_2 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition INT_8_2 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
   let l' := exec_state (Uinterpreter (constructor rec def owners reqConfirms)) l in
   let owners_sz := length_ owners in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l') in

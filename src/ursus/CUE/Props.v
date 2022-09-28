@@ -43,10 +43,10 @@ Require Import CommonQCEnvironment.
 Require Import LocalState.
 Require Import CommonForProps.
 
-Definition dummyRequest : MultisigWallet_ι_UpdateRequestLRecord := Eval compute in default. 
+Definition dummyRequest : UpdateRequestLRecord := Eval compute in default. 
 
 Definition REU_1 l id (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
-  let EXPIRATION_TIME := uint2N (toValue (eval_state (sRReader (EXPIRATION_TIME_right rec def) ) l)) in
+  let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
   let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
   let l' := exec_state (Uinterpreter (_removeExpiredTransactions rec def)) l in 
   let ret_l := exec_state (Uinterpreter (_removeExpiredUpdateRequests rec def)) l in 
@@ -55,7 +55,7 @@ Definition REU_1 l id (codeHash :  uint256) (owners :  listArray uint256) (reqCo
   let m_updateRequestsMask := toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) ret_l) in
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l) = false -> 
   hmapIsMember id m_updateRequests = true ->
-  N.shiftr 32 (uint2N id) + EXPIRATION_TIME <= tvm_now <-> 
+  N.shiftr 32 (uint2N id) + lifetime <= tvm_now <-> 
   hmapIsMember id m_updateRequests' = false /\
   N.shiftl (uint2N id) (uint2N m_updateRequestsMask) = 0.
 
