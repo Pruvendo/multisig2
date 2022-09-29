@@ -50,6 +50,20 @@ Require Import CommonForProps.
 
 Require Import multisig2.
 
+Definition CS_1_propb
+              (updateId :  uint64)
+            (acc: bool)
+            (pk: uint256): bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+
+CS_1 {$$ LedgerDefault with Ledger_VMState := v2 $$}
+       updateId  ? .
+
+(* OK *)
+QuickCheck CS_1_propb.
+
 Definition CS_0_propb
        (owners : listArray uint256)
        (reqConfirms :  uint8)
@@ -139,5 +153,22 @@ CS_5 (quickFixState {$$
 (* OK *)
 QuickCheck CS_5_propb.
 
+Definition CS_6_propb l
+            (updateId :  uint64) 
+            (code : optional TvmCell)
+            (mpk: uint256)
+            (acc: bool)
+            (bal: N): bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
+let custodians := CommonInstances.wrap Map (Datatypes.cons (mpk, Build_XUBInteger 0) Datatypes.nil) in
 
-(* TODO -- CS_6 *)
+CS_6 (quickFixState {$$ 
+        {$$ LedgerDefault with Ledger_MainState := 
+                {$$ l with  _m_custodians := custodians $$}
+         $$}with Ledger_VMState := v2 $$})
+         updateId code  ? .
+
+(* Fail *)
+QuickCheck CS_6_propb.
