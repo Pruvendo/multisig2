@@ -1,26 +1,25 @@
 stages:
   - translating
-  - .post
 
 before_script:
   - cat /etc/os-release
-translating-job:
+
+
+translating-build-job:
   stage: translating
   script:
-    - ~/.everdev/solidity/solc --help
-    # - if eval opam switch create alt 4.11.2; then eval echo ok; else eval opam switch alt; fi
-    # - opam switch alt
-    # - eval $(opam env)
-    # - opam pin add coq 8.15.2 -y
-    # - echo ok
-    # - if mkdir container_dir; then echo "container_dir created"; fi
-    # - cd container_dir
-    # - git clone https://github.com/tonlabs/TON-Solidity-Compiler.git
-    # - cd TON-Solidity-Compiler
-    # - sh ./compiler/scripts/install_deps.sh
-    # - mkdir build
-    # - cd build
-    # - cmake ../compiler/ -DCMAKE_BUILD_TYPE=Release
-    # - cmake --build . -- -j8
-    # - cd ../..
-    # - ls
+    - cd ref
+    - cwd=$(pwd)
+    - cd ../../solidity-coq-translator
+    - python3 translate_build.py
+    - bash CI_translating.sh $cwd
+    - dune clean
+    - opam clean 
+  only:
+    changes:
+      - ref/*
+  artifacts:
+    paths:
+      - translated.zip
+    expire_in: 1 week 
+
