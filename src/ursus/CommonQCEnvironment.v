@@ -899,3 +899,94 @@ unfold decidable.
 repeat decide equality.
 apply H.
 Defined.
+
+
+#[global]
+Program Instance UpdateRequestLRecord_eqdec : forall (req1 req2 : UpdateRequestLRecord),
+Dec (req1 = req2).
+Next Obligation.
+destruct req1, req2.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply optionEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply optionEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply optionEq_Dec.
+eapply optionEq_Dec.
+Defined.
+Fail Next Obligation.
+
+
+
+#[global]
+Program Instance int64_deceq : forall n,  Dec_Eq (XUBInteger n).
+Next Obligation.
+eapply XUBIntegerEq_Dec.
+Defined.
+
+#[global]
+Program Instance ListArray_deceq : forall x, Dec_Eq x ->  Dec_Eq (listArray x).
+Next Obligation.
+eapply array_Dec.
+Defined.
+
+#[global]
+Program Instance TransactionLRecord_eqdec : forall (req1 req2 : TransactionLRecord),
+Dec (req1 = req2).
+Next Obligation.
+destruct req1, req2.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply addressEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply XUBIntegerEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply cellEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+destruct x15, x17;
+esplit;
+unfold decidable;
+decide equality.
+eapply optionEq_Dec.
+Defined.
+Fail Next Obligation.
