@@ -142,8 +142,8 @@ CUC_4 (quickFixState {$$
 
 (* Fail *)
 QuickCheck CUC_4_propb.
- (* TODO Freezing *)
-(* Definition CUC_5_propb l id 
+
+Definition CUC_5_propb l id 
         (updateId :  uint64) 
         (custodianIndex : uint8) 
         (code : optional cell_) 
@@ -161,7 +161,7 @@ let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
 CUC_5 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
                             with Ledger_VMState := v2 $$})
-        id updateId custodianIndex code  codeHash owners reqConfirms lifetime ? . *)
+        id updateId custodianIndex code  codeHash owners reqConfirms lifetime ? . 
 
 (* FAILS *)
-(* QuickCheck CUC_5_propb.  *)
+QuickCheck CUC_5_propb. 
