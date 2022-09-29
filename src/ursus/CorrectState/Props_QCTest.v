@@ -51,30 +51,76 @@ Require Import CommonForProps.
 Require Import multisig2.
 
 Definition CS_0_propb
-            (owners : listArray uint256)
-            (reqConfirms :  uint8)
+       (owners : listArray uint256)
+       (reqConfirms :  uint8)
+       (lifetime :  uint32)
+       (acc: bool)
+       (pk: uint256): bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+
+CS_0 {$$ LedgerDefault with Ledger_VMState := v2 $$}
+       owners reqConfirms lifetime ? .
+
+(* FAILS -- probably ursus problem with while *)
+QuickCheck CS_0_propb.
+
+Definition CS_2_propb
+       (codeHash : optional uint256) 
+       (owners : optional (listArray uint256)) 
+       (reqConfirms : optional uint8)
+       (lifetime :  optional uint64)
+       (acc: bool)
+       (pk: uint256): bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+
+CS_2 {$$ LedgerDefault with Ledger_VMState := v2 $$}
+       codeHash owners reqConfirms lifetime ? .
+
+(* OK *)
+QuickCheck CS_2_propb.
+
+Definition CS_3_propb
+            (transactionId :  uint64) 
             (acc: bool)
             (pk: uint256): bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
 
-CS_0 {$$ LedgerDefault with Ledger_VMState := v2 $$}
-       owners reqConfirms  ? .
+CS_3 {$$ LedgerDefault with Ledger_VMState := v2 $$}
+       transactionId ? .
 
-(* FAILS -- probably ursus problem with while *)
-QuickCheck CS_0_propb.
+(* OK *)
+QuickCheck CS_3_propb.
 
-(* TODO -- CS_1 *)
-(* TODO -- CS_2 *)
-(* TODO -- CS_3 *)
-(* TODO -- CS_4 *)
+Definition CS_4_propb
+       (dest :  address) 
+       (value :  uint128) 
+       (bounce :  boolean) 
+       (allBalance :  boolean) 
+       (payload :  cell_)
+       (stateInit :  optional TvmCell) 
+       (acc: bool)
+       (pk: uint256): bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+
+CS_4 {$$ LedgerDefault with Ledger_VMState := v2 $$}
+       dest value bounce allBalance payload stateInit ? .
+
+(* OK *)
+QuickCheck CS_4_propb.
 
 Definition CS_5_propb l
             (dest :  address) 
             (value :  uint128)
             (bounce :  boolean)
-            (flags :  uint16)
+            (flags :  uint8)
             (payload :  cell_) 
             (mpk: uint256)
             (acc: bool)
@@ -92,5 +138,6 @@ CS_5 (quickFixState {$$
 
 (* OK *)
 QuickCheck CS_5_propb.
+
 
 (* TODO -- CS_6 *)
