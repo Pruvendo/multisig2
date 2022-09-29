@@ -50,14 +50,14 @@ Require Import CommonForProps.
 Require Import multisig2.
 
 Definition CUR_1_propb l
-              (codeHash :  uint256) 
-              (reqConfirms :  uint8)
-              (owners : listArray uint256)
-              (reqConfirms :  uint8)
-              (mpk: uint256)
-              (acc: bool)
-              (pk: uint256)
-              now: bool :=
+        (codeHash : optional uint256) 
+        (reqConfirms : optional uint8)
+        (owners : optional (listArray uint256))
+        (lifetime :  optional uint64)
+        (mpk: uint256)
+        (acc: bool)
+        (pk: uint256)
+        now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
@@ -66,20 +66,20 @@ let v3 := {$$ v2 with VMState_ι_now := now $$} in
 CUR_1 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
                             with Ledger_VMState := v3 $$})
-       codeHash owners reqConfirms ? .
+       codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
 QuickCheck CUR_1_propb.
 
-Definition CUR_2_propb l
-              (codeHash :  uint256) 
-              (reqConfirms :  uint8)
-              (owners : listArray uint256)
-              (reqConfirms :  uint8)
-              (mpk: uint256)
-              (acc: bool)
-              (pk: uint256)
-              now: bool :=
+(* Definition CUR_2_propb l
+        (codeHash : optional uint256) 
+        (reqConfirms :  uint8)
+        (owners : listArray uint256)
+        (reqConfirms :  uint8)
+        (mpk: uint256)
+        (acc: bool)
+        (pk: uint256)
+        now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
@@ -91,7 +91,7 @@ CUR_2 (quickFixState {$$
        codeHash owners reqConfirms  ? .
 
 (* OK *)
-QuickCheck CUR_2_propb.
+QuickCheck CUR_2_propb. 
 
 Definition CUR_3_propb l
               (codeHash :  uint256) 
@@ -158,13 +158,13 @@ CUR_5 (quickFixState {$$
         id codeHash owners reqConfirms  ? .
 
 (* FAILS *)
-QuickCheck CUR_5_propb.
+QuickCheck CUR_5_propb. *)
 
 Definition CUR_7_propb l id
-              (codeHash :  uint256) 
-              (reqConfirms :  uint8)
-              (owners : listArray uint256)
-              (reqConfirms :  uint8)
+              (codeHash : optional uint256) 
+              (owners : optional (listArray uint256))
+              (reqConfirms : optional uint8)
+              (lifetime :  optional uint64)
               (mpk: uint256)
               (acc: bool)
               (pk: uint256)
@@ -177,7 +177,7 @@ let v3 := {$$ v2 with VMState_ι_now := now $$} in
 CUR_7 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
                             with Ledger_VMState := v3 $$})
-        id codeHash owners reqConfirms  ? .
+        id codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
 QuickCheck CUR_7_propb.

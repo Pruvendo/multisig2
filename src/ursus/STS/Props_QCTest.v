@@ -50,15 +50,15 @@ Require Import CommonForProps.
 Require Import multisig2.
 
 Definition STS_1_propb l
-            (dest :  address) 
-            (value :  uint128)
-            (bounce :  boolean)
-            (flags :  uint16)
-            (payload :  cell_) 
-            (mpk: uint256)
-            (acc: bool)
-            (bal: N)
-            now: bool :=
+        (dest :  address) 
+        (value :  uint128)
+        (bounce :  boolean)
+        (flags :  uint8)
+        (payload :  cell_) 
+        (mpk: uint256)
+        (acc: bool)
+        (bal: N)
+        now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
@@ -73,15 +73,15 @@ STS_1 (quickFixState {$$
 QuickCheck STS_1_propb.
 
 Definition STS_2_propb l
-            (dest :  address) 
-            (value :  uint128)
-            (bounce :  boolean)
-            (flags :  uint16)
-            (payload :  cell_) 
-            (mpk: uint256)
-            (acc: bool)
-            (bal: N)
-            now: bool :=
+        (dest :  address) 
+        (value :  uint128)
+        (bounce :  boolean)
+        (flags :  uint8)
+        (payload :  cell_) 
+        (mpk: uint256)
+        (acc: bool)
+        (bal: N)
+        now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
@@ -99,7 +99,7 @@ Definition STS_3_1_propb l
             (dest :  address) 
             (value :  uint128)
             (bounce :  boolean)
-            (flags :  uint16)
+            (flags :  uint8)
             (payload :  cell_) 
             (mpk: uint256)
             (acc: bool)
@@ -124,7 +124,7 @@ Definition STS_3_2_propb l
             (dest :  address) 
             (value :  uint128)
             (bounce :  boolean)
-            (flags :  uint16)
+            (flags :  uint8)
             (payload :  cell_) 
             (mpk: uint256)
             (acc: bool)
@@ -142,5 +142,5 @@ STS_3_2 (quickFixState {$$
          $$}with Ledger_VMState := v3 $$})
        dest value bounce flags payload  ? .
 
-(* OK *)
+(* Fail *)
 QuickCheck STS_3_2_propb.

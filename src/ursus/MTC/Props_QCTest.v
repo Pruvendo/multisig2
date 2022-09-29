@@ -50,11 +50,11 @@ Require Import multisig2.
 
 
 Definition MTC_1_propb l
-            (transactionId: uint64) 
-            (mpk: uint256)
-            (acc: bool)
-            (bal: N)
-            now: bool :=
+        (transactionId: uint64) 
+        (mpk: uint256)
+        (acc: bool)
+        (bal: N)
+        now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
@@ -69,11 +69,11 @@ MTC_1 (quickFixState {$$
 QuickCheck MTC_1_propb.
 
 Definition MTC_3_propb l
-            (transactionId: uint64) 
-            (mpk: uint256)
-            (acc: bool)
-            (bal: N)
-            now: bool :=
+        (transactionId: uint64) 
+        (mpk: uint256)
+        (acc: bool)
+        (bal: N)
+        now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
@@ -92,11 +92,11 @@ MTC_3 (quickFixState {$$
 QuickCheck MTC_3_propb.
 
 Definition MTC_4_propb l
-            (transactionId: uint64) 
-            (mpk: uint256)
-            (acc: bool)
-            (bal: N)
-            now: bool :=
+        (transactionId: uint64) 
+        (mpk: uint256)
+        (acc: bool)
+        (bal: N)
+        now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
@@ -115,11 +115,11 @@ MTC_4 (quickFixState {$$
 QuickCheck MTC_4_propb.
 
 Definition MTC_5_1_propb l
-            (transactionId: uint64) 
-            (mpk: uint256)
-            (acc: bool)
-            (bal: N)
-            now: bool :=
+        (transactionId: uint64) 
+        (mpk: uint256)
+        (acc: bool)
+        (bal: N)
+        now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
@@ -134,20 +134,21 @@ MTC_5_1 (quickFixState {$$
         $$}with Ledger_VMState := v3 $$})
        transactionId  ? .
 
-(* OK *)
+(* Fail *)
 QuickCheck MTC_5_1_propb.
 
 Definition MTC_5_2_propb l id 
-            (transactionId :  uint64) 
-            (dest :  address) 
-            (value :  uint128) 
-            (bounce :  boolean) 
-            (allBalance :  boolean) 
-            (payload :  cell_)
-            (mpk: uint256)
-            (acc: bool)
-            (bal: N)
-            now: bool :=
+        (transactionId :  uint64) 
+        (dest :  address) 
+        (value :  uint128) 
+        (bounce :  boolean) 
+        (allBalance :  boolean) 
+        (payload :  cell_)
+        (stateInit :  optional  TvmCell)
+        (mpk: uint256)
+        (acc: bool)
+        (bal: N)
+        now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
@@ -160,7 +161,7 @@ MTC_5_2 (quickFixState {$$
         {$$ LedgerDefault with Ledger_MainState := 
                 {$$ l with  _m_custodians := custodians' $$}
         $$}with Ledger_VMState := v3 $$})
-       id transactionId dest value bounce allBalance payload  ? .
+       id transactionId dest value bounce allBalance payload stateInit ? .
 
 (* OK *)
 QuickCheck MTC_5_2_propb.
@@ -172,6 +173,7 @@ Definition MTC_6_propb l id
             (bounce :  boolean) 
             (allBalance :  boolean) 
             (payload :  cell_)
+            (stateInit :  optional  TvmCell)
             (mpk: uint256)
             (acc: bool)
             (bal: N)
@@ -188,7 +190,7 @@ MTC_6 (quickFixState {$$
         {$$ LedgerDefault with Ledger_MainState := 
                 {$$ l with  _m_custodians := custodians' $$}
         $$}with Ledger_VMState := v3 $$})
-       id transactionId dest value bounce allBalance payload  ? .
+       id transactionId dest value bounce allBalance payload stateInit ? .
 
 (* OK *)
 QuickCheck MTC_6_propb.
