@@ -45,27 +45,28 @@ Require Import CommonForProps.
 
 Definition dummyRequest : UpdateRequestLRecord := Eval compute in default. 
 
-Definition REU_1 l id (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
-  let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+Definition REU_1 l id (codeHash :  option uint256) (owners :  optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
+  let m_lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in (* TODO *)
   let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
   let l' := exec_state (Uinterpreter (_removeExpiredTransactions rec def)) l in 
   let ret_l := exec_state (Uinterpreter (_removeExpiredUpdateRequests rec def)) l in 
   let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
   let m_updateRequests' := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) ret_l) in
   let m_updateRequestsMask := toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) ret_l) in
-  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l) = false -> 
+  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false -> 
   hmapIsMember id m_updateRequests = true ->
-  N.shiftr 32 (uint2N id) + lifetime <= tvm_now <-> 
+  N.shiftr 32 (uint2N id) + m_lifetime <= tvm_now <-> 
   hmapIsMember id m_updateRequests' = false /\
   N.shiftl (uint2N id) (uint2N m_updateRequestsMask) = 0.
 
-Definition CUE_1 l (updateId :  uint64) (code : cell_) : Prop :=
+
+Definition CUE_1 l (updateId :  uint64) (code : optional cell_) : Prop :=
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey()  ) l) in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   isError (eval_state (Uinterpreter (executeUpdate rec def updateId code)) l) = false -> 
   hmapIsMember msgPubkey custodians = true.
 
-Definition CUE_2 l id (updateId :  uint64) (code : cell_) (custodianIndex :  uint8) (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition CUE_2 l id (updateId :  uint64) (code : optional cell_) (custodianIndex :  uint8) (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let l' := exec_state (Uinterpreter (_confirmUpdate rec def updateId custodianIndex)) l in
@@ -73,30 +74,30 @@ Definition CUE_2 l id (updateId :  uint64) (code : cell_) (custodianIndex :  uin
   correctState l ->
   isError (eval_state (Uinterpreter (executeUpdate rec def updateId code)) l) = false -> 
   hmapIsMember msgPubkey custodians = true ->
-  REU_1 l' id codeHash owners reqConfirms.
+  REU_1 l' id codeHash owners reqConfirms lifetime.
 
-Definition CUE_3 l id (updateId :  uint64) (code : cell_) (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition CUE_3 l id (updateId :  uint64) (code : optional cell_) (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
   let l' := exec_state (Uinterpreter (executeUpdate rec def updateId code)) l in
   let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l') in
   let u := xMaybeMapDefault (fun x => x) (hmapLookup id m_updateRequests) dummyRequest  in
-  let tr_id := getPruvendoRecord MultisigWallet_ι_UpdateRequest_ι_id u in 
+  let tr_id := getPruvendoRecord UpdateRequest_ι_id u in 
   correctState l ->
   isError (eval_state (Uinterpreter (executeUpdate rec def updateId code)) l) = false -> 
   hmapIsMember id m_updateRequests = true ->
-  REU_1 l' id codeHash owners reqConfirms ->
+  REU_1 l' id codeHash owners reqConfirms lifetime ->
   tr_id = id.  
 
 
-Definition CUE_4 l id (updateId :  uint64)  (code : cell_) (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition CUE_4 l id (updateId :  uint64)  (code : optional cell_) (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
   let l' := exec_state (Uinterpreter (executeUpdate rec def updateId code)) l in
   let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l') in
   let m_custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l') in
   let u := xMaybeMapDefault (fun x => x) (hmapLookup id m_updateRequests) dummyRequest  in
-  let tr_id := getPruvendoRecord MultisigWallet_ι_UpdateRequest_ι_id u in 
-  let signs := uint2N (getPruvendoRecord MultisigWallet_ι_UpdateRequest_ι_signs u) in 
+  let tr_id := getPruvendoRecord UpdateRequest_ι_id u in 
+  let signs := uint2N (getPruvendoRecord UpdateRequest_ι_signs u) in 
   correctState l ->
   isError (eval_state (Uinterpreter (executeUpdate rec def updateId code)) l) = false -> 
   hmapIsMember id m_updateRequests = true ->
-  REU_1 l' id codeHash owners reqConfirms ->
+  REU_1 l' id codeHash owners reqConfirms lifetime ->
   tr_id = id -> 3 * signs >= 2 * (length_ m_custodians)
   .

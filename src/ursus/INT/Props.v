@@ -43,13 +43,13 @@ Require Import CommonQCEnvironment.
 Require Import LocalState.
 Require Import CommonForProps.
 
-Definition INT_1 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
-  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = false ->
+Definition INT_1 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32): Prop := 
+  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false ->
   length_ owners > 0.
 
-Definition INT_2 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition INT_2 l (owners : listArray uint256) (reqConfirms : uint8)  lifetime: Prop := 
   let MAX_CUSTODIANS := toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l) in
-  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = false ->
+  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false ->
   length_ owners <= uint2N MAX_CUSTODIANS.
 
 (* --constructor--
@@ -77,8 +77,8 @@ Definition INT_3_1 l (updateId :  uint64) : Prop :=
   correctState l ->
   INT_3_common l l'.
 
-Definition INT_3_2 l (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop :=
-  let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l in 
+Definition INT_3_2 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime : optional uint64) : Prop :=
+  let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l in 
   correctState l ->
   INT_3_common l l'.
 
@@ -87,12 +87,12 @@ Definition INT_3_3 l (transactionId :  uint64) : Prop :=
   correctState l ->
   INT_3_common l l'.
 
-Definition INT_3_4 l (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) : Prop :=
-  let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload)) l in 
+Definition INT_3_4 l (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) (stateInit :  optional  ( TvmCell )): Prop :=
+  let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l in 
   correctState l ->
   INT_3_common l l'.
 
-Definition INT_3_5 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_) : Prop :=
+Definition INT_3_5 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint8) (payload :  cell_) : Prop :=
   let l' := exec_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l in 
   correctState l ->
   INT_3_common l l'.
@@ -101,25 +101,25 @@ Definition INT_3_5 l (dest :  address) (value :  uint128) (bounce :  boolean) (f
 
 (* INT_4_2 is checked as part of INT_3_x *)
 
-Definition INT_6 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition INT_6 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey()  ) l) in
   let tvmPubkey := toValue (eval_state (sRReader || tvm->pubkey() ) l) in
-  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = false ->
+  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false ->
   msgPubkey = tvmPubkey.
 
-Definition INT_7 (l: LedgerLRecord rec) (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
-  let l' := exec_state (Uinterpreter (constructor rec def owners reqConfirms)) l in 
-  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = true ->
+Definition INT_7 (l: LedgerLRecord rec) (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
+  let l' := exec_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l in 
+  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = true ->
   ledgerEqb l l' = true. 
 
-Definition INT_8_1 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition INT_8_1 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
   let MAX_CUSTODIANS := toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let tvmPubkey := toValue (eval_state (sRReader || tvm->pubkey() ) l) in
   length_ owners > 0 ->
   length_ owners <= uint2N MAX_CUSTODIANS ->
   msgPubkey = tvmPubkey ->
-  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = false.
+  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false.
 
 Definition checkMap' (m: XHMap ( uint256 )( uint8 )) (i: N) (k: option uint256) := 
   let k' := xMaybeMapDefault id k (Build_XUBInteger 0) in
@@ -134,14 +134,14 @@ Fixpoint checkMap m n (owners: listArray uint256):=
   | S n' => andb (checkMap m n' owners) (checkMap' m (N.of_nat n') (arrLookup (N.of_nat n') owners))
   end.
 
-Definition INT_8_2 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
-  let l' := exec_state (Uinterpreter (constructor rec def owners reqConfirms)) l in
+Definition INT_8_2 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
+  let l' := exec_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l in
   let owners_sz := length_ owners in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l') in
   let custodians_sz := length_ custodians in
   let reqConfirms' := if N.ltb custodians_sz owners_sz then (Build_XUBInteger custodians_sz) else (Build_XUBInteger owners_sz) in
   let ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l') in
-  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = false ->
+  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false ->
   (* result.m_custodians.size <= params.owners.size *)
   custodians_sz <= owners_sz /\
   checkMap custodians (N.to_nat owners_sz) owners = true /\

@@ -43,20 +43,20 @@ Require Import CommonQCEnvironment.
 Require Import LocalState.
 Require Import CommonForProps.
 
-Definition STS_1 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_) : Prop := 
+Definition STS_1 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint8) (payload :  cell_) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   correctState l ->
   isError (eval_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l) = false ->
   length_ custodians = 1.
 
-Definition STS_2 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_) : Prop := 
+Definition STS_2 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint8) (payload :  cell_) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   correctState l ->
   isError (eval_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l) = false ->
   hmapIsMember msgPubkey custodians = true.
 
-Definition STS_3_1 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_) : Prop := 
+Definition STS_3_1 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint8) (payload :  cell_) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   correctState l ->
@@ -76,8 +76,8 @@ Definition equalExceptMessagesLocalBalanceAccepted (l l': LedgerLRecord rec) :=
 $$} with Ledger_LocalState := getPruvendoRecord Ledger_LocalState l' 
 $$} with Ledger_MessagesState := getPruvendoRecord Ledger_MessagesState l' 
 $$} l'.
-
-Definition STS_3_2 (l: LedgerLRecord rec) (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_) : Prop :=
+(* TODO *)
+(* Definition STS_3_2 (l: LedgerLRecord rec) (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_) : Prop :=
   let l' := exec_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l in 
   let FLAG_IGNORE_ERRORS := uint2N (toValue (eval_state (sRReader (FLAG_IGNORE_ERRORS_right rec def) ) l)) in
   let flags' := Build_XUBInteger (N.lor (uint2N flags) FLAG_IGNORE_ERRORS) in
@@ -90,4 +90,4 @@ Definition STS_3_2 (l: LedgerLRecord rec) (dest :  address) (value :  uint128) (
   length_ messageQueueTmp = 0 /\
   isMessageSent mes dest 0 messageQueueDefault = true /\
   equalExceptMessagesLocalBalanceAccepted l l' = true.
-  (* NYI: msg.params.payload = params.payload *)
+ *)  (* NYI: msg.params.payload = params.payload *)
