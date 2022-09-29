@@ -103,7 +103,7 @@ Definition MTS_4 l id (dest :  address) (value :  uint128) (bounce :  boolean) (
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l in
   let messqueue := toValue ((eval_state (sRReader (ULtoRValue (IDefault_left rec def)))) l') in 
-  (* let mes := EmptyMessage IDefault (Build_XUBInteger 0, (bounce, (Build_XUBInteger (N.lor FLAG_IGNORE_ERRORS FLAG_SEND_ALL_REMAINING) , payload))) in *)
+  let mes := EmptyMessage IDefault (Build_XUBInteger 0, (bounce, (Build_XUBInteger (N.lor FLAG_IGNORE_ERRORS FLAG_SEND_ALL_REMAINING) , payload))) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
   let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in  
   correctState l ->
@@ -113,8 +113,8 @@ Definition MTS_4 l id (dest :  address) (value :  uint128) (bounce :  boolean) (
   requestsMask < 5 -> 
   m_defaultRequiredConfirmations < 2 ->
   allBalance = true ->
-  isOnlyMessage messqueue = true. (* /\ *) (* TODO *)
-  (* isMessageSent mes dest 0 messqueue = true .  *)
+  isOnlyMessage messqueue = true /\
+  isMessageSent mes dest 0 messqueue = true . 
 
 
 Definition MTS_5 l id (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) (stateInit :  optional  ( TvmCell )) : Prop := 
@@ -126,7 +126,7 @@ Definition MTS_5 l id (dest :  address) (value :  uint128) (bounce :  boolean) (
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l in
   let messqueue := toValue ((eval_state (sRReader (ULtoRValue (IDefault_left rec def)))) l') in 
-  (* let mes := EmptyMessage IDefault (value, (bounce, ((Build_XUBInteger  (N.lor FLAG_IGNORE_ERRORS FLAG_PAY_FWD_FEE_FROM_BALANCE)), payload))) in *)
+  let mes := EmptyMessage IDefault (value, (bounce, ((Build_XUBInteger  (N.lor FLAG_IGNORE_ERRORS FLAG_PAY_FWD_FEE_FROM_BALANCE)), payload))) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
   let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in  
   correctState l ->
@@ -136,8 +136,8 @@ Definition MTS_5 l id (dest :  address) (value :  uint128) (bounce :  boolean) (
   requestsMask < 5 -> 
   m_defaultRequiredConfirmations < 2 ->
   allBalance = false ->
-  isOnlyMessage messqueue = true. (* /\ *) (* TODO *)
-  (* isMessageSent mes dest 0 messqueue = true .  *)
+  isOnlyMessage messqueue = true /\
+  isMessageSent mes dest 0 messqueue = true . 
 
 
 Definition MTS_7 l id (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) (stateInit :  optional  ( TvmCell )) : Prop := 

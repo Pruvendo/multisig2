@@ -145,8 +145,7 @@ Definition MTC_5_2 l id (transactionId :  uint64) (dest :  address) (value :  ui
   length_ commonTransactions = length_ transactions - 1
   .
 
-
-(* Definition MTC_6 l id (transactionId :  uint64) (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) (stateInit :  optional  ( TvmCell )): Prop := 
+Definition MTC_6 l id (transactionId :  uint64) (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) (stateInit :  optional  ( TvmCell )): Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
   let transaction := hmapFindWithDefault dummyTransaction transactionId transactions in
@@ -161,7 +160,6 @@ Definition MTC_5_2 l id (transactionId :  uint64) (dest :  address) (value :  ui
     andb (hmapIsMember k transactions)
     (eqb v (hmapFindWithDefault dummyTransaction k transactions))) transactions' in
   let messageQueueDefault := (toValue (eval_state (sRReader (ULtoRValue ( IDefault_left rec def ))) l')) in
-  let messageQueueTmp := (toValue (eval_state (sRReader (ULtoRValue ( Itmp_left rec def ))) l'))  in 
   let dest := getPruvendoRecord Transaction_ι_dest transaction in
   let value := getPruvendoRecord Transaction_ι_value transaction in
   let bounce := getPruvendoRecord Transaction_ι_bounce transaction in
@@ -171,11 +169,10 @@ Definition MTC_5_2 l id (transactionId :  uint64) (dest :  address) (value :  ui
   let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in  
   correctState l ->
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false ->
-  ETR_1 l' u dest value bounce allBalance payload ->
+  ETR_1 l' u dest value bounce allBalance payload stateInit ->
   requiredConfirmations <= signsReceived + 1 ->
   length_ transactions' = length_ transactions - 1 /\
   length_ commonTransactions = length_ transactions' /\
   hmapIsMember transactionId transactions' = false /\
   isOnlyMessage messageQueueDefault = true /\
-  length_ messageQueueTmp = 0 /\
-  isMessageSent mes dest 0 messageQueueDefault = true. *)
+  isMessageSent mes dest 0 messageQueueDefault = true.

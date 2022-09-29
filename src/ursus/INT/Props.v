@@ -68,9 +68,12 @@ Definition INT_3_common l l': Prop :=
     toValue (eval_state (sRReader (m_custodianCount_right rec def) ) l') /\
   toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l) =
     toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l') /\
-  (* INT_5_2 *)
+  (* INT_4_2 *)
   toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l) =
-    toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l').
+    toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l') /\
+  (* INT_5 *)
+  toValue (eval_state (sRReader (m_lifetime_right rec def) ) l) =
+    toValue (eval_state (sRReader (m_lifetime_right rec def) ) l').
 
 Definition INT_3_1 l (updateId :  uint64) : Prop :=
   let l' := exec_state (Uinterpreter (confirmUpdate rec def updateId)) l in 
@@ -100,6 +103,8 @@ Definition INT_3_5 l (dest :  address) (value :  uint128) (bounce :  boolean) (f
 (* INT_4_1 is checked as part of INT_7_2 *)
 
 (* INT_4_2 is checked as part of INT_3_x *)
+
+(* INT_5 is checked as part of INT_3_x *)
 
 Definition INT_6 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey()  ) l) in
@@ -141,6 +146,7 @@ Definition INT_8_2 l (owners : listArray uint256) (reqConfirms :  uint8) (lifeti
   let custodians_sz := length_ custodians in
   let reqConfirms' := if N.ltb custodians_sz owners_sz then (Build_XUBInteger custodians_sz) else (Build_XUBInteger owners_sz) in
   let ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l') in
+  let _lifetime := toValue (eval_state (sRReader (m_lifetime_right rec def) ) l') in
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false ->
   (* result.m_custodians.size <= params.owners.size *)
   custodians_sz <= owners_sz /\
@@ -160,4 +166,7 @@ Definition INT_8_2 l (owners : listArray uint256) (reqConfirms :  uint8) (lifeti
   (* (∀ i : i ≥ 0 ⟶ i < 32 ⟶ result.m_updateRequestsMask[i] = false) *)
   N.land 
     (uint2N (toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) l')))
-     0xFFFFFFFF = 0.
+     0xFFFFFFFF = 0 /\
+  (* ((params.lifetime > 0 ⋀ result.m_lifetime = params.this.lifetime)) ⋁ (params.lifetime = 0 ⋀ result.m_lifetime = DEFAULT_EXPIRATION_TIME)) *)
+  (* ????? TODO *)
+  (uint2N lifetime > 0 /\ uint2N _lifetime = uint2N lifetime).

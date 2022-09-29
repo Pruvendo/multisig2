@@ -402,18 +402,15 @@ Ursus Definition _confirmTransaction (txn : TransactionLRecord) (custodianIndex 
          !{txn_}->Transaction_ι_dest, 
          !{txn_}->Transaction_ι_value, 
          !{txn_}->Transaction_ι_bounce, 
-         !{txn_}->Transaction_ι_sendFlags) |.
-(* TODO добавить два поля *)
-         (* #{txn_}->Transaction_ι_payload, 
-         #{txn_}->Transaction_ι_stateInit->get())  |. *)
+         !{txn_}->Transaction_ι_sendFlags,
+         !{txn_}->Transaction_ι_payload) |.
 
    :://tvm->transfer(
          !{txn_}->Transaction_ι_dest, 
          !{txn_}->Transaction_ι_value, 
          !{txn_}->Transaction_ι_bounce, 
-         !{txn_}->Transaction_ι_sendFlags)|.
-(* TODO добавить поле *)
-         (* #{txn_}->Transaction_ι_payload)  |. *)
+         !{txn_}->Transaction_ι_sendFlags,
+         !{txn_}->Transaction_ι_payload)  |.
 
    :://m_requestsMask := _decMaskValue(m_requestsMask, !{txn_}->Transaction_ι_index) .
    :://m_transactions[!{txn_}->Transaction_ι_id]->delete  |.
