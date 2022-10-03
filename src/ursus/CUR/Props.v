@@ -67,18 +67,20 @@ Definition CUR_1 l (codeHash : optional uint256) (owners : optional (listArray u
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
   hmapIsMember msgPubkey custodians = true.
 
-(* Definition CUR_2 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
+Definition CUR_2 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
   correctState l ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
-  length_ owners > 0 . *)
+  xMaybeIsSome owners = true /\
+  length_ (xMaybeMapDefault Datatypes.id owners default) > 0.
 
-(* Definition CUR_3 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
+Definition CUR_3 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
   let MAX_CUSTODIAN_COUNT := uint2N (toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l)) in
   correctState l ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
-  length_ owners <= MAX_CUSTODIAN_COUNT .  *)
+  xMaybeIsSome owners = true /\
+  length_ (xMaybeMapDefault Datatypes.id owners default) <= MAX_CUSTODIAN_COUNT . 
 
-(* Definition CUR_4 id l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
+Definition CUR_4 id l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
   let MAX_CUSTODIAN_COUNT := uint2N (toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l)) in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
@@ -87,12 +89,13 @@ Definition CUR_1 l (codeHash : optional uint256) (owners : optional (listArray u
   correctState l ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
   hmapIsMember msgPubkey custodians = true ->
-  length_ owners > 0 ->
-  length_ owners <= MAX_CUSTODIAN_COUNT ->
+  xMaybeIsSome owners = true ->
+  length_ (xMaybeMapDefault Datatypes.id owners default) > 0 ->
+  length_ (xMaybeMapDefault Datatypes.id owners default) <= MAX_CUSTODIAN_COUNT ->
   hmapIsMember id transactions = true ->
-  REU_1 l' id codeHash owners reqConfirms lifetime. *)
+  REU_1 l' id codeHash owners reqConfirms lifetime.
 
-(* Definition CUR_5 l id (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
+Definition CUR_5 l id (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
   let MAX_CUSTODIAN_COUNT := uint2N (toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l)) in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
@@ -102,11 +105,12 @@ Definition CUR_1 l (codeHash : optional uint256) (owners : optional (listArray u
   correctState l ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
   hmapIsMember msgPubkey custodians = true ->
-  length_ owners > 0 ->
-  length_ owners <= MAX_CUSTODIAN_COUNT ->
+  xMaybeIsSome owners = true ->
+  length_ (xMaybeMapDefault Datatypes.id owners default) > 0 ->
+  length_ (xMaybeMapDefault Datatypes.id owners default) <= MAX_CUSTODIAN_COUNT ->
   hmapIsMember id transactions = true ->
   REU_1 l' id codeHash owners reqConfirms lifetime ->
-  N.land m_updateRequestsMask (uint2N id) = 0. *)
+  N.land m_updateRequestsMask (uint2N id) = 0.
 
 
 Definition CUR_7 l id (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
