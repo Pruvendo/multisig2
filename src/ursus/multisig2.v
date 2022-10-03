@@ -116,15 +116,12 @@ Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType true .
    :://return_ {} |.
 Defined. 
 
-
-
 #[private, pure]
 Ursus Definition _setConfirmed (mask :  uint32) (custodianIndex :  uint8): UExpression ( uint32) false .
    (* TODO 0 *)
-   (* vararg mask "mask". *)
-   ::// new 'mask_ : (  uint32 ) @ "mask_"  := #{mask};_| .
-   ::// {mask_} |= (uint32(#{1}) << #{custodianIndex}) .
-   :://return_ !{mask_} |.
+   vararg mask "mask".
+   ::// {mask} |= (uint32(#{1}) << #{custodianIndex}) .
+   :://return_ !{mask} |.
 Defined. 
 
 Sync.
@@ -173,13 +170,21 @@ Ursus Definition _initialize (ownersOpt :  optional  ( listArray uint256 )) (req
 Defined. 
 Sync.
 
+Definition optional_coercion{A b} (x: URValue A b): URValue (optional A) b.
+pose proof (                             
+urvalue_bind x (fun x' =>  URScalar (Some x'))).
+rewrite right_or_false in X.
+refine X.
+Defined.
+Notation " 'some' '(' x ')' " := (optional_coercion x)
+    (in custom URValue at level 2 , x custom URValue) : usolidity_scope.
 
 #[private, nonpayable]
 Ursus Definition onCodeUpgrade (newOwners :  listArray uint256) (reqConfirms :  uint8): UExpression PhantomType true .
    ::// tvm->resetStorage() .
    (* TODO 2 нужно поддержать механику когда вместо типа optional A кладут тип A *)
-   ::// _initialize(  #{Some newOwners}, #{Some reqConfirms},  {} (*DEFAULT_LIFETIME*)) .
-   :://return_ {} |.
+   ::// _initialize(some(#{newOwners}), some(#{reqConfirms}), some(DEFAULT_LIFETIME)) .
+   ::// return_ {} |.
 Defined. 
 
 
