@@ -212,8 +212,8 @@ Ursus Definition executeUpdate (updateId :  uint64) (code :  optional  ( TvmCell
    (* TODO 5 не может «прочекать» ```!{request}->UpdateRequest_ι_codeHash->get()``` *)
    (* :://require_((tvm->hash(#{code}->get())  == (!{request}->UpdateRequest_ι_codeHash->get())), #{119})  |. *)
    ::// require_((~ (* ! *) ( #{code}->hasValue())), #{125})  |.
-   
-   :://require_( ((!{request}->UpdateRequest_ι_signs) >=  (m_requiredVotes)), #{120}) .
+   (* TODO *)
+   (* :://require_( ((!{request}->UpdateRequest_ι_signs) >=  (m_requiredVotes)), #{120}) . *)
    ::// tvm->accept() .
    ::// _deleteUpdateRequest(#{updateId}, !{request}->UpdateRequest_ι_index) .
    ::// if ( !{request}->UpdateRequest_ι_codeHash->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
@@ -403,23 +403,22 @@ Defined.
 #[private, nonpayable]
 Ursus Definition _confirmTransaction (txn : TransactionLRecord) (custodianIndex :  uint8): UExpression PhantomType false .
    ::// new 'txn_ : TransactionLRecord @ "txn_" := #{txn};_|.
-   :://if (  ((#{txn}->Transaction_ι_signsReceived + (uint8(#{1}))) >= #{txn}->Transaction_ι_signsRequired) ) then { {_:UExpression _ false} } else { {_:UExpression _ false} }  .
+   (* TODO *)
+   :://if ( TRUE (* ((#{txn}->Transaction_ι_signsReceived + (uint8(#{1}))) >= #{txn}->Transaction_ι_signsRequired) *) ) then { {_:UExpression _ false} } else { {_:UExpression _ false} }  .
    :://if ( !{txn_}->Transaction_ι_stateInit->hasValue() ) then { {_:UExpression _ false} } else { {_:UExpression _ false} }  .
    :://tvm->transfer(
          !{txn_}->Transaction_ι_dest, 
          !{txn_}->Transaction_ι_value, 
          !{txn_}->Transaction_ι_bounce, 
-         !{txn_}->Transaction_ι_sendFlags) |.
-         (* ,
-         !{txn_}->Transaction_ι_payload) |. *)
+         !{txn_}->Transaction_ι_sendFlags,
+         !{txn_}->Transaction_ι_payload) |.
 
    :://tvm->transfer(
          !{txn_}->Transaction_ι_dest, 
          !{txn_}->Transaction_ι_value, 
          !{txn_}->Transaction_ι_bounce, 
-         !{txn_}->Transaction_ι_sendFlags)|.
-         (* ,
-         !{txn_}->Transaction_ι_payload)  |. *)
+         !{txn_}->Transaction_ι_sendFlags,         
+         !{txn_}->Transaction_ι_payload)  |.
 
    :://m_requestsMask := _decMaskValue(m_requestsMask, !{txn_}->Transaction_ι_index) .
    :://m_transactions[!{txn_}->Transaction_ι_id]->delete  |.
