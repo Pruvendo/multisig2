@@ -1,6 +1,6 @@
 (*/Users/petrlarockin/Downloads/TON/solidity-coq-translator/ref*)
-Require Import Enviroment.Enviroment.
-Require Import Enviroment.LocalGenerator.
+Require Import UrsusEnvironment.Solidity.current.Environment.
+Require Import UrsusEnvironment.Solidity.current.LocalGenerator.
 Contract MultisigWallet ;
 Sends To (*need fix*) ; 
 (* Inherits   ; *)

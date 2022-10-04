@@ -1,5 +1,5 @@
 (*/Users/petrlarockin/Downloads/TON/solidity-coq-translator/ref*)
-Require Import Enviroment.Enviroment.
+Require Import UrsusEnvironment.Solidity.current.Environment.
 Require Import multisig2.
 Inductive LocalFields00000I := | ι000000 | ι000001 .
 Definition LocalState00000L := [( XHMap (string*nat) ( optional  (tuple ( uint64)( UpdateRequestLRecord ) ))) : Type; ( XHMap string nat ) : Type ] .
@@ -70,11 +70,7 @@ Definition LocalState10000L := [( XHMap (string*nat) ( optional  ( uint8 ))) : T
 GlobalGeneratePruvendoRecord LocalState10000L LocalFields10000I . 
 Opaque LocalState10000LRecord . 
 Inductive LocalFields10001I := | ι100010 | ι100011 .
-<<<<<<< HEAD
-Definition LocalState10001L := [( XHMap (string*nat) ( listArray uint256)) : Type; ( XHMap string nat ) : Type ] .
-=======
 Definition LocalState10001L := [( XHMap (string*nat) (listArray uint256)) : Type; ( XHMap string nat ) : Type ] .
->>>>>>> a63e216025fe7ac035a8ca0794d11b785b35b511
 GlobalGeneratePruvendoRecord LocalState10001L LocalFields10001I . 
 Opaque LocalState10001LRecord . 
 (**************** LocalState Tree ***************.
