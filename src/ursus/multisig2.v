@@ -94,25 +94,33 @@ Ursus Definition _getExpirationBound : UExpression ( uint64) false .
 Defined. 
 Sync.
 
+Notation "->>" := (_:UExpression _ false)(in custom ULValue at level 10).
+Notation "->/>" := (_:UExpression _ true)(in custom ULValue at level 10).
+
+Notation " '^' x " := (ULtoRValue x) (in custom URValue at level 0, x custom ULValue at level 0) : ursus_scope.                    
+
+
 #[private, nonpayable]
 Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType true .
-   ::// new 'marker : (  uint64 ) @ "marker"  := _getExpirationBound( ) ;_|.
-   ::// if ( m_updateRequests->empty() ) then { {_:UExpression _ true} } .   :://exit_ {} |.
+   ?::// new 'marker : _  := _getExpirationBound ( ) ;_|.
+   (*TODO: maybe use {} like that ??*)
+   ::// if ( m_updateRequests->empty() ) then { ->/> } . 
+      { :://exit_ {} |. }
+   (*TODO*)
    ::// new ('updateId : uint64, 'req : UpdateRequestLRecord ) @ ( "updateId" , "req" )  := m_updateRequests->min()->get() ; _| . 
-   ::// new 'needCleanup : (  boolean ) @ "needCleanup"  := (!{updateId} <= !{marker});_| .
-   ::// if ( !{needCleanup} ) then { {_:UExpression _ true} } .
-   ::// tvm->accept() .
-   ::// while (!{needCleanup}) do { {_:UExpression PhantomType true} } ; _ |.
-      ::// _deleteUpdateRequest( !{updateId} , !{req}->UpdateRequest_ι_index  ) .
-      ::// new 'reqOpt : (  optional  (tuple ( uint64)( UpdateRequestLRecord ) ) ) @ "reqOpt"  :=  m_updateRequests->next(!{updateId});_|.
-      :://if ( !{reqOpt}->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ false} } |.
-         ::// [ {updateId}, {req} ] := !{reqOpt}->get() .
-         ::// {needCleanup} := (!{updateId} <= !{marker})  |.
-
-         :://{needCleanup} := FALSE  |.
-
-   :://tvm->commit()  |.
-
+   ?::// new 'needCleanup : _  := (^updateId <= ^marker) ; _ | .
+   ::// if ( ^needCleanup ) then {  ->/> } .
+      { ::// tvm->accept() .
+        ::// while (^needCleanup) do { ->/> } ; _ |. 
+          { ::// _deleteUpdateRequest( ^updateId , ^req->UpdateRequest_ι_index  ) .
+            ?::// new 'reqOpt : _  :=  m_updateRequests->next(^updateId);_|. 
+            :://if ( ^reqOpt->hasValue() ) then { ->/> } else { ->> } |.
+               { ::// [ updateId, req ] := ^reqOpt->get() . 
+                 ::// needCleanup := (^updateId <= ^marker)  |. } 
+               { ::// needCleanup := @false  | . } 
+          }
+        :://tvm->commit()  |. 
+      }
    :://return_ {} |.
 Defined. 
 
@@ -126,7 +134,7 @@ Sync.
 
 #[private, nonpayable]
 Ursus Definition _confirmUpdate (updateId :  uint64) (custodianIndex :  uint8): UExpression PhantomType false .
-   ::// new 'request : ( UpdateRequestLRecord ) @ "request"  :=  m_updateRequests[#{updateId}];_| .
+   ?::// new 'request : _  :=  m_updateRequests[#{updateId}];_| .
    ::// {request}->UpdateRequest_ι_signs ++ .
    ::// {request}->UpdateRequest_ι_confirmationsMask := _setConfirmed(!{request}->UpdateRequest_ι_confirmationsMask, #{custodianIndex}) .
    ::// m_updateRequests := m_updateRequests->set(#{updateId}, !{request}) .
@@ -136,15 +144,15 @@ Defined.
 #[private, nonpayable]
 Ursus Definition _initialize (ownersOpt :  optional  ( listArray uint256 )) (reqConfirmsOpt :  optional  ( uint8 )) (lifetimeOpt :  optional  ( uint64 )): UExpression PhantomType true .
    ::// if ( #{ownersOpt}->hasValue() ) then { {_:UExpression _ true} } .
-   ::// new 'ownerCount : (  uint8 ) @ "ownerCount"  := uint8(#{0}) ;_|.
-   ::// new 'owners : ( listArray uint256 ) @ "owners"  := #{ownersOpt}->get() ;_|.
+   ?::// new 'ownerCount : _ := uint8(#{0}) ;_|.
+   ?::// new 'owners : _ := #{ownersOpt}->get() ;_|.
    ::// m_ownerKey := !{owners}[(#{0})]->get() ;_|.
-   ::// new 'len : (  uint256 ) @ "len"  := uint256(!{owners}->length()) ;_|.
+   ?::// new 'len : _  := uint256(!{owners}->length()) ;_|.
    (* TODO 1 *)
    (* :://( ( m_custodians)) ->delete . *)
-   ::// new 'i : (  uint ) @ "i"  := (#{0}) ;_|.
+   ?::// new 'i : uint  := (#{0}) ;_|.
    ::// while ((!{i} < !{len}) && (!{ownerCount} < MAX_CUSTODIAN_COUNT)) do  { {_: UExpression PhantomType true } } ; _ |.
-      ::// new 'key : (  uint256 ) @ "key"  :=  !{owners}[!{i}]->get() ;_|.
+      ?::// new 'key : _ :=  !{owners}[!{i}]->get() ;_|.
       ::// if ( ((!) ( m_custodians->exists(!{key}))) ) then { {_:UExpression _ false} }  .
          ::// {ownerCount} ++ .
          :://m_custodians:= m_custodians ->set(!{key}, !{ownerCount}) |.
@@ -158,7 +166,7 @@ Ursus Definition _initialize (ownersOpt :  optional  ( listArray uint256 )) (req
 
    :://m_requiredVotes := (m_custodianCount <= (#{2})) ? m_custodianCount : (((m_custodianCount * (β #{2})) + (β #{1})) / (β #{3})) .
    ::// if ( #{lifetimeOpt}->hasValue() ) then { {_:UExpression _ true} } .
-      ::// new 'newLifetime : (  uint64 ) @ "newLifetime"  := #{lifetimeOpt}->get();_| .
+      ?::// new 'newLifetime : _  := #{lifetimeOpt}->get();_| .
       ::// if ( (!{newLifetime} == uint64(#{0})) ) then { {_:UExpression _ false} } .
          ::// {newLifetime} := DEFAULT_LIFETIME  |.
 
@@ -179,8 +187,8 @@ Sync.
 
 #[public, view]
 Ursus Definition getUpdateRequests : UExpression (listArray UpdateRequestLRecord) false .
-   ::// new 'updates_ : (  listArray UpdateRequestLRecord ) @ "updates"  := newArray(0);_| .
-   ::// new 'bound : (  uint64 ) @ "bound"  := _getExpirationBound( );_| .
+   ?::// new 'updates_ : listArray UpdateRequestLRecord   := newArray(0);_| .
+   ?::// new 'bound : _  := _getExpirationBound( );_| .
    ::// for ( 'item : m_updateRequests ) do { {_:UExpression _ false} } .
    ::// new ('updateId: uint64 , 'req: UpdateRequestLRecord ) @ ("updateId", "req") := item ;_|.
        ::// if ( (!{updateId} > !{bound}) ) then { {_:UExpression _ false} }  |.
@@ -193,11 +201,11 @@ Sync.
 #[public, nonpayable]
 Ursus Definition executeUpdate (updateId :  uint64) (code :  optional  ( TvmCell )): UExpression PhantomType true .
    ::// require_(m_custodians->exists(msg->pubkey()), #{100}) .
-   (* TODO 4 проблемы с функциями без аргументов *)
-   (* ::// _removeExpiredUpdateRequests( ) ;_|. *)
-   ::// new 'requestOpt : (  optional  (UpdateRequestLRecord ) ) @ "requestOpt"  :=  m_updateRequests->fetch(#{updateId}) ;_|.
+   (* TODO 4 проблемы с функциями без аргументов - done*)
+   ::// _removeExpiredUpdateRequests( ) ;_|.
+   ?::// new 'requestOpt : _  :=  m_updateRequests->fetch(#{updateId}) ;_|.
    ::// require_(!{requestOpt}->hasValue(), #{115}) .
-   ::// new 'request : ( UpdateRequestLRecord ) @ "request"  := !{requestOpt}->get() ;_|.
+   ?::// new 'request : _  := !{requestOpt}->get() ;_|.
    ::// if ( !{request}->UpdateRequest_ι_codeHash->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } ;_|.
    ::// require_(#{code}->hasValue(), #{119}) (*на самом деле без |. *)|.
    (* TODO 5 не может «прочекать» ```!{request}->UpdateRequest_ι_codeHash->get()``` *)
@@ -210,10 +218,10 @@ Ursus Definition executeUpdate (updateId :  uint64) (code :  optional  ( TvmCell
    ::// if ( !{request}->UpdateRequest_ι_codeHash->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
    ::// tvm->commit() .
    (* TODO 5 не может «прочекать» ```!{request}->UpdateRequest_ι_reqConfirms->get()``` *)
-   ::// new 'newReqConfirms : (  uint8 ) @ "newReqConfirms"  := {}
+   ?::// new 'newReqConfirms : uint8 := {}
       (* !{request}->UpdateRequest_ι_reqConfirms->hasValue() ? !{request}->UpdateRequest_ι_reqConfirms->get() : m_defaultRequiredConfirmations *)
       ;_| .
-   ::// new 'newcode : (  TvmCell ) @ "newcode"  := #{code}->get() ;_|.
+   ?::// new 'newcode : _  := #{code}->get() ;_|.
    :://tvm->setcode(!{newcode})  .
    :://tvm->setCurrentCode(!{newcode})  .
    (* TODO 5 не может «прочекать» ```!{request}->UpdateRequest_ι_reqConfirms->get()``` *)
@@ -225,7 +233,7 @@ Defined.
 
 #[private, view]
 Ursus Definition _findCustodian (senderKey :  uint256): UExpression ( uint8) true .
-   ::// new 'custodianIndex : (  optional  ( uint8 ) ) @ "custodianIndex"  := m_custodians->fetch(#{senderKey}) ;_|.
+   ?::// new 'custodianIndex : _  := m_custodians->fetch(#{senderKey}) ;_|.
    :://require_(!{custodianIndex}->hasValue(), #{100}) .
    :://return_ !{custodianIndex}->get() |.
 Defined. 
@@ -244,10 +252,10 @@ Sync.
 
 #[public, nonpayable]
 Ursus Definition confirmUpdate (updateId :  uint64): UExpression PhantomType true .
-   ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(msg->pubkey()) ;_|.
-   (* TODO 4 *)
-   (* :://_removeExpiredUpdateRequests( ) . *)
-   ::// new 'requestOpt : (  optional  (UpdateRequestLRecord ) ) @ "requestOpt"  :=  m_updateRequests->fetch(#{updateId}) ;_|.
+   ?::// new 'index : _  := _findCustodian(msg->pubkey()) ;_|.
+   (* TODO 4 - done *)
+   :://_removeExpiredUpdateRequests( ) .
+   ?::// new 'requestOpt : _  :=  m_updateRequests->fetch(#{updateId}) ;_|.
    :://require_(!{requestOpt}->hasValue(), #{115}) .
    (* тут был get() а не get_default() *)
    :://require_(((!)( _isConfirmed(!{requestOpt}->get_default()->UpdateRequest_ι_confirmationsMask, !{index}))), #{116}) .
@@ -275,18 +283,18 @@ Sync.
 
 #[public, nonpayable]
 Ursus Definition submitUpdate (codeHash :  optional  ( uint256 )) (owners :  optional  ( listArray uint256 )) (reqConfirms :  optional  ( uint8 )) (lifetime :  optional  ( uint64 )): UExpression ( uint64) true .
-   ::// new 'codeHash_ : (  optional  ( uint256 ) ) @ "codeHash"  := #{codeHash};_|.
-   ::// new 'sender : (  uint256 ) @ "sender"  := msg->pubkey();_|.
-   ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(!{sender});_| .
+   ?::// new 'codeHash_ : _  := #{codeHash};_|.
+   ?::// new 'sender : _  := msg->pubkey();_|.
+   ?::// new 'index : _  := _findCustodian(!{sender});_| .
    ::// if ( !{codeHash_}->hasValue() ) then { {_:UExpression _ true} } .
    :://require_(#{owners}->hasValue(), #{124})  |.
 
    ::// if ( #{owners}->hasValue() ) then { {_:UExpression _ true} } .
    (* тут был get() а не get_default() *)
-   ::// new 'newOwnerCount : (  uint256 ) @ "newOwnerCount"  := uint256(#{owners}->get()->length());_| .
+   ?::// new 'newOwnerCount :_  := uint256(#{owners}->get()->length());_| .
    :://require_(((!{newOwnerCount} > #{0}) && (!{newOwnerCount} <= MAX_CUSTODIAN_COUNT)), #{117})  |.
-   (* TODO 4 *)
-   (* :://_removeExpiredUpdateRequests( ) . *)
+   (* TODO 4 - done*)
+   :://_removeExpiredUpdateRequests( ) .
    :://require_(((!)( _isSubmitted(m_updateRequestsMask, !{index}))), #{113}) .
    :://tvm->accept() .
    ::// if ( !{codeHash_}->hasValue() ) then { {_:UExpression _ false} } .
@@ -296,27 +304,36 @@ Ursus Definition submitUpdate (codeHash :  optional  ( uint256 )) (owners :  opt
 
 
    ::// m_updateRequestsMask := _setSubmitted(m_updateRequestsMask, !{index}) .
-   ::// new 'updateId : uint64 @ "updateId"  := _generateId( ) ;_|.
-   (* TODO 7 как создавать структуры по ходу*)
-   :://m_updateRequests := m_updateRequests->set(!{updateId}, {} (*UpdateRequest(updateId, !{index}, #{0}, #{0}, !{sender}, !{codeHash_}->reset(), #{owners}, #{reqConfirms}, #{lifetime})*));_| .
+   ?::// new 'updateId :_  := _generateId( ) ;_|.
+   (* TODO 7 как создавать структуры по ходу -? andruiman*)
+   :://m_updateRequests := m_updateRequests->set(!{updateId}, [ !{updateId} , !{index}  ,
+                      uint8(#{0})  , 
+                      uint32(#{0})  ,
+                      !{sender}  , 
+                      !{codeHash_}  ,
+                      #{owners}  , 
+                      #{reqConfirms}  , 
+                      #{lifetime} ] ) ;_| .
    :://_confirmUpdate(!{updateId}, !{index})  .
    ::// return_ !{updateId} |.
 Defined. 
 
 #[public, view]
 Ursus Definition getCustodians : UExpression (listArray CustodianInfoLRecord) false .
-   ::// new 'custodians : listArray CustodianInfoLRecord @ "custodians" := newArray(0) ;_|.
+   ?::// new 'custodians : listArray CustodianInfoLRecord := newArray(0) ;_|.
    ::// for ( 'item : m_custodians ) do { {_:UExpression _ false} } .
    ::// new ('key: uint256 , 'index: uint8 ) @ ("key", "index") := item ;_|.
-   ::// {custodians}->push({} (*CustodianInfo(index, key)*))|.
+   (* TODO 7 andruiman??*)
+   ::// {custodians}->push([ !{index}, !{key} ])|.
    :://return_ !{custodians} |.
 Defined. 
 
 #[public, view]
 Ursus Definition getTransactions : UExpression (listArray TransactionLRecord) false .
-::// new 'transactions: (listArray TransactionLRecord) @ "transactions" := newArray(0);_|.
-::// new 'bound : (  uint64 ) @ "bound"  := _getExpirationBound( );_| .
+?::// new 'transactions: (listArray TransactionLRecord) := newArray(0);_|.
+?::// new 'bound : _  := _getExpirationBound( );_| .
    ::// for ( 'item : m_transactions ) do { {_:UExpression _ false} } .
+         (*TODO from andruiman: make multiple assignment withoout names *)
          ::// new ('id: uint64 , 'txn:  TransactionLRecord ) @ ("updateId", "req") := item ;_|. 
          ::// if ( (!{id} > !{bound}) ) then { {_:UExpression _ false} }  |.
             :://transactions->push(!{txn})  |. 
@@ -325,20 +342,29 @@ Defined.
 
 #[public, view]
 Ursus Definition getTransaction (transactionId :  uint64): UExpression (TransactionLRecord) true .
-   ::// new 'txnOpt : (  optional  (TransactionLRecord ) ) @ "txnOpt"  := m_transactions->fetch(#{transactionId}) ;_|.
+   ?::// new 'txnOpt : _  := m_transactions->fetch(#{transactionId}) ;_|.
    :://require_(!{txnOpt}->hasValue(), #{102}) .
    ::// (*trans :=*) return_ !{txnOpt}->get()  |.
 Defined. 
 
+
+(**andruiman: change associativity!**)
+Notation "x '***' y" := (XProd x y) (right associativity, at level 20): ursus_scope.
+
 #[public, view]
-Ursus Definition getParameters : UExpression ( uint8 **  uint8 **  uint64 **  uint128 **  uint8 **  uint8) false .
+Ursus Definition getParameters : UExpression ( uint8 ***  uint8 ***  uint64 ***  uint128 ***  uint8 ***  uint8) false .
    (* :://maxQueuedTransactions := MAX_QUEUED_REQUESTS .
    :://maxCustodianCount := MAX_CUSTODIAN_COUNT .
    :://expirationTime := m_lifetime .
    :://minValue := #{0} .
    :://requiredTxnConfirms := m_defaultRequiredConfirmations .
    :://requiredUpdConfirms := m_requiredVotes  |. *)
-   ::// return_ [ [ [ [ [ MAX_QUEUED_REQUESTS, MAX_CUSTODIAN_COUNT], m_lifetime], uint128(#{0})], m_defaultRequiredConfirmations], m_requiredVotes ]|.
+   ::// return_ [  MAX_QUEUED_REQUESTS, 
+                   MAX_CUSTODIAN_COUNT, 
+                   m_lifetime, 
+                   uint128(#{0}), 
+                   m_defaultRequiredConfirmations, 
+                   m_requiredVotes ] |.
 Defined. 
 
 #[public, pure]
@@ -357,22 +383,23 @@ Sync.
 
 #[private, nonpayable]
 Ursus Definition _removeExpiredTransactions : UExpression PhantomType true .
-   ::// new 'marker : (  uint64 ) @ "marker"  := _getExpirationBound( );_| .
+   ?::// new 'marker : _  := _getExpirationBound( );_| .
    ::// if ( m_transactions->empty() ) then { {_:UExpression _ true} } .
       :://exit_ {} |.
    ::// new ('trId: uint64 , 'txn: TransactionLRecord ) @ (  "trId" ,"txn"  )  := m_transactions->min() ->get();_| .
-   ::// new 'needCleanup : (  boolean ) @ "needCleanup"  := (!{trId} <= !{marker});_| .
+   ?::// new 'needCleanup : _ := (!{trId} <= !{marker});_| .
    ::// if ( !{needCleanup} ) then { {_:UExpression _ true} } .
       ::// tvm->accept() .
-      ::// new 'i : (  uint256 ) @ "i"  := uint256(#{0});_ |.
+      ?::// new 'i : _  := uint256(#{0});_ |.
       :://while ((!{needCleanup} && (!{i} < MAX_CLEANUP_TXNS))) do { {_: UExpression PhantomType true } } ; _ |.
 
          :://{i} ++ .
          :://m_requestsMask := _decMaskValue(m_requestsMask, !{txn}->Transaction_ι_index).
          ::// m_transactions[!{trId}] ->delete.
-         :://new 'nextTxn : (  optional  (tuple ( uint64)( TransactionLRecord ) ) ) @ "nextTxn"  :=  m_transactions->next(!{trId});_|.
+         ?:://new 'nextTxn : _  :=  m_transactions->next(!{trId});_|.
          ::// if ( !{nextTxn}->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ false} } |.
-            ::// new 'botch3 : (    (TransactionLRecord ) ) @ "botch3"  := {} ;_|.
+            (*TODO: make new 'a : t ; without := {} *)
+            ?::// new 'botch3 : TransactionLRecord := {} ; _ |.
             ::// [ {trId}, {botch3} ] := !{nextTxn}->get() .
             ::// {needCleanup} := (!{trId} <= !{marker})  |.
 
@@ -417,12 +444,12 @@ Sync.
 
 #[public, nonpayable]
 Ursus Definition confirmTransaction (transactionId :  uint64): UExpression PhantomType true .
-   ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(msg->pubkey()) ;_|.
-   (* TODO 4 *)
-   (* :://_removeExpiredTransactions( ) . *)
-   ::// new 'txnOpt : (  optional  (TransactionLRecord ) ) @ "txnOpt"  :=  m_transactions->fetch(#{transactionId});_| .
+   ?::// new 'index : _ := _findCustodian(msg->pubkey()) ;_|.
+   (* TODO 4 - done*)
+   :://_removeExpiredTransactions( ) .
+   ?::// new 'txnOpt : _  :=  m_transactions->fetch(#{transactionId});_| .
    :://require_(!{txnOpt}->hasValue(), #{102}) .
-   ::// new 'txn : ( TransactionLRecord ) @ "txn"  := !{txnOpt}->get();_| .
+   ?::// new 'txn : _  := !{txnOpt}->get();_| .
    :://require_(((!)( _isConfirmed(!{txn}->Transaction_ι_confirmationsMask, !{index}))), #{103}) .
    :://tvm->accept() .
    :://_confirmTransaction(!{txn}, !{index}) .
@@ -431,8 +458,9 @@ Defined.
 
 #[private, pure]
 Ursus Definition _getSendFlags (value :  uint128) (allBalance :  boolean): UExpression ( uint8 ** uint128) false .
-   ::// new 'value_ : (  uint128 ) @ "value_"  := #{value} ;_|.
-   ::// new 'flags : (  uint8 ) @ "flags"  := (FLAG_IGNORE_ERRORS \ FLAG_PAY_FWD_FEE_FROM_BALANCE);_|.
+   (*TODO: andruiman: vararg? *)
+   ?::// new 'value_ : _  := #{value} ;_|.
+   ?::// new 'flags : _  := (FLAG_IGNORE_ERRORS \ FLAG_PAY_FWD_FEE_FROM_BALANCE);_|.
    ::// if ( #{allBalance} ) then { {_:UExpression _ false} } .
    ::// {flags} := (FLAG_IGNORE_ERRORS \ FLAG_SEND_ALL_REMAINING).
    ::// {value_ } := uint128(#{0})  |.
@@ -453,17 +481,44 @@ Sync.
 
 #[public, nonpayable]
 Ursus Definition submitTransaction (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  TvmCell) (stateInit :  optional  ( TvmCell )): UExpression ( uint64) true .
-   ::// new 'senderKey : (  uint256 ) @ "senderKey"  := msg->pubkey() ;_|.
-   ::// new 'index : (  uint8 ) @ "index"  := _findCustodian(!{senderKey}) ;_|.
-   (* TODO 4 *)
-   (* :://_removeExpiredTransactions( ) . *)
+   ?::// new 'senderKey : _  := msg->pubkey() ;_|.
+   ?::// new 'index : _  := _findCustodian(!{senderKey}) ;_|.
+   (* TODO 4 - done*)
+   :://_removeExpiredTransactions( ) .
    :://require_((_getMaskValue(m_requestsMask, !{index}) < MAX_QUEUED_REQUESTS), #{113}) .
    :://tvm->accept() .
    :://new ('flags: uint8 , 'realValue: uint128 ) @ (  "flags" ,  "realValue" )  := _getSendFlags(#{value}, #{allBalance}) ;_|.
    :://m_requestsMask := _incMaskValue(m_requestsMask, !{index}) .
-   ::// new 'trId : (  uint64 ) @ "trId"  := _generateId( ) ;_|.
-   (* TODO 7 *)
-   ::// new 'txn : ( TransactionLRecord ) @ "txn"  := {} (*Transaction(!{trId}, #{0}, m_defaultRequiredConfirmations, #{0}, !{senderKey}, !{index}, #{dest}, !{realValue}, !{flags}, #{payload}, #{bounce}, #{stateInit}) *);_|.
+   ?::// new 'trId : _  := _generateId( ) ;_|.
+   (* TODO 7 - done ??*)
+   (* Compute TransactionLRecord. *)
+
+   (* Transaction txn = Transaction({
+            id: trId,
+            confirmationsMask: 0,
+            signsRequired: m_defaultRequiredConfirmations,
+            signsReceived: 0,
+            creator: senderKey,
+            index: index,
+            dest: dest, 
+            value: realValue,
+            sendFlags: flags,
+            payload: payload,
+            bounce: bounce,
+            stateInit: stateInit *)
+   (*почему-то sendFlags имеет тип uint16, но передается ему uint8*)
+   ?::// new 'txn :  TransactionLRecord  := [!{trId}, 
+                                             uint32(#{0}), 
+                                             m_defaultRequiredConfirmations, 
+                                             uint8(#{0}), 
+                                             !{senderKey}, 
+                                             !{index}, 
+                                             #{dest}, 
+                                             !{realValue}, 
+                                             uint16(!{flags}), 
+                                             #{payload}, 
+                                             #{bounce}, 
+                                             #{stateInit} ];_|.
    :://_confirmTransaction(!{txn}, !{index}) .
    :://return_ !{trId} |.
 Defined. 
