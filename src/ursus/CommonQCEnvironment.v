@@ -606,11 +606,6 @@ intros.
 eapply Dec_conj.
 Defined.
 
-Definition uint2N {n} (x: XUBInteger n) : N.
-dependent destruction x.
-refine x.
-Defined.
-
 #[global] Instance prod_Dec: forall X Y (x1 x2: X) (y1 y2: Y) `{Dec (x1=x2)}`{Dec (y1=y2)}, Dec (pair x1 y1 = pair x2 y2).
 intros.
 esplit.

@@ -71,8 +71,6 @@ UseLocal Definition _ := [
      uint128;
      optional  ( uint8 );
      listArray uint256;
-
-     uint;
      listArray UpdateRequestLRecord;
      (optional uint256);
      (listArray CustodianInfoLRecord);
