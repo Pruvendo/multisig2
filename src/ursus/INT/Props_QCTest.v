@@ -231,12 +231,12 @@ Definition INT_8_1_propb
             (pk: uint256): bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_pubkey := pk $$} in
 
 INT_8_1 {$$ LedgerDefault with Ledger_VMState := v2 $$}
        owners reqConfirms lifetime ? .
 
-(* FAILS -- probably ursus problem with while *)
+(* OK *)
 QuickCheck INT_8_1_propb.
 
 Definition INT_8_2_propb
@@ -247,10 +247,10 @@ Definition INT_8_2_propb
             (pk: uint256): bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_pubkey := pk $$} in
 
 INT_8_2 {$$ LedgerDefault with Ledger_VMState := v2 $$}
        owners reqConfirms lifetime ? .
 
-(* Fail *)
+(* OK *)
 QuickCheck INT_8_2_propb.

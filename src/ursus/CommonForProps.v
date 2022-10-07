@@ -49,8 +49,11 @@ Require Import LocalState.
 #[global, program]
 Instance listInfinite : listInfiniteFunRec_gen XList.
 Next Obligation.
-(* TODO!!!!*)
-exact Datatypes.nil.
+(* we have three while loops: *)
+(* 1st -- max MAX_CUSTODIAN_COUNT + 1 = 33 iterations *)
+(* 2nd -- max MAX_CLEANUP_TXNS + 1 = 41 iterations *)
+(* 3rd -- ??? TODO investigate*)
+exact (repeat PhantomPoint 41).
 Defined.
 
 Notation rec := LocalStateLRecord.
