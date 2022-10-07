@@ -70,6 +70,7 @@ Definition CUR_1 l (codeHash : optional uint256) (owners : optional (listArray u
 Definition CUR_2 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
   correctState l ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
+  xMaybeIsSome codeHash = true ->
   xMaybeIsSome owners = true /\
   length_ (xMaybeMapDefault Datatypes.id owners default) > 0.
 
@@ -77,6 +78,7 @@ Definition CUR_3 l (codeHash : optional uint256) (owners : optional (listArray u
   let MAX_CUSTODIAN_COUNT := uint2N (toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l)) in
   correctState l ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
+  xMaybeIsSome codeHash = true ->
   xMaybeIsSome owners = true /\
   length_ (xMaybeMapDefault Datatypes.id owners default) <= MAX_CUSTODIAN_COUNT . 
 
@@ -87,6 +89,7 @@ Definition CUR_4 id l (codeHash : optional uint256) (owners : optional (listArra
   let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
   correctState l ->
+  xMaybeIsSome codeHash = true ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
   hmapIsMember msgPubkey custodians = true ->
   xMaybeIsSome owners = true ->
@@ -162,4 +165,3 @@ Definition CUR_6_1_5 l req1 req2 req3 req4 (dest :  address) (value :  uint128) 
   let l' := exec_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l in 
   correctState l ->
   CUR_6_1_common l l' req1 req2 req3 req4.
-
