@@ -140,8 +140,8 @@ Ursus Definition _initialize (ownersOpt :  optional  ( listArray uint256 )) (req
    ?::// new 'len : _  := uint256(!{owners}->length()) ;_|.
    (* TODO 1 *)
    (* :://( ( m_custodians)) ->delete . *)
-   ?::// new 'i : uint  := (#{0}) ;_|.
-   ::// while ((uint256(!{i}) < !{len}) && (!{ownerCount} < MAX_CUSTODIAN_COUNT)) do  { {_: UExpression PhantomType true } } ; _ |.
+   ?::// new 'i : uint256  := uint256(#{0}) ;_|.
+   ::// while ((!{i} < !{len}) && (!{ownerCount} < MAX_CUSTODIAN_COUNT)) do  { {_: UExpression PhantomType true } } ; _ |.
       ?::// new 'key : _ :=  !{owners}[!{i}]->get() ;_|.
       ::// if ( ((!) ( m_custodians->exists(!{key}))) ) then { {_:UExpression _ false} }  .
          ::// {ownerCount} ++ .
@@ -197,7 +197,7 @@ Ursus Definition executeUpdate (updateId :  uint64) (code :  optional  ( TvmCell
    ?::// new 'request : _  := !{requestOpt}->get() ;_|.
    ::// if ( !{request}->UpdateRequest_ι_codeHash->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } ;_|.
    ::// require_(#{code}->hasValue(), #{119}) .
-   :://require_((tvm->hash(#{code}->get_default())  == (!{request}->UpdateRequest_ι_codeHash->get_default())), #{119})  |.
+   :://require_((tvm->hash(#{code}->get_default())  == ((!{request}->UpdateRequest_ι_codeHash)->get_default())), #{119})  |.
    ::// require_(((!)( #{code}->hasValue())), #{125})  |.
    :://require_( ((!{request}->UpdateRequest_ι_signs) >=  (m_requiredVotes)), #{120}) .
    ::// tvm->accept() .
