@@ -144,8 +144,8 @@ Ursus Definition _initialize (ownersOpt :  optional  ( listArray uint256 )) (req
    ::// while ((!{i} < !{len}) && (!{ownerCount} < MAX_CUSTODIAN_COUNT)) do  { {_: UExpression PhantomType true } } ; _ |.
       ?::// new 'key : _ :=  !{owners}[!{i}]->get() ;_|.
       ::// if ( ((!) ( m_custodians->exists(!{key}))) ) then { {_:UExpression _ false} }  .
-         ::// {ownerCount} ++ .
-         :://m_custodians:= m_custodians ->set(!{key}, !{ownerCount}) |.
+         :://m_custodians:= m_custodians ->set(!{key}, !{ownerCount}).
+         ::// {ownerCount} ++ |.
 
       ::// {i} ++ |.
 

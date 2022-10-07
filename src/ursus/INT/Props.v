@@ -124,19 +124,23 @@ Definition INT_8_1 l (owners : listArray uint256) (reqConfirms :  uint8) (lifeti
   length_ owners > 0 ->
   length_ owners <= uint2N MAX_CUSTODIANS ->
   msgPubkey = tvmPubkey ->
+  uint2N lifetime > 0 -> (* NOT IN SPEC *)
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false.
 
-Definition checkMap' (m: XHMap ( uint256 )( uint8 )) (i: N) (k: option uint256) := 
-  let k' := xMaybeMapDefault id k (Build_XUBInteger 0) in
-  let with_i := xHMapFilter (fun _k v => Common.eqb v (Build_XUBInteger i)) m in 
-  andb 
-    (andb (xMaybeIsSome k) (hmapIsMember k' m))
-    ((eqb (length_ with_i) 1)).
+Definition checkMap1 (custodians: mapping uint256 uint8) := 
+  List.forallb 
+    (fun v => Common.eqb (length_ (List.filter
+      (fun e => Common.eqb (snd e) v) (unwrap custodians))) 1) 
+      (map Build_XUBInteger (listRange (length_ custodians))).
 
-Fixpoint checkMap m n (owners: listArray uint256):= 
+Definition checkMap2' (m: XHMap ( uint256 )( uint8 )) (i: N) (k: option uint256) := 
+  let k' := xMaybeMapDefault id k (Build_XUBInteger 0) in
+  (andb (xMaybeIsSome k) (hmapIsMember k' m)).
+
+Fixpoint checkMap2 m n (owners: listArray uint256):= 
   match n with 
   | O => true
-  | S n' => andb (checkMap m n' owners) (checkMap' m (N.of_nat n') (arrLookup (N.of_nat n') owners))
+  | S n' => andb (checkMap2 m n' owners) (checkMap2' m (N.of_nat n') (arrLookup (N.of_nat n') owners))
   end.
 
 Definition INT_8_2 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
@@ -144,13 +148,17 @@ Definition INT_8_2 l (owners : listArray uint256) (reqConfirms :  uint8) (lifeti
   let owners_sz := length_ owners in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l') in
   let custodians_sz := length_ custodians in
-  let reqConfirms' := if N.ltb custodians_sz owners_sz then (Build_XUBInteger custodians_sz) else (Build_XUBInteger owners_sz) in
+  let reqConfirms' := if N.ltb custodians_sz (uint2N reqConfirms) then (Build_XUBInteger custodians_sz) else reqConfirms in
   let ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l') in
   let _lifetime := toValue (eval_state (sRReader (m_lifetime_right rec def) ) l') in
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false ->
   (* result.m_custodians.size <= params.owners.size *)
   custodians_sz <= owners_sz /\
-  checkMap custodians (N.to_nat owners_sz) owners = true /\
+  (* (∀ i : i ≥ 0 ⟶ i < result.m_custodians.size ⟶ (exists c : c In result.m_custodians.keys ⋀ result.m_custodians[c] = Some(i))) /\
+     (∀ c1, c2, v : ⟶ result.m_custodians[c1] = result.m_custodians[c2] ⟶ result.m_custodians[c1] = Some(v) ⟶ c1 = c2 )*)
+  checkMap1 custodians = true /\
+  (* (∀ i : i ≥ 0 ⟶ i < params.owners.size ⟶ (exists j : result.m_custodians[params.owners[i]] = Some(j))) *)
+  checkMap2 custodians (N.to_nat owners_sz) owners = true /\
   (* result.m_defaultRequiredConfirmations = min (result.this.m_custodians.size, params.reqConfirms) *)
   toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l') = reqConfirms' /\
   (* result.m_ownerKey = params.this.owners[0] *)
@@ -167,6 +175,5 @@ Definition INT_8_2 l (owners : listArray uint256) (reqConfirms :  uint8) (lifeti
   N.land 
     (uint2N (toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) l')))
      0xFFFFFFFF = 0 /\
-  (* ((params.lifetime > 0 ⋀ result.m_lifetime = params.this.lifetime)) ⋁ (params.lifetime = 0 ⋀ result.m_lifetime = DEFAULT_EXPIRATION_TIME)) *)
-  (* ????? TODO *)
-  (uint2N lifetime > 0 /\ uint2N _lifetime = uint2N lifetime).
+  (* result.m_lifetime = params.this.lifetime *)
+  (uint2N _lifetime = uint2N lifetime).
