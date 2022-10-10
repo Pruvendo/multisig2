@@ -68,6 +68,29 @@ MTC_1 (quickFixState {$$
 (* OK *)
 QuickCheck MTC_1_propb.
 
+Definition MTC_2_propb l
+        (transactionId: uint64) 
+        (mpk: uint256)
+        (acc: bool)
+        (bal: N)
+        now: bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let custodians : XHMap uint256 uint8 := getPruvendoRecord _m_custodians l in
+let custodians' := if hmapIsMember mpk custodians then custodians 
+else xHMapInsert mpk (Build_XUBInteger (length_ custodians)) custodians in
+
+MTC_2 (quickFixState {$$ 
+        {$$ LedgerDefault with Ledger_MainState := 
+                {$$ l with  _m_custodians := custodians' $$}
+        $$}with Ledger_VMState := v3 $$})
+       transactionId  ? .
+
+(* OK *)
+QuickCheck MTC_2_propb.
+
 Definition MTC_3_propb l
         (transactionId: uint64) 
         (mpk: uint256)
