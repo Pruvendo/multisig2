@@ -156,14 +156,14 @@ Definition MTS_6_1_common l l' tr1 tr2 tr3 tr4: Prop :=
   let id2 := getPruvendoRecord Transaction_ι_id tr2 in
   let id3 := getPruvendoRecord Transaction_ι_id tr3 in
   let id4 := getPruvendoRecord Transaction_ι_id tr4 in 
-  tr1 <> tr2 ->
+  (tr1 <> tr2 ->
   hmapIsMember id1 transactions = true ->
   hmapIsMember id2 transactions = true ->
-  id1 <> id2 ->
-  tr3 <> tr4 ->
+  id1 <> id2) ->
+  (tr3 <> tr4 ->
   hmapIsMember id3 transactions_2 = true ->
   hmapIsMember id4 transactions_2 = true ->
-  id3 <> id4.
+  id3 <> id4).
 
 
 Definition MTS_6_1_1 l tr1 tr2 tr3 tr4 (updateId :  uint64) : Prop :=
