@@ -140,6 +140,7 @@ Ursus Definition _initialize (ownersOpt :  optional  ( listArray uint256 )) (req
    ?::// new 'len : _  := uint256(!{owners}->length()) ;_|.
    (* TODO 1 *)
    (* :://( ( m_custodians)) ->delete . *)
+   (* workaround *)::// m_custodians := #{wrap Map (Datatypes.nil)} ;_|.
    ?::// new 'i : uint256  := uint256(#{0}) ;_|.
    ::// while ((!{i} < !{len}) && (!{ownerCount} < MAX_CUSTODIAN_COUNT)) do  { {_: UExpression PhantomType true } } ; _ |.
       ?::// new 'key : _ :=  !{owners}[!{i}]->get() ;_|.

@@ -77,7 +77,7 @@ let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
 CS_0 {$$ LedgerDefault with Ledger_VMState := v2 $$}
        owners reqConfirms lifetime ? .
 
-(* FAILS -- probably ursus problem with while *)
+(* OK *)
 QuickCheck CS_0_propb.
 
 Definition CS_2_propb
@@ -170,5 +170,5 @@ CS_6 (quickFixState {$$
          $$}with Ledger_VMState := v2 $$})
          updateId code  ? .
 
-(* Fail *)
+(* OK *)
 QuickCheck CS_6_propb.

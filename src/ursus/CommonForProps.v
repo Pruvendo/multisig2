@@ -78,11 +78,8 @@ destruct H, H0.
 refine true.
 Defined.
 
-Definition transactionsCorrect (txs: Datatypes.list (uint64 * TransactionLRecord)) (defaultRequired: uint8) :=
-  List.forallb (fun tx : (uint64 * _) => andb (Common.eqb (fst tx) 
-    (getPruvendoRecord Transaction_ι_id (snd tx)))
-    (Common.eqb (defaultRequired) (getPruvendoRecord Transaction_ι_signsRequired (snd tx)))
-  ) txs.
+Definition transactionsCorrect (txs: Datatypes.list (uint64 * TransactionLRecord))  :=
+  List.forallb (fun tx : (uint64 * _) => (Common.eqb (fst tx) (getPruvendoRecord Transaction_ι_id (snd tx)))) txs.
 
 Definition noDuplicates (txs: Datatypes.list (uint64 * TransactionLRecord)) :=
   List.forallb (fun tx => Common.eqb (length_ (List.filter
@@ -97,7 +94,7 @@ Definition correctState l :=
     let defaultRequired := toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l) in
     length_ custodians = uint2N custodianCount /\
     hmapIsMember ownerKey custodians = true /\
-    transactionsCorrect (unwrap transactions) defaultRequired = true /\
+    transactionsCorrect (unwrap transactions) = true /\
     noDuplicates (unwrap transactions) = true
     .
 
@@ -122,9 +119,8 @@ Fixpoint dedupTransactions (txs: Datatypes.list (uint64 * TransactionLRecord))  
   let defaultRequired := toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
   let transactions':= (CommonInstances.wrap Map (dedupTransactions (map 
-    (fun tx : (uint64 * TransactionLRecord) => (fst tx, {$$
-      {$$ snd tx with Transaction_ι_id := fst tx $$}
-      with Transaction_ι_signsRequired := defaultRequired $$} : TransactionLRecord))
+    (fun tx : (uint64 * TransactionLRecord) => (fst tx, 
+      {$$ snd tx with Transaction_ι_id := fst tx $$} : TransactionLRecord))
   (unwrap transactions)) (CommonInstances.wrap Map Datatypes.nil))) in
   {$$ l with Ledger_MainState := 
     {$$ {$$ {$$getPruvendoRecord Ledger_MainState l with 
@@ -159,12 +155,6 @@ Proof.
   apply pair_xbool_equable.
   exact (unwrap X). exact (unwrap X0).
 Defined.
-(* 
-#[global]
-Instance itmp_booleq : XBoolEquable bool (Itmp).
-Proof.
-  esplit. intros. exact true.
-Defined. *)
 
 Definition T := Eval compute in LedgerLRecord rec.
 Definition ledgerEqb : T -> T -> bool := Common.eqb.

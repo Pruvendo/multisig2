@@ -134,7 +134,7 @@ MTC_5_1 (quickFixState {$$
         $$}with Ledger_VMState := v3 $$})
        transactionId  ? .
 
-(* Fail *)
+(* OK *)
 QuickCheck MTC_5_1_propb.
 
 Definition MTC_5_2_propb l id 

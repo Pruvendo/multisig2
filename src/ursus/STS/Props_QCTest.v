@@ -142,5 +142,5 @@ STS_3_2 (quickFixState {$$
          $$}with Ledger_VMState := v3 $$})
        dest value bounce flags payload  ? .
 
-(* Fail *)
+(* OK *)
 QuickCheck STS_3_2_propb.

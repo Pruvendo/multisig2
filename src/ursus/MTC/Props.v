@@ -54,7 +54,7 @@ Definition ETR_1 l u (dest :  address) (value :  uint128) (bounce :  boolean) (a
   let m_transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
   isError (eval_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l) = false -> 
   hmapIsMember id m_updateRequests = true ->
-  (N.shiftr (uint2N id) 32) + lifetime <= tvm_now  ->
+  (N.shiftl (uint2N id) 32) + lifetime <= tvm_now  ->
   length_ (xHMapFilter (fun _k t => (eqb (getPruvendoRecord Transaction_ι_id t) id)) transactions) < MAX_CLEANUP_TXNS  <->
   hmapIsMember id transactions = true /\
   hmapIsMember id m_transactions = false.
@@ -109,10 +109,15 @@ Definition MTC_5_1 l (transactionId : uint64) : Prop :=
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
   let mask := uint2N (getPruvendoRecord Transaction_ι_confirmationsMask transaction) in
+  let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let id := (getPruvendoRecord Transaction_ι_id transaction) in
   correctState l ->
   hmapIsMember msgPubkey custodians = true ->
   hmapIsMember transactionId transactions = true ->
   N.land mask (N.shiftl 1 i) = 0 ->
+  (N.shiftr (uint2N id) 32) + lifetime > tvm_now  ->
+  tvm_now > lifetime ->
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false.
 
 
@@ -123,26 +128,31 @@ Definition MTC_5_2 l id (transactionId :  uint64) (dest :  address) (value :  ui
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
   let mask := uint2N (getPruvendoRecord Transaction_ι_confirmationsMask transaction) in
-  let requiredConfirmations := uint2N (toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l)) in
+  let requiredConfirmations := uint2N (getPruvendoRecord Transaction_ι_signsRequired transaction) in
   let signsReceived := uint2N (getPruvendoRecord Transaction_ι_signsReceived transaction) in
   let l' := exec_state (Uinterpreter (confirmTransaction rec def transactionId)) l in 
   let transactions' := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
   let transaction' := hmapFindWithDefault dummyTransaction transactionId transactions' in
   let signsReceived' := uint2N (getPruvendoRecord Transaction_ι_signsReceived transaction') in
   let mask' := uint2N (getPruvendoRecord Transaction_ι_confirmationsMask transaction') in
+  let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let expiredTransactions := xHMapFilter (fun k v =>
+    N.leb ((N.shiftr (uint2N k) 32) + lifetime) tvm_now
+  ) transactions in
   let commonTransactions := xHMapFilter (fun k v => 
     andb (hmapIsMember k transactions)
-    (eqb v (hmapFindWithDefault dummyTransaction k transactions))) transactions' in
+    (Common.eqb v (hmapFindWithDefault dummyTransaction k transactions))) transactions' in
   let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in  
   correctState l ->
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false ->
-  ETR_1 l' u dest value bounce allBalance payload stateInit ->
   requiredConfirmations > signsReceived + 1 ->
+  tvm_now > lifetime ->
   hmapIsMember transactionId transactions' = true /\
   signsReceived' = signsReceived + 1 /\
   mask' = N.lor mask (N.shiftl 1 i) /\
-  length_ transactions' = length_ transactions /\
-  length_ commonTransactions = length_ transactions - 1
+  length_ transactions' = length_ transactions - length_ expiredTransactions /\
+  length_ commonTransactions = length_ transactions - 1 - length_ expiredTransactions
   .
 
 Definition MTC_6 l id (transactionId :  uint64) (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) (stateInit :  optional  ( TvmCell )): Prop := 
@@ -152,10 +162,15 @@ Definition MTC_6 l id (transactionId :  uint64) (dest :  address) (value :  uint
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
   let mask := uint2N (getPruvendoRecord Transaction_ι_confirmationsMask transaction) in
-  let requiredConfirmations := uint2N (toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l)) in
+  let requiredConfirmations := uint2N (getPruvendoRecord Transaction_ι_signsRequired transaction) in
   let signsReceived := uint2N (getPruvendoRecord Transaction_ι_signsReceived transaction) in
+  let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
   let l' := exec_state (Uinterpreter (confirmTransaction rec def transactionId)) l in 
   let transactions' := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
+  let expiredTransactions := xHMapFilter (fun k v =>
+    N.leb ((N.shiftr (uint2N k) 32) + lifetime) tvm_now
+  ) transactions in
   let commonTransactions := xHMapFilter (fun k v => 
     andb (hmapIsMember k transactions)
     (eqb v (hmapFindWithDefault dummyTransaction k transactions))) transactions' in
@@ -168,11 +183,11 @@ Definition MTC_6 l id (transactionId :  uint64) (dest :  address) (value :  uint
   let mes := (EmptyMessage IDefault (value, (bounce, (flags, payload)))) in
   let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in  
   correctState l ->
+  tvm_now > lifetime ->
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false ->
-  ETR_1 l' u dest value bounce allBalance payload stateInit ->
   requiredConfirmations <= signsReceived + 1 ->
-  length_ transactions' = length_ transactions - 1 /\
-  length_ commonTransactions = length_ transactions' /\
+  length_ transactions' = length_ transactions - 1 - length_ expiredTransactions /\
+  length_ commonTransactions = length_ transactions' - length_ expiredTransactions /\
   hmapIsMember transactionId transactions' = false /\
   isOnlyMessage messageQueueDefault = true /\
   isMessageSent mes dest 0 messageQueueDefault = true.
