@@ -89,7 +89,7 @@ MTS_2 (quickFixState {$$
 (* OK *)
 QuickCheck MTS_2_propb.
 
-Definition MTS_3_propb l id
+Definition MTS_3_propb l
         (dest :  address) 
         (value :  uint128) 
         (bounce :  boolean) 
@@ -108,9 +108,9 @@ let v3 := {$$ v2 with VMState_ι_now := now $$} in
 MTS_3 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
                             with Ledger_VMState := v3 $$})
-        id dest value bounce allBalance payload stateInit ? .
+        dest value bounce allBalance payload stateInit ? .
 
-(* Fails *)
+(* OK *)
 QuickCheck MTS_3_propb.
 
 Definition MTS_4_propb l id
@@ -134,7 +134,7 @@ MTS_4 (quickFixState {$$
                             with Ledger_VMState := v3 $$})
         id dest value bounce allBalance payload stateInit ? .
 
-(* Fail *)
+(* OK *)
 QuickCheck MTS_4_propb.
 
 Definition MTS_5_propb l id
@@ -158,7 +158,7 @@ MTS_5 (quickFixState {$$
                             with Ledger_VMState := v3 $$})
         id dest value bounce allBalance payload stateInit ? .
 
-(* Fail *)
+(* OK *)
 QuickCheck MTS_5_propb.
 
 Definition MTS_7_propb l id

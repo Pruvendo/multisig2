@@ -85,17 +85,28 @@ Definition noDuplicates (txs: Datatypes.list (uint64 * TransactionLRecord)) :=
   List.forallb (fun tx => Common.eqb (length_ (List.filter
     (fun tx' => Common.eqb tx tx') txs)) 1) txs.
 
+Definition get_index (tx : TransactionLRecord) : N := 
+  uint2N (TransactionLGetField Transaction_ι_index tx).
+
+Definition computeCorrectRequestMask (transactions: mapping uint64 TransactionLRecord) :=
+  List.fold_left (fun acc e => 
+    acc + (N.shiftl 1 (8 * (get_index (snd e))))
+  ) (unwrap transactions) 0.
+
+Definition requestMaskCorrect (requestMask: uint256) (transactions: mapping uint64 TransactionLRecord) :=
+  Common.eqb (uint2N requestMask) (computeCorrectRequestMask transactions).
 
 Definition correctState l := 
     let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
     let custodianCount := toValue (eval_state (sRReader (m_custodianCount_right rec def) ) l) in
     let ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l) in
     let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
-    let defaultRequired := toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l) in
+    let requestMask := toValue (eval_state (sRReader (m_requestsMask_right rec def) ) l) in
     length_ custodians = uint2N custodianCount /\
     hmapIsMember ownerKey custodians = true /\
     transactionsCorrect (unwrap transactions) = true /\
-    noDuplicates (unwrap transactions) = true
+    noDuplicates (unwrap transactions) = true /\
+    requestMaskCorrect requestMask transactions = true
     .
 
 Import ListNotations.
@@ -123,13 +134,16 @@ Fixpoint dedupTransactions (txs: Datatypes.list (uint64 * TransactionLRecord))  
       {$$ snd tx with Transaction_ι_id := fst tx $$} : TransactionLRecord))
   (unwrap transactions)) (CommonInstances.wrap Map Datatypes.nil))) in
   {$$ l with Ledger_MainState := 
-    {$$ {$$ {$$getPruvendoRecord Ledger_MainState l with 
+    {$$ {$$ {$$ {$$getPruvendoRecord Ledger_MainState l with 
       _m_custodianCount := Build_XUBInteger (length_ custodians')
     $$} with
       _m_custodians := custodians' 
     $$}
      with
       _m_transactions := transactions'
+    $$}
+     with
+      _m_requestsMask := (Build_XUBInteger (computeCorrectRequestMask transactions'))
     $$}
   $$}. 
 
