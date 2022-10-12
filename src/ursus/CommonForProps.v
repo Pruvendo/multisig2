@@ -78,8 +78,31 @@ destruct H, H0.
 refine true.
 Defined.
 
+Print positive.
+Fixpoint Pos_bitcount (p: positive) :=
+  match p with
+    | xH => 1
+    | xO p' => Pos_bitcount p'
+    | xI p' => 1 + Pos_bitcount p'
+  end.
+
+Definition N_bitcount (n: N) :=
+  match n with 
+    | N0 => 0
+    | Npos p => Pos_bitcount p
+  end.
+
+Definition computeCorrectSignsReceived (tx : TransactionLRecord) :=
+  let confirmationsMask := getPruvendoRecord Transaction_ι_confirmationsMask tx in
+  N_bitcount (uint2N confirmationsMask).
+
 Definition transactionsCorrect (txs: Datatypes.list (uint64 * TransactionLRecord))  :=
-  List.forallb (fun tx : (uint64 * _) => (Common.eqb (fst tx) (getPruvendoRecord Transaction_ι_id (snd tx)))) txs.
+  List.forallb (fun tx : (uint64 * _) => (
+  andb
+    (Common.eqb (fst tx) (getPruvendoRecord Transaction_ι_id (snd tx))))
+    (Common.eqb (computeCorrectSignsReceived (snd tx)) 
+      (uint2N (getPruvendoRecord Transaction_ι_signsReceived (snd tx))))
+  ) txs.
 
 Definition noDuplicates (txs: Datatypes.list (uint64 * TransactionLRecord)) :=
   List.forallb (fun tx => Common.eqb (length_ (List.filter
@@ -87,6 +110,10 @@ Definition noDuplicates (txs: Datatypes.list (uint64 * TransactionLRecord)) :=
 
 Definition get_index (tx : TransactionLRecord) : N := 
   uint2N (TransactionLGetField Transaction_ι_index tx).
+
+Definition noDuplicateIds (txs: Datatypes.list (uint64 * TransactionLRecord)) :=
+  List.forallb (fun tx => Common.eqb (length_ (List.filter
+    (fun tx' => Common.eqb (get_index (snd tx)) (get_index (snd tx'))) txs)) 1) txs.
 
 Definition computeCorrectRequestMask (transactions: mapping uint64 TransactionLRecord) :=
   List.fold_left (fun acc e => 
@@ -106,6 +133,7 @@ Definition correctState l :=
     hmapIsMember ownerKey custodians = true /\
     transactionsCorrect (unwrap transactions) = true /\
     noDuplicates (unwrap transactions) = true /\
+    noDuplicateIds (unwrap transactions) = true /\
     requestMaskCorrect requestMask transactions = true
     .
 
@@ -131,7 +159,9 @@ Fixpoint dedupTransactions (txs: Datatypes.list (uint64 * TransactionLRecord))  
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
   let transactions':= (CommonInstances.wrap Map (dedupTransactions (map 
     (fun tx : (uint64 * TransactionLRecord) => (fst tx, 
-      {$$ snd tx with Transaction_ι_id := fst tx $$} : TransactionLRecord))
+      {$$ {$$ snd tx with Transaction_ι_id := fst tx $$}
+         with Transaction_ι_signsReceived := (Build_XUBInteger (computeCorrectSignsReceived (snd tx)))
+      $$} : TransactionLRecord))
   (unwrap transactions)) (CommonInstances.wrap Map Datatypes.nil))) in
   {$$ l with Ledger_MainState := 
     {$$ {$$ {$$ {$$getPruvendoRecord Ledger_MainState l with 
