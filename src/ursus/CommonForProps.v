@@ -78,7 +78,6 @@ destruct H, H0.
 refine true.
 Defined.
 
-Print positive.
 Fixpoint Pos_bitcount (p: positive) :=
   match p with
     | xH => 1
@@ -142,7 +141,7 @@ Definition get_id (tx : TransactionLRecord) : N :=
   uint2N (TransactionLGetField Transaction_ι_id tx).
 Fixpoint dedupTransactions (txs: Datatypes.list (uint64 * TransactionLRecord))  (mem: mapping N bool) := 
   match txs with 
-  | []%list => []%list
+  | [ ]%list => [ ]%list
   | (tx :: txs)%list => 
   let id := get_id (snd tx) in
   if hmapIsMember id mem then dedupTransactions txs mem
@@ -195,7 +194,7 @@ Defined.
 #[global]
 Instance xqueue_booleq {K} `{XBoolEquable bool K}: XBoolEquable bool (XQueue K).
 Proof.
-  esplit. intros. apply ( @XBoolEquableList(uint*K)). 
+  esplit. intros. apply ( @XBoolEquableList(XUInteger*K)). 
   apply pair_xbool_equable.
   exact (unwrap X). exact (unwrap X0).
 Defined.
