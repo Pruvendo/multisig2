@@ -88,7 +88,7 @@ Defined.
 
 #[private, view]
 Ursus Definition _getExpirationBound : UExpression ( uint64) false .
-   :://return_ ((uint64(now) - m_lifetime) << #{32}) |.
+   :://return_ ((uint64(now) - m_lifetime) << uint64(#{32})) |.
 Defined. 
 Sync.
 
@@ -247,7 +247,7 @@ Defined.
 
 #[private, pure]
 Ursus Definition _generateId : UExpression ( uint64) false .
-   :://return_ ((uint64(now) << #{32}) \ (tx->timestamp & #{0xFFFFFFFF})) |.
+   :://return_ ((uint64(now) << uint64(#{32})) \ (tx->timestamp & uint64(#{0xFFFFFFFF}))) |.
 Defined. 
 
 #[private, pure]
@@ -351,7 +351,7 @@ Sync.
 
 #[private, pure]
 Ursus Definition _decMaskValue (mask :  uint256) (index :  uint8): UExpression ( uint256) false .
-   :://return_ (#{mask} - (#{1} << (#{8} * uint256(#{index})))) |.
+   :://return_ (#{mask} - (uint256(#{1}) << (uint256(#{8}) * uint256(#{index})))) |.
 Defined. 
 
 Sync.
@@ -440,12 +440,12 @@ Defined.
 
 #[private, pure]
 Ursus Definition _incMaskValue (mask :  uint256) (index :  uint8): UExpression ( uint256) false .
-   :://return_ (#{mask} + (#{1} << (#{8} * uint256(#{index})))) |.
+   :://return_ (#{mask} + (uint256(#{1}) << (uint256(#{8}) * uint256(#{index})))) |.
 Defined. 
 
 #[private, pure]
 Ursus Definition _getMaskValue (mask :  uint256) (index :  uint8): UExpression ((*TODO*) uint256) false .
-   :://return_ (((#{mask} >> (#{8} * uint256(#{index}))) & #{0xFF})) |.
+   :://return_ (((#{mask} >> (uint256(#{8}) * uint256(#{index}))) & uint256(#{0xFF}))) |.
 Defined. 
 Sync.
 
