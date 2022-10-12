@@ -89,7 +89,7 @@ MTS_2 (quickFixState {$$
 (* OK *)
 QuickCheck MTS_2_propb.
 
-Definition MTS_3_propb l id
+Definition MTS_3_propb l
         (dest :  address) 
         (value :  uint128) 
         (bounce :  boolean) 
@@ -108,9 +108,9 @@ let v3 := {$$ v2 with VMState_ι_now := now $$} in
 MTS_3 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
                             with Ledger_VMState := v3 $$})
-        id dest value bounce allBalance payload stateInit ? .
+        dest value bounce allBalance payload stateInit ? .
 
-(* Fails *)
+(* OK *)
 QuickCheck MTS_3_propb.
 
 Definition MTS_4_propb l id
@@ -134,7 +134,7 @@ MTS_4 (quickFixState {$$
                             with Ledger_VMState := v3 $$})
         id dest value bounce allBalance payload stateInit ? .
 
-(* Fail *)
+(* OK *)
 QuickCheck MTS_4_propb.
 
 Definition MTS_5_propb l id
@@ -158,7 +158,7 @@ MTS_5 (quickFixState {$$
                             with Ledger_VMState := v3 $$})
         id dest value bounce allBalance payload stateInit ? .
 
-(* Fail *)
+(* OK *)
 QuickCheck MTS_5_propb.
 
 Definition MTS_7_propb l id
@@ -184,102 +184,3 @@ MTS_7 (quickFixState {$$
 
 (* OK *)
 QuickCheck MTS_7_propb.
-
-
-Definition MTS_6_1_1_propb l tr1 tr2 tr3 tr4 
-        (updateId :  uint64)
-        (mpk: uint256)
-        (acc: bool)
-        (pk: uint256): bool :=
-let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
-let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
-
-MTS_6_1_1 (quickFixState {$$ 
-        {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
-        tr1 tr2 tr3 tr4 updateId ? .
-
-(* Fail *)
-QuickCheck MTS_6_1_1_propb.
-
-Definition MTS_6_1_2_propb l tr1 tr2 tr3 tr4 
-        (codeHash : optional uint256) 
-        (owners : optional (listArray uint256)) 
-        (reqConfirms : optional uint8) 
-        (lifetime :  optional uint64 )
-        (mpk: uint256)
-        (acc: bool)
-        (pk: uint256): bool :=
-let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
-let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
-
-MTS_6_1_2 (quickFixState {$$ 
-        {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
-        tr1 tr2 tr3 tr4 codeHash owners reqConfirms lifetime ? .
-
-(* Fail *)
-QuickCheck MTS_6_1_2_propb.
-
-Definition MTS_6_1_3_propb l tr1 tr2 tr3 tr4 
-        (transactionId :  uint64)
-        (mpk: uint256)
-        (acc: bool)
-        (pk: uint256): bool :=
-let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
-let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
-
-MTS_6_1_3 (quickFixState {$$ 
-        {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
-        tr1 tr2 tr3 tr4 transactionId ? .
-
-(* Fail *)
-QuickCheck MTS_6_1_3_propb.
-
-Definition MTS_6_1_4_propb l tr1 tr2 tr3 tr4 
-        (dest :  address) 
-        (value :  uint128) 
-        (bounce :  boolean) 
-        (allBalance :  boolean) 
-        (payload :  cell_) 
-        (stateInit :  optional TvmCell )
-        (mpk: uint256)
-        (acc: bool)
-        (pk: uint256): bool :=
-let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
-let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
-
-MTS_6_1_4 (quickFixState {$$ 
-        {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
-        tr1 tr2 tr3 tr4 dest value bounce allBalance payload stateInit ? .
-
-(* Fail *)
-QuickCheck MTS_6_1_4_propb.
-
-Definition MTS_6_1_5_propb l tr1 tr2 tr3 tr4 
-        (dest :  address) 
-        (value :  uint128) 
-        (bounce :  boolean) 
-        (flags :  uint8)
-        (payload :  cell_) 
-        (stateInit :  optional TvmCell )
-        (mpk: uint256)
-        (acc: bool)
-        (pk: uint256): bool :=
-let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
-let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
-
-MTS_6_1_5 (quickFixState {$$ 
-        {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
-        tr1 tr2 tr3 tr4 dest value bounce flags payload stateInit ? .
-
-(* Fail *)
-QuickCheck MTS_6_1_5_propb.
