@@ -95,13 +95,19 @@ Definition computeCorrectSignsReceived (tx : TransactionLRecord) :=
   let confirmationsMask := getPruvendoRecord Transaction_ι_confirmationsMask tx in
   N_bitcount (uint2N confirmationsMask).
 
-Definition transactionsCorrect (txs: Datatypes.list (uint64 * TransactionLRecord))  :=
+Definition transactionsCorrect (txs: Datatypes.list (uint64 * TransactionLRecord)) (tvm_now: N) (timestamp : N):=
   List.forallb (fun tx : (uint64 * _) => (
-  andb
-    (Common.eqb (fst tx) (getPruvendoRecord Transaction_ι_id (snd tx))))
-    (Common.eqb (computeCorrectSignsReceived (snd tx)) 
-      (uint2N (getPruvendoRecord Transaction_ι_signsReceived (snd tx))))
-  ) txs.
+  andb 
+    (andb
+      (Common.eqb (fst tx) (getPruvendoRecord Transaction_ι_id (snd tx)))
+      (Common.eqb (computeCorrectSignsReceived (snd tx)) 
+        (uint2N (getPruvendoRecord Transaction_ι_signsReceived (snd tx))))
+    )
+    (andb 
+      (N.leb (N.shiftr (uint2N (fst tx)) 32) tvm_now)
+      (N.ltb (N.land (uint2N (fst tx)) 0xFFFFFFFF) timestamp)
+    )
+   )) txs.
 
 Definition noDuplicates (txs: Datatypes.list (uint64 * TransactionLRecord)) :=
   List.forallb (fun tx => Common.eqb (length_ (List.filter
@@ -128,9 +134,11 @@ Definition correctState l :=
     let ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l) in
     let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
     let requestMask := toValue (eval_state (sRReader (m_requestsMask_right rec def) ) l) in
+    let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+    let timestamp := uint2N (toValue (eval_state (sRReader || tx->timestamp ) l)) in
     length_ custodians = uint2N custodianCount /\
     hmapIsMember ownerKey custodians = true /\
-    transactionsCorrect (unwrap transactions) = true /\
+    transactionsCorrect (unwrap transactions) tvm_now timestamp = true /\
     noDuplicates (unwrap transactions) = true /\
     noDuplicateIds (unwrap transactions) = true /\
     requestMaskCorrect requestMask transactions = true
