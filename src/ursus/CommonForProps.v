@@ -95,6 +95,10 @@ Definition computeCorrectSignsReceived (tx : TransactionLRecord) :=
   let confirmationsMask := getPruvendoRecord Transaction_ι_confirmationsMask tx in
   N_bitcount (uint2N confirmationsMask).
 
+Definition computeCorrectSignsUpdateRequest (req : UpdateRequestLRecord) :=
+  let confirmationsMask := getPruvendoRecord UpdateRequest_ι_confirmationsMask req in
+  N_bitcount (uint2N confirmationsMask).
+
 Definition transactionsCorrect (txs: Datatypes.list (uint64 * TransactionLRecord)) (tvm_now: N) (timestamp : N):=
   List.forallb (fun tx : (uint64 * _) => (
   andb 
@@ -109,16 +113,36 @@ Definition transactionsCorrect (txs: Datatypes.list (uint64 * TransactionLRecord
     )
    )) txs.
 
-Definition noDuplicates (txs: Datatypes.list (uint64 * TransactionLRecord)) :=
-  List.forallb (fun tx => Common.eqb (length_ (List.filter
-    (fun tx' => Common.eqb tx tx') txs)) 1) txs.
+Definition requestsCorrect (reqs: Datatypes.list (uint64 * UpdateRequestLRecord)) (tvm_now: N) (timestamp : N):=
+  List.forallb (fun req : (uint64 * _) => (
+  andb 
+    (andb
+      (Common.eqb (fst req) (getPruvendoRecord UpdateRequest_ι_id (snd req)))
+      (Common.eqb (computeCorrectSignsUpdateRequest (snd req)) 
+        (uint2N (getPruvendoRecord UpdateRequest_ι_signs (snd req))))
+    )
+    (andb 
+      (N.leb (N.shiftr (uint2N (fst req)) 32) tvm_now)
+      (N.ltb (N.land (uint2N (fst req)) 0xFFFFFFFF) timestamp)
+    )
+   )) reqs.
 
 Definition get_index (tx : TransactionLRecord) : N := 
   uint2N (TransactionLGetField Transaction_ι_index tx).
 
+Definition get_id (tx : TransactionLRecord) : N := 
+  uint2N (TransactionLGetField Transaction_ι_id tx).
+
+Definition get_id_req (req : UpdateRequestLRecord) : N := 
+  uint2N (UpdateRequestLGetField UpdateRequest_ι_id req).
+
 Definition noDuplicateIds (txs: Datatypes.list (uint64 * TransactionLRecord)) :=
   List.forallb (fun tx => Common.eqb (length_ (List.filter
-    (fun tx' => Common.eqb (get_index (snd tx)) (get_index (snd tx'))) txs)) 1) txs.
+    (fun tx' => Common.eqb (get_id (snd tx)) (get_id (snd tx'))) txs)) 1) txs.
+
+Definition noDuplicateReqs (reqs: Datatypes.list (uint64 * UpdateRequestLRecord)) :=
+  List.forallb (fun tx => Common.eqb (length_ (List.filter
+    (fun tx' => Common.eqb (get_id_req (snd tx)) (get_id_req (snd tx'))) reqs)) 1) reqs.
 
 Definition computeCorrectRequestMask (transactions: mapping uint64 TransactionLRecord) :=
   List.fold_left (fun acc e => 
@@ -133,20 +157,20 @@ Definition correctState l :=
     let custodianCount := toValue (eval_state (sRReader (m_custodianCount_right rec def) ) l) in
     let ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l) in
     let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
+    let requests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
     let requestMask := toValue (eval_state (sRReader (m_requestsMask_right rec def) ) l) in
     let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
     let timestamp := uint2N (toValue (eval_state (sRReader || tx->timestamp ) l)) in
     length_ custodians = uint2N custodianCount /\
     hmapIsMember ownerKey custodians = true /\
     transactionsCorrect (unwrap transactions) tvm_now timestamp = true /\
-    noDuplicates (unwrap transactions) = true /\
+    requestsCorrect (unwrap requests) tvm_now timestamp = true /\
     noDuplicateIds (unwrap transactions) = true /\
+    noDuplicateReqs (unwrap requests) = true /\
     requestMaskCorrect requestMask transactions = true
     .
 
 Import ListNotations.
-Definition get_id (tx : TransactionLRecord) : N := 
-  uint2N (TransactionLGetField Transaction_ι_id tx).
 Fixpoint dedupTransactions (txs: Datatypes.list (uint64 * TransactionLRecord))  (mem: mapping N bool) := 
   match txs with 
   | [ ]%list => [ ]%list
@@ -156,6 +180,15 @@ Fixpoint dedupTransactions (txs: Datatypes.list (uint64 * TransactionLRecord))  
   else let mem' := xHMapInsert id true mem in
   (tx :: dedupTransactions txs mem')%list
   end.
+Fixpoint dedupRequests (reqs: Datatypes.list (uint64 * UpdateRequestLRecord))  (mem: mapping N bool) := 
+  match reqs with 
+  | [ ]%list => [ ]%list
+  | (req :: reqs)%list => 
+  let id := get_id_req (snd req) in
+  if hmapIsMember id mem then dedupRequests reqs mem
+  else let mem' := xHMapInsert id true mem in
+  (req :: dedupRequests reqs mem')%list
+  end.
 
  Definition quickFixState (l: LedgerLRecord rec) : LedgerLRecord rec :=
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
@@ -164,14 +197,21 @@ Fixpoint dedupTransactions (txs: Datatypes.list (uint64 * TransactionLRecord))  
     else xHMapInsert ownerKey (Build_XUBInteger (length_ custodians)) custodians in
   let defaultRequired := toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
+  let requests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
   let transactions':= (CommonInstances.wrap Map (dedupTransactions (map 
     (fun tx : (uint64 * TransactionLRecord) => (fst tx, 
       {$$ {$$ snd tx with Transaction_ι_id := fst tx $$}
          with Transaction_ι_signsReceived := (Build_XUBInteger (computeCorrectSignsReceived (snd tx)))
       $$} : TransactionLRecord))
   (unwrap transactions)) (CommonInstances.wrap Map Datatypes.nil))) in
+  let requests' := (CommonInstances.wrap Map (dedupRequests (map 
+    (fun req : (uint64 * UpdateRequestLRecord) => (fst req, 
+      {$$ {$$ snd req with UpdateRequest_ι_id := fst req $$}
+        with UpdateRequest_ι_signs := (Build_XUBInteger (computeCorrectSignsUpdateRequest (snd req)))
+      $$} : UpdateRequestLRecord))
+  (unwrap requests)) (CommonInstances.wrap Map Datatypes.nil))) in
   {$$ l with Ledger_MainState := 
-    {$$ {$$ {$$ {$$getPruvendoRecord Ledger_MainState l with 
+    {$$ {$$ {$$ {$$ {$$getPruvendoRecord Ledger_MainState l with 
       _m_custodianCount := Build_XUBInteger (length_ custodians')
     $$} with
       _m_custodians := custodians' 
@@ -181,6 +221,9 @@ Fixpoint dedupTransactions (txs: Datatypes.list (uint64 * TransactionLRecord))  
     $$}
      with
       _m_requestsMask := (Build_XUBInteger (computeCorrectRequestMask transactions'))
+    $$}
+    with
+      _m_updateRequests := requests'
     $$}
   $$}. 
 
