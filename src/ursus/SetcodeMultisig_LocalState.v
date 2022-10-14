@@ -1,8 +1,8 @@
 (*/Users/petrlarockin/Downloads/TON/solidity-coq-translator/ref*)
 Require Import UrsusEnvironment.Solidity.current.Environment.
-Require Import multisig2.
+Require Import UrsusEnvironment.Solidity.current.LocalGenerator.
 Inductive LocalFields00000I := | ι000000 | ι000001 .
-Definition LocalState00000L := [( XHMap (string*nat) ( optional  (tuple ( uint64)( UpdateRequestLRecord ) ))) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState00000L := [( XHMap (string*nat) ( optional  (tuple ( uint64)( (UpdateRequestLRecord) ) ))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState00000L LocalFields00000I . 
 Opaque LocalState00000LRecord . 
 Inductive LocalFields00001I := | ι000010 | ι000011 .
@@ -14,51 +14,51 @@ Definition LocalState00010L := [( XHMap (string*nat) ( uint64)) : Type; ( XHMap 
 GlobalGeneratePruvendoRecord LocalState00010L LocalFields00010I . 
 Opaque LocalState00010LRecord . 
 Inductive LocalFields00011I := | ι000110 | ι000111 .
-Definition LocalState00011L := [( XHMap (string*nat) (UpdateRequestLRecord)) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState00011L := [( XHMap (string*nat) ((UpdateRequestLRecord))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState00011L LocalFields00011I . 
 Opaque LocalState00011LRecord . 
 Inductive LocalFields00100I := | ι001000 | ι001001 .
-Definition LocalState00100L := [( XHMap (string*nat) ( TvmCell)) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState00100L := [( XHMap (string*nat) ((TransactionLRecord[]))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState00100L LocalFields00100I . 
 Opaque LocalState00100LRecord . 
 Inductive LocalFields00101I := | ι001010 | ι001011 .
-Definition LocalState00101L := [( XHMap (string*nat) ( uint8)) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState00101L := [( XHMap (string*nat) ((CustodianInfoLRecord[]))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState00101L LocalFields00101I . 
 Opaque LocalState00101LRecord . 
 Inductive LocalFields00110I := | ι001100 | ι001101 .
-Definition LocalState00110L := [( XHMap (string*nat) ( optional  (UpdateRequestLRecord ))) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState00110L := [( XHMap (string*nat) ( optional  ( uint256 ))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState00110L LocalFields00110I . 
 Opaque LocalState00110LRecord . 
 Inductive LocalFields00111I := | ι001110 | ι001111 .
-Definition LocalState00111L := [( XHMap (string*nat) ( uint32)) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState00111L := [( XHMap (string*nat) ( uint256)) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState00111L LocalFields00111I . 
 Opaque LocalState00111LRecord . 
 Inductive LocalFields01000I := | ι010000 | ι010001 .
-Definition LocalState01000L := [( XHMap (string*nat) (listArray TransactionLRecord)) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState01000L := [( XHMap (string*nat) ((UpdateRequestLRecord[]))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState01000L LocalFields01000I . 
 Opaque LocalState01000LRecord . 
 Inductive LocalFields01001I := | ι010010 | ι010011 .
-Definition LocalState01001L := [( XHMap (string*nat) (listArray CustodianInfoLRecord)) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState01001L := [( XHMap (string*nat) ( TvmCell)) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState01001L LocalFields01001I . 
 Opaque LocalState01001LRecord . 
 Inductive LocalFields01010I := | ι010100 | ι010101 .
-Definition LocalState01010L := [( XHMap (string*nat) ( optional  ( uint256 ))) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState01010L := [( XHMap (string*nat) ( uint8)) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState01010L LocalFields01010I . 
 Opaque LocalState01010LRecord . 
 Inductive LocalFields01011I := | ι010110 | ι010111 .
-Definition LocalState01011L := [( XHMap (string*nat) ( uint256)) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState01011L := [( XHMap (string*nat) ( optional  ((UpdateRequestLRecord) ))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState01011L LocalFields01011I . 
 Opaque LocalState01011LRecord . 
 Inductive LocalFields01100I := | ι011000 | ι011001 .
-Definition LocalState01100L := [( XHMap (string*nat) (TransactionLRecord)) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState01100L := [( XHMap (string*nat) ((TransactionLRecord))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState01100L LocalFields01100I . 
 Opaque LocalState01100LRecord . 
 Inductive LocalFields01101I := | ι011010 | ι011011 .
-Definition LocalState01101L := [( XHMap (string*nat) ( optional  (TransactionLRecord ))) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState01101L := [( XHMap (string*nat) ( optional  ((TransactionLRecord) ))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState01101L LocalFields01101I . 
 Opaque LocalState01101LRecord . 
 Inductive LocalFields01110I := | ι011100 | ι011101 .
-Definition LocalState01110L := [( XHMap (string*nat) ( optional  (tuple ( uint64)( TransactionLRecord ) ))) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState01110L := [( XHMap (string*nat) ( optional  (tuple ( uint64)( (TransactionLRecord) ) ))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState01110L LocalFields01110I . 
 Opaque LocalState01110LRecord . 
 Inductive LocalFields01111I := | ι011110 | ι011111 .
@@ -70,15 +70,19 @@ Definition LocalState10000L := [( XHMap (string*nat) ( optional  ( uint8 ))) : T
 GlobalGeneratePruvendoRecord LocalState10000L LocalFields10000I . 
 Opaque LocalState10000LRecord . 
 Inductive LocalFields10001I := | ι100010 | ι100011 .
-Definition LocalState10001L := [( XHMap (string*nat) (listArray uint256)) : Type; ( XHMap string nat ) : Type ] .
+Definition LocalState10001L := [( XHMap (string*nat) ( uint32)) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState10001L LocalFields10001I . 
 Opaque LocalState10001LRecord . 
+Inductive LocalFields10010I := | ι100100 | ι100101 .
+Definition LocalState10010L := [( XHMap (string*nat) ( uint256[])) : Type; ( XHMap string nat ) : Type ] .
+GlobalGeneratePruvendoRecord LocalState10010L LocalFields10010I . 
+Opaque LocalState10010LRecord . 
 (**************** LocalState Tree ***************.
     /\
    /\\
   /\/\\
- /\/\/\/\\
-/\/\/\/\/\/\/\/\/\
+ /\/\/\/\/\
+/\/\/\/\/\/\/\/\/\\
 **************** LocalState Tree ***************)
 
 Inductive LocalFields0000I := | ι00000 | ι00001 . 
@@ -146,6 +150,11 @@ Definition LocalState011L := [ LocalState0110LRecord ; LocalState0111LRecord ] .
 GlobalGeneratePruvendoRecord LocalState011L LocalFields011I . 
 Opaque LocalState011LRecord . 
 
+Inductive LocalFields100I := | ι1000 | ι1001 . 
+Definition LocalState100L := [ LocalState1000LRecord ; LocalState10010LRecord ] . 
+GlobalGeneratePruvendoRecord LocalState100L LocalFields100I . 
+Opaque LocalState100LRecord . 
+
 Inductive LocalFields00I := | ι000 | ι001 . 
 Definition LocalState00L := [ LocalState000LRecord ; LocalState001LRecord ] . 
 GlobalGeneratePruvendoRecord LocalState00L LocalFields00I . 
@@ -162,7 +171,7 @@ GlobalGeneratePruvendoRecord LocalState0L LocalFields0I .
 Opaque LocalState0LRecord . 
 
 Inductive LocalFieldsI := | ι0 | ι1 . 
-Definition LocalStateL := [ LocalState0LRecord ; LocalState1000LRecord ] . 
+Definition LocalStateL := [ LocalState0LRecord ; LocalState100LRecord ] . 
 GlobalGeneratePruvendoRecord LocalStateL LocalFieldsI .
 Opaque LocalStateLRecord . 
 
@@ -187,6 +196,7 @@ LocalState01110LRecord
 LocalState01111LRecord
 LocalState10000LRecord
 LocalState10001LRecord
+LocalState10010LRecord
 
 LocalState0000LRecord
 LocalState0001LRecord
@@ -197,6 +207,7 @@ LocalState0101LRecord
 LocalState0110LRecord
 LocalState0111LRecord
 LocalState1000LRecord
+LocalState100LRecord
 
 LocalState000LRecord
 LocalState001LRecord
@@ -210,7 +221,7 @@ LocalState0LRecord.
 Transparent LocalStateLRecord.
 Notation LocalStateField := (LocalStateField XHMap LocalStateLRecord). 
 
-#[global, program] Instance LocalStateField00000 : LocalStateField ( optional  (tuple ( uint64)( UpdateRequestLRecord ) )).
+#[global, program] Instance LocalStateField00000 : LocalStateField ( optional  (tuple ( uint64)( (UpdateRequestLRecord) ) )).
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι0). 
@@ -282,7 +293,7 @@ Fail Next Obligation.
 Remove Hints LocalStateField00010 : typeclass_instances. 
 
 
-#[global, program] Instance LocalStateField00011 : LocalStateField (UpdateRequestLRecord).
+#[global, program] Instance LocalStateField00011 : LocalStateField ((UpdateRequestLRecord)).
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι0). 
@@ -306,7 +317,7 @@ Fail Next Obligation.
 Remove Hints LocalStateField00011 : typeclass_instances. 
 
 
-#[global, program] Instance LocalStateField00100 : LocalStateField ( TvmCell).
+#[global, program] Instance LocalStateField00100 : LocalStateField ((TransactionLRecord[])).
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι0). 
@@ -330,7 +341,7 @@ Fail Next Obligation.
 Remove Hints LocalStateField00100 : typeclass_instances. 
 
 
-#[global, program] Instance LocalStateField00101 : LocalStateField ( uint8).
+#[global, program] Instance LocalStateField00101 : LocalStateField ((CustodianInfoLRecord[])).
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι0). 
@@ -354,7 +365,7 @@ Fail Next Obligation.
 Remove Hints LocalStateField00101 : typeclass_instances. 
 
 
-#[global, program] Instance LocalStateField00110 : LocalStateField ( optional  (UpdateRequestLRecord )).
+#[global, program] Instance LocalStateField00110 : LocalStateField ( optional  ( uint256 )).
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι0). 
@@ -378,7 +389,7 @@ Fail Next Obligation.
 Remove Hints LocalStateField00110 : typeclass_instances. 
 
 
-#[global, program] Instance LocalStateField00111 : LocalStateField ( uint32).
+#[global, program] Instance LocalStateField00111 : LocalStateField ( uint256).
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι0). 
@@ -402,7 +413,7 @@ Fail Next Obligation.
 Remove Hints LocalStateField00111 : typeclass_instances. 
 
 
-#[global, program] Instance LocalStateField01000 : LocalStateField (listArray TransactionLRecord).
+#[global, program] Instance LocalStateField01000 : LocalStateField ((UpdateRequestLRecord[])).
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι0). 
@@ -426,7 +437,7 @@ Fail Next Obligation.
 Remove Hints LocalStateField01000 : typeclass_instances. 
 
 
-#[global, program] Instance LocalStateField01001 : LocalStateField (listArray CustodianInfoLRecord).
+#[global, program] Instance LocalStateField01001 : LocalStateField ( TvmCell).
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι0). 
@@ -450,7 +461,7 @@ Fail Next Obligation.
 Remove Hints LocalStateField01001 : typeclass_instances. 
 
 
-#[global, program] Instance LocalStateField01010 : LocalStateField ( optional  ( uint256 )).
+#[global, program] Instance LocalStateField01010 : LocalStateField ( uint8).
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι0). 
@@ -474,7 +485,7 @@ Fail Next Obligation.
 Remove Hints LocalStateField01010 : typeclass_instances. 
 
 
-#[global, program] Instance LocalStateField01011 : LocalStateField ( uint256).
+#[global, program] Instance LocalStateField01011 : LocalStateField ( optional  ((UpdateRequestLRecord) )).
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι0). 
@@ -498,7 +509,7 @@ Fail Next Obligation.
 Remove Hints LocalStateField01011 : typeclass_instances. 
 
 
-#[global, program] Instance LocalStateField01100 : LocalStateField (TransactionLRecord).
+#[global, program] Instance LocalStateField01100 : LocalStateField ((TransactionLRecord)).
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι0). 
@@ -522,7 +533,7 @@ Fail Next Obligation.
 Remove Hints LocalStateField01100 : typeclass_instances. 
 
 
-#[global, program] Instance LocalStateField01101 : LocalStateField ( optional  (TransactionLRecord )).
+#[global, program] Instance LocalStateField01101 : LocalStateField ( optional  ((TransactionLRecord) )).
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι0). 
@@ -546,7 +557,7 @@ Fail Next Obligation.
 Remove Hints LocalStateField01101 : typeclass_instances. 
 
 
-#[global, program] Instance LocalStateField01110 : LocalStateField ( optional  (tuple ( uint64)( TransactionLRecord ) )).
+#[global, program] Instance LocalStateField01110 : LocalStateField ( optional  (tuple ( uint64)( (TransactionLRecord) ) )).
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι0). 
@@ -598,12 +609,14 @@ Remove Hints LocalStateField01111 : typeclass_instances.
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι1). 
+eapply TransEmbedded. eapply (_ ι1000). 
 eapply TransEmbedded. eapply (_ ι10000).
 eapply (LocalState10000LEmbeddedType ι100001). 
 Defined.
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι1). 
+eapply TransEmbedded. eapply (_ ι1000). 
 eapply TransEmbedded. eapply (_ ι10000).
 eapply (LocalState10000LEmbeddedType ι100000). 
 Defined.
@@ -612,19 +625,41 @@ Fail Next Obligation.
 Remove Hints LocalStateField10000 : typeclass_instances. 
 
 
-#[global, program] Instance LocalStateField10001 : LocalStateField (listArray uint256).
+#[global, program] Instance LocalStateField10001 : LocalStateField ( uint32).
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι1). 
+eapply TransEmbedded. eapply (_ ι1000). 
 eapply TransEmbedded. eapply (_ ι10001).
 eapply (LocalState10001LEmbeddedType ι100011). 
 Defined.
 Next Obligation. 
 
 eapply TransEmbedded. eapply (_ ι1). 
+eapply TransEmbedded. eapply (_ ι1000). 
 eapply TransEmbedded. eapply (_ ι10001).
 eapply (LocalState10001LEmbeddedType ι100010). 
 Defined.
 Fail Next Obligation.
 #[local]
 Remove Hints LocalStateField10001 : typeclass_instances. 
+
+
+#[global, program] Instance LocalStateField10010 : LocalStateField ( uint256[]).
+Next Obligation. 
+
+eapply TransEmbedded. eapply (_ ι1). 
+eapply TransEmbedded. eapply (_ ι1001). 
+
+eapply (LocalState10010LEmbeddedType ι100101). 
+Defined.
+Next Obligation. 
+
+eapply TransEmbedded. eapply (_ ι1). 
+eapply TransEmbedded. eapply (_ ι1001). 
+
+eapply (LocalState10010LEmbeddedType ι100100). 
+Defined.
+Fail Next Obligation.
+#[local]
+Remove Hints LocalStateField10010 : typeclass_instances. 
