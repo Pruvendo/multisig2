@@ -161,13 +161,15 @@ Definition correctState l :=
     let requestMask := toValue (eval_state (sRReader (m_requestsMask_right rec def) ) l) in
     let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
     let timestamp := uint2N (toValue (eval_state (sRReader || tx->timestamp ) l)) in
+    let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
     length_ custodians = uint2N custodianCount /\
     hmapIsMember ownerKey custodians = true /\
     transactionsCorrect (unwrap transactions) tvm_now timestamp = true /\
     requestsCorrect (unwrap requests) tvm_now timestamp = true /\
     noDuplicateIds (unwrap transactions) = true /\
     noDuplicateReqs (unwrap requests) = true /\
-    requestMaskCorrect requestMask transactions = true
+    requestMaskCorrect requestMask transactions = true /\
+    N.leb lifetime tvm_now = true
     .
 
 Import ListNotations.

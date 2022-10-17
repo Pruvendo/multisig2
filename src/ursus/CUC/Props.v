@@ -70,9 +70,6 @@ Definition CUC_2 l id (updateId :  uint64) (code : optional cell_) (custodianInd
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let l' := exec_state (Uinterpreter (_confirmUpdate rec def updateId custodianIndex)) l in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
-  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
-  let m_lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
-  tvm_now > m_lifetime ->
   correctState l ->
   isError (eval_state (Uinterpreter (executeUpdate rec def updateId code)) l) = false -> 
   hmapIsMember msgPubkey custodians = true ->
@@ -86,9 +83,6 @@ Definition CUC_3 l id (updateId :  uint64) (code : optional cell_) (codeHash : o
   let u := xMaybeMapDefault (fun x => x) (hmapLookup id m_updateRequests) dummyRequest  in
   let confirmationsMask := getPruvendoRecord UpdateRequest_ι_confirmationsMask u in 
   let tr_id := getPruvendoRecord UpdateRequest_ι_id u in 
-  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
-  let m_lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
-  tvm_now > m_lifetime ->
   correctState l ->
   isError (eval_state (Uinterpreter (executeUpdate rec def updateId code)) l) = false -> 
   hmapIsMember msgPubkey custodians = true ->
@@ -103,9 +97,6 @@ Definition CUC_4 l id (updateId :  uint64)  (code : optional cell_) (codeHash : 
   let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l') in
   let u := xMaybeMapDefault (fun x => x) (hmapLookup id m_updateRequests) dummyRequest  in
   let tr_id := getPruvendoRecord UpdateRequest_ι_id u in
-  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
-  let m_lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
-  tvm_now > m_lifetime ->
   correctState l ->
   isError (eval_state (Uinterpreter (executeUpdate rec def updateId code)) l) = false -> 
   hmapIsMember id m_updateRequests = true ->
@@ -124,9 +115,6 @@ Definition CUC_5 l id (updateId :  uint64) (custodianIndex :  uint8) (code : opt
   let confirmationsMask := getPruvendoRecord UpdateRequest_ι_confirmationsMask u in 
   let tr_id := getPruvendoRecord UpdateRequest_ι_id u in 
   let id_u2 := getPruvendoRecord UpdateRequest_ι_id u2 in
-  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
-  let m_lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
-  tvm_now > m_lifetime ->
   correctState l ->
   hmapIsMember msgPubkey custodians = true ->
   hmapIsMember id m_updateRequests = true ->

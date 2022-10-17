@@ -96,7 +96,6 @@ Definition MTS_3 l (dest :  address) (value :  uint128) (bounce :  boolean) (all
   ) transactions in
   let bitsMask' := bitsMask - length_ expiredTransactions in
   correctState l ->
-  tvm_now > lifetime ->
   isError (eval_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l) = false ->
   bitsMask' < 5. 
 
@@ -225,7 +224,6 @@ Definition MTS_7 l (dest :  address) (value :  uint128) (bounce :  boolean) (all
   let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
   let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
   correctState l ->
-  lifetime < tvm_now ->
   isError (eval_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l) = true ->
   equalExceptLocalExpired l l' = true \/
   equalExceptLocal l l' = true. 
