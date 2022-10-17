@@ -161,7 +161,37 @@ MTS_5 (quickFixState {$$
 (* OK *)
 QuickCheck MTS_5_propb.
 
-Definition MTS_7_propb l id
+
+Definition MTS_6_3_propb l
+                (dest :  address) 
+                (value :  uint128) 
+                (bounce :  boolean) 
+                (allBalance :  boolean) 
+                (payload :  cell_)
+                (stateInit :  optional TvmCell)
+                (mpk: uint256)
+                (acc: bool)
+                now: bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
+
+let custodians : XHMap uint256 uint8 := getPruvendoRecord _m_custodians l in
+let custodians' := if hmapIsMember mpk custodians then custodians 
+else xHMapInsert mpk (Build_XUBInteger (length_ custodians)) custodians in
+
+MTS_6_3 (quickFixState {$$ 
+        {$$ LedgerDefault with Ledger_MainState := 
+                {$$ l with  _m_custodians := custodians' $$}
+        $$}with Ledger_VMState := v3 $$})
+        dest value bounce allBalance payload stateInit  ? .
+
+(* OK *)
+QuickCheck MTS_6_3_propb.
+
+
+Definition MTS_7_propb l
               (dest :  address) 
               (value :  uint128) 
               (bounce :  boolean) 
@@ -170,17 +200,16 @@ Definition MTS_7_propb l id
               (stateInit :  optional TvmCell)
               (mpk: uint256)
               (acc: bool)
-              (pk: uint256)
               now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
 
 MTS_7 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
                             with Ledger_VMState := v3 $$})
-        id dest value bounce allBalance payload stateInit ? .
+        dest value bounce allBalance payload stateInit ? .
 
 (* OK *)
 QuickCheck MTS_7_propb.

@@ -147,13 +147,85 @@ Definition MTS_5 l id (dest :  address) (value :  uint128) (bounce :  boolean) (
 
 (* MTS_6_1 checked as part of correctState *)
 (* MTS_6_2 checked as part of correctState *)
-(* TODO: MTS_6_3 *)
 
-Definition MTS_7 l id (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) (stateInit :  optional  ( TvmCell )) : Prop := 
+Definition MTS_6_3  l (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) (stateInit :  optional  ( TvmCell )) : Prop := 
+  let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
-  let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l in 
-  let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
-  let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in  
+  let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
+  let transactions' := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
+  let newTransactions := xHMapFilter (fun k v =>
+    negb (hmapIsMember k transactions)
+  ) transactions' in
+  let transaction := snd (hd (Build_XUBInteger 0, dummyTransaction) (unwrap newTransactions)) in
+  let mask := uint2N (getPruvendoRecord Transaction_ι_confirmationsMask transaction) in
+  let creator := getPruvendoRecord Transaction_ι_creator transaction in
+  let index := getPruvendoRecord Transaction_ι_index transaction in
+  let bounce' := getPruvendoRecord Transaction_ι_bounce transaction in
+  let dest' := getPruvendoRecord Transaction_ι_dest transaction in
+  let payload' := getPruvendoRecord Transaction_ι_payload transaction in
+  let value' := getPruvendoRecord Transaction_ι_value transaction in
+  let flags := getPruvendoRecord Transaction_ι_sendFlags transaction in
+  let IGNORE_ERRORS := uint2N (toValue (eval_state (sRReader (FLAG_IGNORE_ERRORS_right rec def) ) l)) in
+  let SEND_ALL_REMAINING := uint2N (toValue (eval_state (sRReader (FLAG_SEND_ALL_REMAINING_right rec def) ) l)) in
+  let PAY_FWD_FEE_FROM_BALANCE := uint2N (toValue (eval_state (sRReader (FLAG_PAY_FWD_FEE_FROM_BALANCE_right rec def) ) l)) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+  let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
+  let m_defaultRequiredConfirmations := uint2N (toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l)) in
+  let requestsMask := toValue (eval_state (sRReader (m_requestsMask_right rec def) ) l) in 
+  let bitsMask := N.land (N.shiftr (uint2N requestsMask) (8 * i)) 255 in
+  let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let expiredTransactions := xHMapFilter (fun k v =>
+    let index := uint2N (getPruvendoRecord Transaction_ι_index v) in
+    andb (N.eqb index i) (N.leb ((N.shiftr (uint2N k) 32) + lifetime) tvm_now)
+  ) transactions in
+  let bitsMask' := bitsMask - length_ expiredTransactions in
   correctState l ->
+  m_defaultRequiredConfirmations > 1 ->
+  hmapIsMember msgPubkey custodians = true ->
+  bitsMask' < 5 ->
+  length_ newTransactions = 1 /\
+  mask = N.shiftl 1 i /\
+  creator = msgPubkey /\
+  i = uint2N index /\
+  dest = dest' /\
+  bounce = bounce' /\
+  payload = payload' /\
+  (allBalance = true ->
+   uint2N value' = 0 /\ 
+   uint2N flags = N.lor IGNORE_ERRORS SEND_ALL_REMAINING
+  ) /\
+  (allBalance = false ->
+   value' = value /\
+   uint2N flags = N.lor IGNORE_ERRORS PAY_FWD_FEE_FROM_BALANCE).
+
+Definition equalExceptLocalExpired (l l': LedgerLRecord rec) := 
+  let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
+  let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let newTransactions : field_type _m_transactions := xHMapFilter (fun k v =>
+    negb (N.leb ((N.shiftr (uint2N k) 32) + lifetime) tvm_now)
+  ) transactions in
+  ledgerEqb {$$ {$$ l with Ledger_MainState := 
+  {$$ {$$
+   getPruvendoRecord Ledger_MainState l
+   with _m_transactions := newTransactions $$} : @field_type (LedgerLRecord rec) _ _ Ledger_MainState with 
+   _m_requestsMask := getPruvendoRecord _m_requestsMask 
+     (getPruvendoRecord Ledger_MainState l')
+   
+ $$} 
+$$} with Ledger_LocalState := getPruvendoRecord Ledger_LocalState l' 
+$$} l'.
+
+Definition equalExceptLocal (l l': LedgerLRecord rec) := 
+  ledgerEqb {$$ l with Ledger_LocalState := getPruvendoRecord Ledger_LocalState l' $$} l'.
+
+Definition MTS_7 l (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) (stateInit :  optional  ( TvmCell )) : Prop := 
+  let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l in 
+  let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  correctState l ->
+  lifetime < tvm_now ->
   isError (eval_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l) = true ->
-  ETR_1 l' u dest value bounce allBalance payload stateInit. 
+  equalExceptLocalExpired l l' = true \/
+  equalExceptLocal l l' = true. 

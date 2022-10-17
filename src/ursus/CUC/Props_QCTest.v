@@ -91,7 +91,7 @@ CUC_2 (quickFixState {$$
                             with Ledger_VMState := v3 $$})
        id updateId code custodianIndex codeHash owners reqConfirms lifetime ? .
 
-(* Fail *)
+(* OK *)
 QuickCheck CUC_2_propb.
 
 Definition CUC_3_propb l id
@@ -115,7 +115,7 @@ CUC_3 (quickFixState {$$
                             with Ledger_VMState := v3 $$})
         id updateId code  codeHash owners reqConfirms lifetime ? .
 
-(* Fail *)
+(* OK *)
 QuickCheck CUC_3_propb.
 
 
@@ -140,7 +140,7 @@ CUC_4 (quickFixState {$$
                             with Ledger_VMState := v3 $$})
        id updateId code codeHash owners reqConfirms lifetime ? .
 
-(* Fail *)
+(* OK *)
 QuickCheck CUC_4_propb.
 
 Definition CUC_5_propb l id 
@@ -163,5 +163,5 @@ CUC_5 (quickFixState {$$
                             with Ledger_VMState := v2 $$})
         id updateId custodianIndex code  codeHash owners reqConfirms lifetime ? . 
 
-(* FAILS *)
+(* OK *)
 QuickCheck CUC_5_propb. 

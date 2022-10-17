@@ -156,105 +156,50 @@ CUR_5 (quickFixState {$$
                             with Ledger_VMState := v3 $$})
         id codeHash owners reqConfirms lifetime ? .
 
-(* FAILS *)
-QuickCheck CUR_5_propb.
+(* OK *)
+QuickCheck CUR_5_propb.*)
 
-Definition CUR_6_1_1_propb l tr1 tr2 tr3 tr4 
-        (updateId :  uint64)
-        (mpk: uint256)
-        (acc: bool)
-        (pk: uint256): bool :=
-let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
-let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
-
-CUR_6_1_1 (quickFixState {$$ 
-        {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
-        tr1 tr2 tr3 tr4 updateId ? .
-
-(* Fail *)
-QuickCheck CUR_6_1_1_propb.
-
-Definition CUR_6_1_2_propb l tr1 tr2 tr3 tr4 
+Definition CUR_6_2_propb l
         (codeHash : optional uint256) 
         (owners : optional (listArray uint256)) 
         (reqConfirms : optional uint8) 
         (lifetime :  optional uint32)
         (mpk: uint256)
         (acc: bool)
-        (pk: uint256): bool :=
+        now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
 
-CUR_6_1_2 (quickFixState {$$ 
+CUR_6_2 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
-        tr1 tr2 tr3 tr4 codeHash owners reqConfirms lifetime ? .
+                            with Ledger_VMState := v3 $$})
+        codeHash owners reqConfirms lifetime ? .
 
-(* Fail *)
-QuickCheck CUR_6_1_2_propb.
+(* OK *)
+QuickCheck CUR_6_2_propb.
 
-Definition CUR_6_1_3_propb l tr1 tr2 tr3 tr4 
-        (transactionId :  uint64)
+Definition CUR_6_3_propb l
+        (codeHash : optional uint256) 
+        (owners : optional (listArray uint256))
+        (reqConfirms : optional uint8)
+        (lifetime :  optional uint64)
         (mpk: uint256)
         (acc: bool)
-        (pk: uint256): bool :=
+        now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
 
-CUR_6_1_3 (quickFixState {$$ 
+CUR_6_3 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
-        tr1 tr2 tr3 tr4 transactionId ? .
+                            with Ledger_VMState := v3 $$})
+        codeHash owners reqConfirms lifetime ? .
 
-(* Fail *)
-QuickCheck CUR_6_1_3_propb.
-
-Definition CUR_6_1_4_propb l tr1 tr2 tr3 tr4 
-        (dest :  address) 
-        (value :  uint128) 
-        (bounce :  boolean) 
-        (allBalance :  boolean) 
-        (payload :  cell_) 
-        (stateInit :  optional TvmCell )
-        (mpk: uint256)
-        (acc: bool)
-        (pk: uint256): bool :=
-let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
-let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
-
-CUR_6_1_4 (quickFixState {$$ 
-        {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
-        tr1 tr2 tr3 tr4 dest value bounce allBalance payload stateInit ? .
-
-(* Fail *)
-QuickCheck CUR_6_1_4_propb.
-
-Definition CUR_6_1_5_propb l tr1 tr2 tr3 tr4 
-        (dest :  address) 
-        (value :  uint128) 
-        (bounce :  boolean) 
-        (flags :  uint8)
-        (payload :  cell_) 
-        (mpk: uint256)
-        (acc: bool)
-        (pk: uint256): bool :=
-let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
-let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
-
-CUR_6_1_5 (quickFixState {$$ 
-        {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
-        tr1 tr2 tr3 tr4 dest value bounce flags payload  ? .
-
-(* Fail *)
-QuickCheck CUR_6_1_5_propb.
+(* OK *)
+QuickCheck CUR_6_3_propb.
 
 Definition CUR_7_propb l id
         (codeHash : optional uint256) 
