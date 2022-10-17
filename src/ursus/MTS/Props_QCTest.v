@@ -38,7 +38,7 @@ Require Import CommonQCEnvironment.
 Require Import MTS.Props.
 Require Import CommonForProps.
 
-Require Import multisig2.
+Require Import  SetcodeMultisig. 
 
 Definition MTS_1_propb l
         (dest :  address) 

@@ -32,7 +32,7 @@ From elpi Require Import elpi.
 Local Open Scope struct_scope.
 Local Open Scope N_scope.
 Local Open Scope string_scope.
-Require Import multisig2. 
+Require Import SetcodeMultisig. 
 
 Require Import UMLang.ExecGenerator.
 Require Import UMLang.ExecGen.GenFlags.
@@ -40,12 +40,12 @@ Require Import UMLang.ExecGen.ExecGenDefs.
 Require Import FinProof.CommonInstances.
 
 Require Import CommonQCEnvironment.
-Require Import LocalState.
+Require Import SetcodeMultisig_LocalState. 
 Require Import CommonForProps.
 
 Definition dummyRequest : UpdateRequestLRecord := Eval compute in default. 
 
-Definition REU_1 l id (codeHash :  option uint256) (owners :  optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
+Definition REU_1 l id (codeHash :  option uint256) (owners :  optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
   let m_lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in (* TODO *)
   let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
   let l' := exec_state (Uinterpreter (_removeExpiredTransactions rec def)) l in 
@@ -65,7 +65,7 @@ Definition CUC_1 l (updateId :  uint64) (code : optional cell_) : Prop :=
   isError (eval_state (Uinterpreter (executeUpdate rec def updateId code)) l) = false -> 
   hmapIsMember msgPubkey custodians = true.
 
-Definition CUC_2 l id (updateId :  uint64) (code : optional cell_) (custodianIndex :  uint8) (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
+Definition CUC_2 l id (updateId :  uint64) (code : optional cell_) (custodianIndex :  uint8) (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let l' := exec_state (Uinterpreter (_confirmUpdate rec def updateId custodianIndex)) l in
@@ -78,7 +78,7 @@ Definition CUC_2 l id (updateId :  uint64) (code : optional cell_) (custodianInd
   hmapIsMember msgPubkey custodians = true ->
   REU_1 l' id codeHash owners reqConfirms lifetime.
 
-Definition CUC_3 l id (updateId :  uint64) (code : optional cell_) (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
+Definition CUC_3 l id (updateId :  uint64) (code : optional cell_) (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let l' := exec_state (Uinterpreter (executeUpdate rec def updateId code)) l in
@@ -98,7 +98,7 @@ Definition CUC_3 l id (updateId :  uint64) (code : optional cell_) (codeHash : o
   N.shiftl (uint2N id) (uint2N confirmationsMask) = 0.  
 
 
-Definition CUC_4 l id (updateId :  uint64)  (code : optional cell_) (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
+Definition CUC_4 l id (updateId :  uint64)  (code : optional cell_) (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
   let l' := exec_state (Uinterpreter (executeUpdate rec def updateId code)) l in
   let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l') in
   let u := xMaybeMapDefault (fun x => x) (hmapLookup id m_updateRequests) dummyRequest  in
@@ -112,7 +112,7 @@ Definition CUC_4 l id (updateId :  uint64)  (code : optional cell_) (codeHash : 
   REU_1 l' id codeHash owners reqConfirms lifetime ->
   tr_id = id. 
 
-Definition CUC_5 l id (updateId :  uint64) (custodianIndex :  uint8) (code : optional cell_) (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
+Definition CUC_5 l id (updateId :  uint64) (custodianIndex :  uint8) (code : optional cell_) (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
   let l' := exec_state (Uinterpreter (executeUpdate rec def updateId code)) l in
   let l_res := exec_state (Uinterpreter (_confirmUpdate rec def updateId custodianIndex)) l in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in

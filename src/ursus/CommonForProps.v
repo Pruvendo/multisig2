@@ -36,7 +36,7 @@ Set Warnings "-extraction-opaque-accessed,-extraction".
 Local Open Scope struct_scope.
 Local Open Scope N_scope.
 Local Open Scope string_scope.
-Require Import multisig2. 
+Require Import SetcodeMultisig. 
 
 Require Import UMLang.ExecGenerator.
 Require Import UMLang.ExecGen.GenFlags.
@@ -44,7 +44,7 @@ Require Import UMLang.ExecGen.ExecGenDefs.
 Require Import FinProof.CommonInstances.
 
 Require Import CommonQCEnvironment.
-Require Import LocalState.
+Require Import SetcodeMultisig_LocalState. 
 
 #[global, program]
 Instance listInfinite : listInfiniteFunRec_gen XList.
@@ -201,3 +201,19 @@ Defined.
 
 Definition T := Eval compute in LedgerLRecord rec.
 Definition ledgerEqb : T -> T -> bool := Common.eqb.
+
+Definition checkMap1 (custodians: mapping uint256 uint8) := 
+  List.forallb 
+    (fun v => Common.eqb (length_ (List.filter
+      (fun e => Common.eqb (snd e) v) (unwrap custodians))) 1) 
+      (map Build_XUBInteger (listRange (length_ custodians))).
+
+Definition checkMap2' (m: XHMap ( uint256 )( uint8 )) (i: N) (k: option uint256) := 
+  let k' := xMaybeMapDefault id k (Build_XUBInteger 0) in
+  (andb (xMaybeIsSome k) (hmapIsMember k' m)).
+
+Fixpoint checkMap2 m n (owners: listArray uint256):= 
+  match n with 
+  | O => true
+  | S n' => andb (checkMap2 m n' owners) (checkMap2' m (N.of_nat n') (arrLookup (N.of_nat n') owners))
+  end.

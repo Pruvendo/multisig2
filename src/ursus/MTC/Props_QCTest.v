@@ -46,7 +46,7 @@ Require Import CommonQCEnvironment.
 Require Import MTC.Props.
 Require Import CommonForProps.
 
-Require Import multisig2.
+Require Import  SetcodeMultisig. 
 
 
 Definition MTC_1_propb l

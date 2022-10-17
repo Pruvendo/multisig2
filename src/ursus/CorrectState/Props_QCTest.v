@@ -44,11 +44,11 @@ Import GenLow GenHigh.
 Set Warnings "-extraction-opaque-accessed,-extraction".
 
 Require Import CommonQCEnvironment.
-Require Import LocalState.
+Require Import SetcodeMultisig_LocalState. 
 Require Import CorrectState.Props.
 Require Import CommonForProps.
 
-Require Import multisig2.
+Require Import  SetcodeMultisig. 
 
 Definition CS_1_propb
               (updateId :  uint64)
@@ -84,7 +84,7 @@ Definition CS_2_propb
        (codeHash : optional uint256) 
        (owners : optional (listArray uint256)) 
        (reqConfirms : optional uint8)
-       (lifetime :  optional uint64)
+       (lifetime : optional uint32)
        (acc: bool)
        (pk: uint256): bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     

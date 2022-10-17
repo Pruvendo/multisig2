@@ -1,6 +1,7 @@
 (*/Users/petrlarockin/Downloads/TON/solidity-coq-translator/ref*)
 Require Import UrsusEnvironment.Solidity.current.Environment.
 Require Import UrsusEnvironment.Solidity.current.LocalGenerator.
+Require Import SetcodeMultisig.
 Inductive LocalFields00000I := | ι000000 | ι000001 .
 Definition LocalState00000L := [( XHMap (string*nat) ( optional  (tuple ( uint64)( (UpdateRequestLRecord) ) ))) : Type; ( XHMap string nat ) : Type ] .
 GlobalGeneratePruvendoRecord LocalState00000L LocalFields00000I . 

@@ -47,13 +47,13 @@ Require Import CommonQCEnvironment.
 Require Import CUR.Props.
 Require Import CommonForProps.
 
-Require Import multisig2.
+Require Import  SetcodeMultisig. 
 
 Definition CUR_1_propb l
         (codeHash : optional uint256) 
         (reqConfirms : optional uint8)
         (owners : optional (listArray uint256))
-        (lifetime :  optional uint64)
+        (lifetime : optional uint32)
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
@@ -75,7 +75,7 @@ Definition CUR_2_propb l
         (codeHash : optional uint256) 
         (owners : optional (listArray uint256)) 
         (reqConfirms : optional uint8) 
-        (lifetime :  optional uint64)
+        (lifetime : optional uint32)
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
@@ -97,7 +97,7 @@ Definition CUR_3_propb l
         (codeHash : optional uint256) 
         (owners : optional (listArray uint256)) 
         (reqConfirms : optional uint8) 
-        (lifetime :  optional uint64)
+        (lifetime : optional uint32)
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
@@ -119,7 +119,7 @@ Definition CUR_4_propb l id
         (codeHash : optional uint256) 
         (owners : optional (listArray uint256)) 
         (reqConfirms : optional uint8) 
-        (lifetime :  optional uint64)
+        (lifetime : optional uint32)
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
@@ -141,7 +141,7 @@ Definition CUR_5_propb l id
         (codeHash : optional uint256) 
         (owners : optional (listArray uint256)) 
         (reqConfirms : optional uint8) 
-        (lifetime :  optional uint64)
+        (lifetime : optional uint32)
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
@@ -180,7 +180,7 @@ Definition CUR_6_1_2_propb l tr1 tr2 tr3 tr4
         (codeHash : optional uint256) 
         (owners : optional (listArray uint256)) 
         (reqConfirms : optional uint8) 
-        (lifetime :  optional uint64 )
+        (lifetime :  optional uint32)
         (mpk: uint256)
         (acc: bool)
         (pk: uint256): bool :=
@@ -260,7 +260,7 @@ Definition CUR_7_propb l id
         (codeHash : optional uint256) 
         (owners : optional (listArray uint256))
         (reqConfirms : optional uint8)
-        (lifetime :  optional uint64)
+        (lifetime : optional uint32)
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)

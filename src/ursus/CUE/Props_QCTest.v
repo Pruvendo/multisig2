@@ -47,7 +47,7 @@ Require Import CommonQCEnvironment.
 Require Import CUE.Props.
 Require Import CommonForProps.
 
-Require Import multisig2.
+Require Import  SetcodeMultisig. 
 
 Definition CUE_1_propb l
         (updateId :  uint64) 
@@ -75,7 +75,7 @@ Definition CUE_2_propb l id
         (codeHash : optional uint256) 
         (owners : optional (listArray uint256)) 
         (reqConfirms : optional uint8)
-        (lifetime :  optional uint64)
+        (lifetime : optional uint32)
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
@@ -98,7 +98,7 @@ Definition CUE_3_propb l id
         (codeHash : optional uint256) 
         (owners : optional (listArray uint256)) 
         (reqConfirms : optional uint8)
-        (lifetime :  optional uint64)
+        (lifetime : optional uint32)
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
@@ -123,7 +123,7 @@ Definition CUE_4_propb l id
         (codeHash : optional uint256) 
         (owners : optional (listArray uint256)) 
         (reqConfirms : optional uint8)
-        (lifetime :  optional uint64)
+        (lifetime : optional uint32)
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)

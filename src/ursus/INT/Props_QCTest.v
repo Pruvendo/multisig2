@@ -47,7 +47,7 @@ Require Import CommonQCEnvironment.
 Require Import INT.Props.
 Require Import CommonForProps.
 
-Require Import multisig2.
+Require Import  SetcodeMultisig. 
 
 Definition INT_1_propb
        (owners : listArray uint256)
@@ -106,7 +106,7 @@ Definition INT_3_2_propb l
        (codeHash : optional uint256) 
        (owners : optional (listArray uint256)) 
        (reqConfirms : optional uint8)
-       (lifetime : optional uint64)
+       (lifetime : optional uint32)
        (mpk: uint256)
        (acc: bool)
        (bal: N): bool :=

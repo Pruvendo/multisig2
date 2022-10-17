@@ -461,7 +461,7 @@ Defined.
 
 (*interfaces*)
 
-Require Import multisig2.
+Require Import SetcodeMultisig.
 (* TODO *)
 (* Derive Show for Itmp. *)
 (* Derive Shrink for Itmp. *)
