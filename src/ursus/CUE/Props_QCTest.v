@@ -163,4 +163,4 @@ CUE_6_2  (quickFixState {$$
         i id id2 updateId code codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
-QuickCheck CUE_6_2_propb.
+(* QuickCheck CUE_6_2_propb. *)
