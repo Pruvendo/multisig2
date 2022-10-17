@@ -140,3 +140,27 @@ CUE_4  (quickFixState {$$
 
 (* OK *)
 QuickCheck CUE_4_propb.
+
+Definition CUE_6_2_propb l i id id2
+        (updateId :  uint64)
+        (code : optional cell_) 
+        (codeHash : optional uint256) 
+        (owners : optional (listArray uint256)) 
+        (reqConfirms : optional uint8)
+        (lifetime : optional uint32)
+        (mpk: uint256)
+        (acc: bool)
+        (pk: uint256)
+        now: bool :=
+let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
+let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
+
+CUE_6_2  (quickFixState {$$ 
+        {$$ LedgerDefault with Ledger_MainState := l $$}
+                            with Ledger_VMState := v3 $$})
+        i id id2 updateId code codeHash owners reqConfirms lifetime ? .
+
+(* OK *)
+QuickCheck CUE_6_2_propb.
