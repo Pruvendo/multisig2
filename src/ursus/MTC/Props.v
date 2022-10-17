@@ -114,7 +114,6 @@ Definition MTC_5_1 l (transactionId : uint64) : Prop :=
   hmapIsMember transactionId transactions = true ->
   N.land mask (N.shiftl 1 i) = 0 ->
   (N.shiftr (uint2N id) 32) + lifetime > tvm_now  ->
-  tvm_now > lifetime ->
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false.
 
 
@@ -144,7 +143,6 @@ Definition MTC_5_2 l id (transactionId :  uint64) (dest :  address) (value :  ui
   correctState l ->
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false ->
   requiredConfirmations > signsReceived + 1 ->
-  tvm_now > lifetime ->
   hmapIsMember transactionId transactions' = true /\
   signsReceived' = signsReceived + 1 /\
   mask' = N.lor mask (N.shiftl 1 i) /\
@@ -180,7 +178,6 @@ Definition MTC_6 l id (transactionId :  uint64) (dest :  address) (value :  uint
   let mes := (EmptyMessage IDefault (value, (bounce, (flags, payload)))) in
   let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in  
   correctState l ->
-  tvm_now > lifetime ->
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false ->
   requiredConfirmations <= signsReceived + 1 ->
   length_ transactions' = length_ transactions - 1 - length_ expiredTransactions /\

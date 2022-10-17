@@ -157,7 +157,7 @@ CUR_5 (quickFixState {$$
         id codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
-QuickCheck CUR_5_propb.*)
+QuickCheck CUR_5_propb.
 
 Definition CUR_6_2_propb l
         (codeHash : optional uint256) 
@@ -184,7 +184,7 @@ Definition CUR_6_3_propb l
         (codeHash : optional uint256) 
         (owners : optional (listArray uint256))
         (reqConfirms : optional uint8)
-        (lifetime :  optional uint64)
+        (lifetime :  optional uint32)
         (mpk: uint256)
         (acc: bool)
         now: bool :=

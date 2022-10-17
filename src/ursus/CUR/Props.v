@@ -89,9 +89,6 @@ Definition CUR_4 id l (codeHash : optional uint256) (owners : optional (listArra
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
-  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
-  let m_lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
-  tvm_now > m_lifetime ->
   correctState l ->
   xMaybeIsSome codeHash = true ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
@@ -109,9 +106,6 @@ Definition CUR_5 l id (codeHash : optional uint256) (owners : optional (listArra
   let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l in
   let m_updateRequestsMask := (uint2N (toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) l'))) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
-  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
-  let m_lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
-  tvm_now > m_lifetime ->
   correctState l ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
   hmapIsMember msgPubkey custodians = true ->
@@ -124,7 +118,7 @@ Definition CUR_5 l id (codeHash : optional uint256) (owners : optional (listArra
 
 (* CUR_6_1 checked as part of correctState *)
 
-Definition CUR_6_2 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop :=
+Definition CUR_6_2 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint32 )) : Prop :=
   let MAX_CUSTODIAN_COUNT := uint2N (toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l)) in 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
@@ -143,7 +137,7 @@ Definition CUR_6_2 l (codeHash : optional uint256) (owners : optional (listArray
 
 Definition dummyRequest : UpdateRequestLRecord := Eval compute in default. 
 
-Definition CUR_6_3 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop :=
+Definition CUR_6_3 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint32 )) : Prop :=
   let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
@@ -174,7 +168,6 @@ Definition CUR_6_3 l (codeHash : optional uint256) (owners : optional (listArray
   let updateRequestMask := uint2N (toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) l')) in
   correctState l ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
-  lifetime_old < tvm_now ->
   length_ newRequests = 1 /\
   uint2N index = i /\
   uint2N signs = 1 /\
