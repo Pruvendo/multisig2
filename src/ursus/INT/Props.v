@@ -127,22 +127,6 @@ Definition INT_8_1 l (owners : listArray uint256) (reqConfirms :  uint8) (lifeti
   uint2N lifetime > 0 -> (* NOT IN SPEC *)
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false.
 
-Definition checkMap1 (custodians: mapping uint256 uint8) := 
-  List.forallb 
-    (fun v => Common.eqb (length_ (List.filter
-      (fun e => Common.eqb (snd e) v) (unwrap custodians))) 1) 
-      (map Build_XUBInteger (listRange (length_ custodians))).
-
-Definition checkMap2' (m: XHMap ( uint256 )( uint8 )) (i: N) (k: option uint256) := 
-  let k' := xMaybeMapDefault id k (Build_XUBInteger 0) in
-  (andb (xMaybeIsSome k) (hmapIsMember k' m)).
-
-Fixpoint checkMap2 m n (owners: listArray uint256):= 
-  match n with 
-  | O => true
-  | S n' => andb (checkMap2 m n' owners) (checkMap2' m (N.of_nat n') (arrLookup (N.of_nat n') owners))
-  end.
-
 Definition INT_8_2 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
   let l' := exec_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l in
   let owners_sz := length_ owners in

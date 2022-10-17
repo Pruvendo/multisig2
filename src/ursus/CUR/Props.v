@@ -112,7 +112,6 @@ Definition CUR_5 l id (codeHash : optional uint256) (owners : optional (listArra
   let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
   let m_lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
   tvm_now > m_lifetime ->
-  correctState l -> 
   correctState l ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
   hmapIsMember msgPubkey custodians = true ->
@@ -174,3 +173,24 @@ Definition CUR_6_1_5 l req1 req2 req3 req4 (dest :  address) (value :  uint128) 
   let l' := exec_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l in 
   correctState l ->
   CUR_6_1_common l l' req1 req2 req3 req4.
+
+  Definition CUR_6 l id (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint64 )) : Prop := 
+    let MAX_CUSTODIAN_COUNT := uint2N (toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l)) in
+    let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
+    let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+    let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l in
+    let m_updateRequestsMask := (uint2N (toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) l'))) in
+    let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
+    let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+    let m_lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+    tvm_now > m_lifetime ->
+    correctState l -> 
+    correctState l ->
+    isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
+    hmapIsMember msgPubkey custodians = true ->
+    xMaybeIsSome owners = true ->
+    length_ (xMaybeMapDefault Datatypes.id owners default) > 0 ->
+    length_ (xMaybeMapDefault Datatypes.id owners default) <= MAX_CUSTODIAN_COUNT ->
+    hmapIsMember id transactions = true ->
+    REU_1 l' id codeHash owners reqConfirms lifetime ->
+    N.land m_updateRequestsMask (uint2N id) = 0.
