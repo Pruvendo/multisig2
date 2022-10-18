@@ -181,7 +181,7 @@ Definition MTC_6 l id (transactionId :  uint64) (dest :  address) (value :  uint
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false ->
   requiredConfirmations <= signsReceived + 1 ->
   length_ transactions' = length_ transactions - 1 - length_ expiredTransactions /\
-  length_ commonTransactions = length_ transactions' - length_ expiredTransactions /\
+  length_ commonTransactions = length_ transactions' /\
   hmapIsMember transactionId transactions' = false /\
   isOnlyMessage messageQueueDefault = true /\
   isMessageSent mes dest 0 messageQueueDefault = true.

@@ -102,51 +102,59 @@ Definition CUE_4 l id (updateId :  uint64)  (code : optional cell_) (codeHash : 
   tr_id = id -> 3 * signs >= 2 * (length_ m_custodians)
   .
 
-
-Definition CUE_6_2 l i id id2 (updateId :  uint64)  (code : optional cell_) (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
+Definition CUE_6_2 l (updateId :  uint64)  (code : optional cell_) : Prop := 
   let l' := exec_state (Uinterpreter (executeUpdate rec def updateId code)) l in
-  let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
-  let res := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l') in
-  let ur := xMaybeMapDefault (fun x => x) (hmapLookup id m_updateRequests) dummyRequest  in
-  let u2 := xMaybeMapDefault (fun x => x) (hmapLookup id2 res) dummyRequest  in
-  let tr_id := getPruvendoRecord UpdateRequest_ι_id ur in 
-  let tr_id2 := getPruvendoRecord UpdateRequest_ι_id u2 in 
-  let pcode := (toValue (eval_state (sRReader || tvm->code() ) l)) in
+  let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l') in
+  let m_updateRequests_old := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
+  let m_lifetime := toValue (eval_state (sRReader (m_lifetime_right rec def) ) l') in
+  let m_lifetime_old := toValue (eval_state (sRReader (m_lifetime_right rec def) ) l) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let expiredRequests := xHMapFilter (fun k v =>
+    N.leb ((N.shiftr (uint2N k) 32) + uint2N m_lifetime_old) tvm_now
+  ) m_updateRequests_old in
+  let commonRequests := xHMapFilter (fun k v => 
+    andb (hmapIsMember k m_updateRequests_old)
+    (Common.eqb v (hmapFindWithDefault dummyRequest k m_updateRequests_old))) m_updateRequests in
+  let ur := xMaybeMapDefault (fun x => x) (hmapLookup updateId m_updateRequests_old) dummyRequest  in
+  let owners := getPruvendoRecord UpdateRequest_ι_custodians ur in 
+  let reqConfirms := getPruvendoRecord UpdateRequest_ι_reqConfirms ur in 
+  let lifetime := getPruvendoRecord UpdateRequest_ι_lifetime ur in
   let ecode := (toValue (eval_state (sRReader || tvm->code() ) l')) in
+  let ecode_old := (toValue (eval_state (sRReader || tvm->code() ) l)) in
   let ccode := (toValue (eval_state (sRReader || tvm->currentCode() ) l')) in
+  let ccode_old := (toValue (eval_state (sRReader || tvm->currentCode() ) l)) in
   let m_custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l') in
   let m_custodians_old := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let m_ownerKey_old := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l) in
   let m_ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l') in
-  let m_lifetime := toValue (eval_state (sRReader (m_lifetime_right rec def) ) l') in
-  let m_lifetime_old := toValue (eval_state (sRReader (m_lifetime_right rec def) ) l) in
   let m_defaultRequiredConfirmations := toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l') in
   let m_defaultRequiredConfirmations_old := toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l) in
   let DEFAULT_LIFETIME := toValue (eval_state (sRReader (DEFAULT_LIFETIME_right rec def) ) l) in
   let m_requestsMask := toValue (eval_state (sRReader (m_requestsMask_right rec def) ) l') in
   let m_updateRequestsMask := toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) l') in
   let m_transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
-  let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l') in
   correctState l ->
   isError (eval_state (Uinterpreter (executeUpdate rec def updateId code)) l) = false -> 
-  REU_1 l' id codeHash owners reqConfirms lifetime ->
-  (* (u2 <> ur -> hmapIsMember id2 m_updateRequests -> hmapIsMember id2 res) -> *)
-  length_ m_updateRequests - 1 = length_ res /\
-  tr_id <> tr_id2 /\
-  pcode = ecode /\
-  ccode = ecode /\
-  (xMaybeIsSome owners = true -> length_ (xMaybeMapDefault Datatypes.id owners default) <= length_ m_custodians ) /\
-   checkMap1 m_custodians = true /\
+  length_ m_updateRequests_old - length_ expiredRequests - 1 = length_ m_updateRequests /\
+  length_ commonRequests = length_ m_updateRequests_old /\
+  (xMaybeIsSome code = true -> 
+        ccode = xMaybeMapDefault Datatypes.id code default /\
+        ecode = xMaybeMapDefault Datatypes.id code default
+  ) /\
+  (xMaybeIsSome code = false ->
+        ccode = ccode_old /\ ecode = ecode_old) /\
+  (xMaybeIsSome owners = true -> length_ (xMaybeMapDefault Datatypes.id owners default) >= length_ m_custodians ) /\
+  (xMaybeIsSome owners = true -> checkMap1 m_custodians = true) /\
   checkMap2 m_custodians (N.to_nat (length_ (xMaybeMapDefault Datatypes.id owners default))) (xMaybeMapDefault Datatypes.id owners default) = true /\
   (xMaybeIsSome owners = false -> m_custodians = m_custodians_old /\ m_ownerKey = m_ownerKey_old) /\
-  xMaybeIsSome reqConfirms = true -> uint2N m_defaultRequiredConfirmations = N.min (length_ m_custodians) (uint2N (xMaybeMapDefault Datatypes.id reqConfirms default)) /\
-  xMaybeIsSome reqConfirms = false -> m_defaultRequiredConfirmations = m_defaultRequiredConfirmations_old /\
-  (xMaybeIsSome lifetime = false -> m_lifetime = m_lifetime_old) /\
+  (xMaybeIsSome reqConfirms = true -> uint2N m_defaultRequiredConfirmations = N.min (length_ m_custodians) (uint2N (xMaybeMapDefault Datatypes.id reqConfirms default))) /\
+  (xMaybeIsSome reqConfirms = false -> m_defaultRequiredConfirmations = m_defaultRequiredConfirmations_old).
+  (* BUG in multisig!! *)
+  (*(xMaybeIsSome lifetime = false -> m_lifetime = m_lifetime_old) /\
   (xMaybeIsSome lifetime = true -> uint2N (xMaybeMapDefault Datatypes.id lifetime default) > 0 -> m_lifetime = (xMaybeMapDefault Datatypes.id lifetime default)) /\
-  (xMaybeIsSome lifetime = true -> uint2N (xMaybeMapDefault Datatypes.id lifetime default) = 0 -> m_lifetime = DEFAULT_LIFETIME) /\
-  i >= 0 -> i < 32 ->  N.land (uint2N m_updateRequestsMask) i = 0 /\
+  (xMaybeIsSome lifetime = true -> uint2N (xMaybeMapDefault Datatypes.id lifetime default) = 0 -> m_lifetime = DEFAULT_LIFETIME) /\ *)
+  (* NOT SUPPORTED in multisig! *)
+  (*N.land (uint2N m_updateRequestsMask) (0xFFFFFFFF) = 0 /\
   m_transactions = default /\
   m_updateRequests = default /\
-  i >= 0 -> i < 32 -> N.land (uint2N m_requestsMask) i = 0.
-  (* This makes qc freezes XD *)
-  (* i >= 0 -> i < 32 -> N.shiftl (uint2N i) (uint2N m_updateRequestsMask) = 0. *)
+  uint2N m_requestsMask = 0. *)

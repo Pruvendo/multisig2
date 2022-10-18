@@ -369,13 +369,18 @@ Defined.
 #[global]
 Instance ShrinkPrecell: Shrink Precell.
 exists. intros c.
-refine nil.
+exact (Datatypes.cons c Datatypes.nil).
+Defined.
+
+Definition dummyPrecell (f: nat) : Precell.
+refine (Build_Precell (cval:=(Build_PrecellTree (Datatypes.cons (CellSizedV f (CPNat f)) Datatypes.nil) Null Null Null Null)) _).
+auto.
 Defined.
 
 #[global]
 Instance GenSizedPrecell: GenSized Precell.
 exists.
-refine (fun _ => elems [EmptyPrecell]).
+refine (fun x => elems [dummyPrecell x]).
 Defined.
 
 (*cell_*)

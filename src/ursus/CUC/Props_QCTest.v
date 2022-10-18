@@ -153,14 +153,16 @@ Definition CUC_5_propb l id
         (lifetime : optional uint32)
         (mpk: uint256)
         (acc: bool)
-        (pk: uint256): bool :=
+        (pk: uint256)
+        now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v3 := {$$ v2 with VMState_ι_now := now $$} in
 
 CUC_5 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v2 $$})
+                            with Ledger_VMState := v3 $$})
         id updateId custodianIndex code  codeHash owners reqConfirms lifetime ? . 
 
 (* OK *)

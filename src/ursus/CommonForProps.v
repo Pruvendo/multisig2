@@ -169,7 +169,7 @@ Definition correctState l :=
     noDuplicateIds (unwrap transactions) = true /\
     noDuplicateReqs (unwrap requests) = true /\
     requestMaskCorrect requestMask transactions = true /\
-    N.leb lifetime tvm_now = true
+    N.ltb lifetime tvm_now = true
     .
 
 Import ListNotations.
