@@ -57,15 +57,17 @@ Definition CUR_1_propb l
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
+        timestamp
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CUR_1 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v3 $$})
+                            with Ledger_VMState := v4 $$})
        codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
@@ -79,15 +81,17 @@ Definition CUR_2_propb l
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
+        timestamp
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CUR_2 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v3 $$})
+                            with Ledger_VMState := v4 $$})
        codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
@@ -101,15 +105,17 @@ Definition CUR_3_propb l
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
+        timestamp
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CUR_3 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v3 $$})
+                            with Ledger_VMState := v4 $$})
        codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
@@ -123,15 +129,17 @@ Definition CUR_4_propb l id
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
+        timestamp
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CUR_4 id (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v3 $$})
+                            with Ledger_VMState := v4 $$})
        codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
@@ -145,15 +153,17 @@ Definition CUR_5_propb l id
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
+        timestamp
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CUR_5 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v3 $$})
+                            with Ledger_VMState := v4 $$})
         id codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
@@ -166,15 +176,16 @@ Definition CUR_6_2_propb l
         (lifetime :  optional uint32)
         (mpk: uint256)
         (acc: bool)
+        timestamp
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
-
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 CUR_6_2 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v3 $$})
+                            with Ledger_VMState := v4 $$})
         codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
@@ -187,15 +198,16 @@ Definition CUR_6_3_propb l
         (lifetime :  optional uint32)
         (mpk: uint256)
         (acc: bool)
+        timestamp
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
-
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 CUR_6_3 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v3 $$})
+                            with Ledger_VMState := v4 $$})
         codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
@@ -209,15 +221,17 @@ Definition CUR_7_propb l id
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
+        timestamp
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CUR_7 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v3 $$})
+                            with Ledger_VMState := v4 $$})
         id codeHash owners reqConfirms lifetime ? .
 
 (* OK *)

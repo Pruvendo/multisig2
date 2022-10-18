@@ -59,8 +59,9 @@ Definition CUE_1_propb l
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 CUE_1 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
@@ -85,8 +86,9 @@ Definition CUE_2_propb l id
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CUE_2 (quickFixState {$$ 
@@ -112,8 +114,9 @@ Definition CUE_3_propb l id
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CUE_3 (quickFixState {$$ 
@@ -139,8 +142,9 @@ Definition CUE_4_propb l id
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CUE_4  (quickFixState {$$ 

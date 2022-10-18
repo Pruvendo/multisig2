@@ -55,15 +55,17 @@ Definition CUC_1_propb l
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
+        timestamp
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CUC_1 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v3 $$})
+                            with Ledger_VMState := v4 $$})
        updateId code ? .
 
 (* OK *)
@@ -80,15 +82,17 @@ Definition CUC_2_propb l id
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
+        timestamp
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CUC_2 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v3 $$})
+                            with Ledger_VMState := v4 $$})
        id updateId code custodianIndex codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
@@ -104,15 +108,17 @@ Definition CUC_3_propb l id
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
+        timestamp
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CUC_3 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v3 $$})
+                            with Ledger_VMState := v4 $$})
         id updateId code  codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
@@ -129,15 +135,17 @@ Definition CUC_4_propb l id
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
+        timestamp
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CUC_4 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v3 $$})
+                            with Ledger_VMState := v4 $$})
        id updateId code codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
@@ -154,15 +162,17 @@ Definition CUC_5_propb l id
         (mpk: uint256)
         (acc: bool)
         (pk: uint256)
+        timestamp
         now: bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
-let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
+let v2 := {$$ v1 with VMState_ι_msg_pubkey := mpk $$} in
 let v3 := {$$ v2 with VMState_ι_now := now $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CUC_5 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
-                            with Ledger_VMState := v3 $$})
+                            with Ledger_VMState := v4 $$})
         id updateId custodianIndex code  codeHash owners reqConfirms lifetime ? . 
 
 (* OK *)

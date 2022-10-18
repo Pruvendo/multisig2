@@ -54,13 +54,15 @@ Definition CS_1_propb
               (updateId :  uint64)
             (acc: bool)
             (pk: uint256)
+            timestamp
             (now:N) : bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
 let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (4000 + now) $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
-CS_1 {$$ LedgerDefault with Ledger_VMState := v3 $$}
+CS_1 {$$ LedgerDefault with Ledger_VMState := v4 $$}
        updateId  ? .
 
 (* OK *)
@@ -72,13 +74,15 @@ Definition CS_0_propb
        (lifetime :  uint32)
        (acc: bool)
        (pk: uint256)
+       timestamp
        (now : N): bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
 let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (4000 + now) $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
-CS_0 {$$ LedgerDefault with Ledger_VMState := v3 $$}
+CS_0 {$$ LedgerDefault with Ledger_VMState := v4 $$}
        owners reqConfirms lifetime ? .
 
 (* OK *)
@@ -91,13 +95,15 @@ Definition CS_2_propb
        (lifetime : optional uint32)
        (acc: bool)
        (pk: uint256)
+       timestamp
        (now:N): bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
 let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (4000 + now) $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
-CS_2 {$$ LedgerDefault with Ledger_VMState := v3 $$}
+CS_2 {$$ LedgerDefault with Ledger_VMState := v4 $$}
        codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
@@ -107,13 +113,15 @@ Definition CS_3_propb
             (transactionId :  uint64) 
             (acc: bool)
             (pk: uint256)
+            timestamp
             (now:N): bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
 let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (4000 + now) $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
-CS_3 {$$ LedgerDefault with Ledger_VMState := v3 $$}
+CS_3 {$$ LedgerDefault with Ledger_VMState := v4 $$}
        transactionId ? .
 
 (* OK *)
@@ -128,13 +136,15 @@ Definition CS_4_propb
        (stateInit :  optional TvmCell) 
        (acc: bool)
        (pk: uint256)
+       timestamp
        (now:N): bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
 let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (4000 + now) $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
-CS_4 {$$ LedgerDefault with Ledger_VMState := v3 $$}
+CS_4 {$$ LedgerDefault with Ledger_VMState := v4 $$}
        dest value bounce allBalance payload stateInit ? .
 
 (* OK *)
@@ -149,17 +159,19 @@ Definition CS_5_propb l
             (mpk: uint256)
             (acc: bool)
             (bal: N)
+            timestamp
             (now:N): bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
 let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (4000 + now) $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 let custodians := CommonInstances.wrap Map (Datatypes.cons (mpk, Build_XUBInteger 0) Datatypes.nil) in
 
 CS_5 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := 
                 {$$ l with  _m_custodians := custodians $$}
-         $$}with Ledger_VMState := v3 $$})
+         $$}with Ledger_VMState := v4 $$})
        dest value bounce flags payload  ? .
 
 (* OK *)
@@ -171,17 +183,19 @@ Definition CS_6_propb l
             (mpk: uint256)
             (acc: bool)
             (bal: N)
+            timestamp
             (now:N): bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
 let custodians := CommonInstances.wrap Map (Datatypes.cons (mpk, Build_XUBInteger 0) Datatypes.nil) in
 let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (4000 + now) $$} in
+let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CS_6 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := 
                 {$$ l with  _m_custodians := custodians $$}
-         $$}with Ledger_VMState := v3 $$})
+         $$}with Ledger_VMState := v4 $$})
          updateId code  ? .
 
 (* OK *)
