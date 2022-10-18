@@ -134,7 +134,12 @@ Definition INT_8_2 l (owners : listArray uint256) (reqConfirms :  uint8) (lifeti
   let custodians_sz := length_ custodians in
   let reqConfirms' := if N.ltb custodians_sz (uint2N reqConfirms) then (Build_XUBInteger custodians_sz) else reqConfirms in
   let ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l') in
-  let _lifetime := toValue (eval_state (sRReader (m_lifetime_right rec def) ) l') in
+  let _lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l')) in
+  let MIN_LIFETIME := uint2N (toValue (eval_state (sRReader (MIN_LIFETIME_right rec def) ) l)) in
+  let DEFAULT_LIFETIME := uint2N (toValue (eval_state (sRReader (DEFAULT_LIFETIME_right rec def) ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let lifetime_lower := MIN_LIFETIME * custodians_sz in
+  let lifetime_upper := N.land tvm_now 0xFFFFFFFF in
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false ->
   (* result.m_custodians.size <= params.owners.size *)
   custodians_sz <= owners_sz /\
@@ -160,4 +165,8 @@ Definition INT_8_2 l (owners : listArray uint256) (reqConfirms :  uint8) (lifeti
     (uint2N (toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) l')))
      0xFFFFFFFF = 0 /\
   (* result.m_lifetime = params.this.lifetime *)
-  (uint2N _lifetime = uint2N lifetime).
+  ((uint2N lifetime > 0) ->
+  (uint2N lifetime >= lifetime_lower -> uint2N lifetime <= lifetime_upper -> _lifetime = uint2N lifetime) /\
+  (uint2N lifetime < lifetime_lower -> _lifetime = lifetime_lower) /\
+  (uint2N lifetime > lifetime_upper -> _lifetime = lifetime_upper)) /\
+  (uint2N lifetime = 0 -> _lifetime = DEFAULT_LIFETIME).

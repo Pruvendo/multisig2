@@ -244,12 +244,14 @@ Definition INT_8_2_propb
             (reqConfirms :  uint8)
             (lifetime :  uint32)
             (acc: bool)
-            (pk: uint256): bool :=
+            (pk: uint256)
+            (now:N): bool :=
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_pubkey := pk $$} in
+let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (4000 + now) $$} in
 
-INT_8_2 {$$ LedgerDefault with Ledger_VMState := v2 $$}
+INT_8_2 {$$ LedgerDefault with Ledger_VMState := v3 $$}
        owners reqConfirms lifetime ? .
 
 (* OK *)
