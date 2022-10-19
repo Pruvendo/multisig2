@@ -55,7 +55,8 @@ Definition REU_1 l id (codeHash :  option uint256) (owners :  optional (listArra
   let m_updateRequestsMask := toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) ret_l) in
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false -> 
   hmapIsMember id m_updateRequests = true ->
-  N.shiftr 32 (uint2N id) + m_lifetime <= tvm_now <-> 
+  N.shiftr 32 (uint2N id) + m_lifetime <= tvm_now <->
+  hmapIsMember id m_updateRequests = true /\
   hmapIsMember id m_updateRequests' = false /\
   N.shiftl (uint2N id) (uint2N m_updateRequestsMask) = 0.
 

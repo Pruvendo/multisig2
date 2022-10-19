@@ -74,7 +74,6 @@ QuickCheck CUC_1_propb.
 Definition CUC_2_propb l id
         (updateId :  uint64)
         (code : optional cell_)
-        (custodianIndex :  uint8)
         (codeHash : optional uint256)
         (owners : optional (listArray uint256))
         (reqConfirms : optional uint8)
@@ -93,7 +92,7 @@ let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 CUC_2 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
                             with Ledger_VMState := v4 $$})
-       id updateId code custodianIndex codeHash owners reqConfirms lifetime ? .
+       id updateId code codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
 QuickCheck CUC_2_propb.
@@ -153,7 +152,6 @@ QuickCheck CUC_4_propb.
 
 Definition CUC_5_propb l id 
         (updateId :  uint64) 
-        (custodianIndex : uint8) 
         (code : optional cell_) 
         (codeHash : optional uint256) 
         (owners : optional (listArray uint256)) 
@@ -173,7 +171,7 @@ let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 CUC_5 (quickFixState {$$ 
         {$$ LedgerDefault with Ledger_MainState := l $$}
                             with Ledger_VMState := v4 $$})
-        id updateId custodianIndex code  codeHash owners reqConfirms lifetime ? . 
+        id updateId code  codeHash owners reqConfirms lifetime ? . 
 
 (* OK *)
 QuickCheck CUC_5_propb. 

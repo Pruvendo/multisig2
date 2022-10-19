@@ -128,7 +128,7 @@ Definition CUR_6_2 l (codeHash : optional uint256) (owners : optional (listArray
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
-  correctState l -> ∀ f, params : f ∈ MiltisigFunctions ⟶ params.this ∈ Multisig ⟶ f ≠ constructor ⟶ f ≠ executeUpdate ⟶ (∀ u1, u2 : u1 ≠ u2 ⟶ tu In params.this.m_updateRequests ⟶  t2 In params.this.m_updateRequests ⟶ t1.id ≠ t2.id) ⟶ (let result = f(params) in (∀ u1, u2 : u1 ≠ u2 ⟶ t1 In result.this.m_updateRequests ⟶  u2 In result.this.m_updateRequests ⟶ u1.id ≠ u2.id))
+  correctState l -> 
   hmapIsMember msgPubkey custodians = true ->
   (xMaybeIsSome owners = true ->
     length_ (xMaybeMapDefault Datatypes.id owners default) > 0 /\
