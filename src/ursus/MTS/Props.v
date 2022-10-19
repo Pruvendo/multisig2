@@ -89,6 +89,7 @@ Definition MTS_3 l (dest :  address) (value :  uint128) (bounce :  boolean) (all
   let bitsMask := N.land (N.shiftr (uint2N requestsMask) (8 * i)) 255 in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
   let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+  let MAX_QUEUED_REQUESTS := uint2N (toValue (eval_state (sRReader (MAX_QUEUED_REQUESTS_right rec def) ) l)) in
   let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
   let expiredTransactions := xHMapFilter (fun k v =>
     let index := uint2N (getPruvendoRecord Transaction_ι_index v) in
@@ -97,25 +98,35 @@ Definition MTS_3 l (dest :  address) (value :  uint128) (bounce :  boolean) (all
   let bitsMask' := bitsMask - length_ expiredTransactions in
   correctState l ->
   isError (eval_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l) = false ->
-  bitsMask' < 5. 
+  bitsMask' < MAX_QUEUED_REQUESTS. 
 
 Definition MTS_4 l id (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) (stateInit :  optional  ( TvmCell )) : Prop := 
   let FLAG_IGNORE_ERRORS := uint2N (toValue (eval_state (sRReader (FLAG_IGNORE_ERRORS_right rec def) ) l)) in
   let FLAG_SEND_ALL_REMAINING := uint2N (toValue (eval_state (sRReader (FLAG_SEND_ALL_REMAINING_right rec def) ) l)) in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
-  let requestsMask := uint2N (toValue (eval_state (sRReader (m_requestsMask_right rec def) ) l)) in (* TODO ? *)
+  let requestsMask :=  (toValue (eval_state (sRReader (m_requestsMask_right rec def) ) l)) in
   let m_defaultRequiredConfirmations :=  uint2N (toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l)) in (* ???? *)
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l in
   let messqueue := toValue ((eval_state (sRReader (ULtoRValue (IDefault_left rec def)))) l') in 
   let mes := EmptyMessage IDefault (Build_XUBInteger 0, (bounce, (Build_XUBInteger (N.lor FLAG_IGNORE_ERRORS FLAG_SEND_ALL_REMAINING) , payload))) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
-  let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in  
+  let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in
+  let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
+  let bitsMask := N.land (N.shiftr (uint2N requestsMask) (8 * i)) 255 in
+  let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+  let MAX_QUEUED_REQUESTS := uint2N (toValue (eval_state (sRReader (MAX_QUEUED_REQUESTS_right rec def) ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let expiredTransactions := xHMapFilter (fun k v =>
+    let index := uint2N (getPruvendoRecord Transaction_ι_index v) in
+    andb (N.eqb index i) (N.leb ((N.shiftr (uint2N k) 32) + lifetime) tvm_now)
+  ) transactions in
+  let bitsMask' := bitsMask - length_ expiredTransactions in
   correctState l ->
   isError (eval_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l) = false ->
   hmapIsMember msgPubkey custodians = true -> 
   ETR_1 l' u dest value bounce allBalance payload stateInit -> 
-  requestsMask < 5 -> 
+  bitsMask' < MAX_QUEUED_REQUESTS -> 
   m_defaultRequiredConfirmations < 2 ->
   allBalance = true ->
   isOnlyMessage messqueue = true /\
@@ -126,19 +137,29 @@ Definition MTS_5 l id (dest :  address) (value :  uint128) (bounce :  boolean) (
   let FLAG_IGNORE_ERRORS := uint2N (toValue (eval_state (sRReader (FLAG_IGNORE_ERRORS_right rec def) ) l)) in
   let FLAG_PAY_FWD_FEE_FROM_BALANCE := uint2N (toValue (eval_state (sRReader (FLAG_PAY_FWD_FEE_FROM_BALANCE_right rec def) ) l)) in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
-  let requestsMask := uint2N (toValue (eval_state (sRReader (m_requestsMask_right rec def) ) l)) in (* ???? *)
+  let requestsMask := (toValue (eval_state (sRReader (m_requestsMask_right rec def) ) l)) in
   let m_defaultRequiredConfirmations :=  uint2N (toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l)) in (* ???? *)
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l in
   let messqueue := toValue ((eval_state (sRReader (ULtoRValue (IDefault_left rec def)))) l') in 
   let mes := EmptyMessage IDefault (value, (bounce, ((Build_XUBInteger  (N.lor FLAG_IGNORE_ERRORS FLAG_PAY_FWD_FEE_FROM_BALANCE)), payload))) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
-  let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in  
+  let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in
+  let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
+  let bitsMask := N.land (N.shiftr (uint2N requestsMask) (8 * i)) 255 in
+  let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+  let MAX_QUEUED_REQUESTS := uint2N (toValue (eval_state (sRReader (MAX_QUEUED_REQUESTS_right rec def) ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let expiredTransactions := xHMapFilter (fun k v =>
+    let index := uint2N (getPruvendoRecord Transaction_ι_index v) in
+    andb (N.eqb index i) (N.leb ((N.shiftr (uint2N k) 32) + lifetime) tvm_now)
+  ) transactions in
+  let bitsMask' := bitsMask - length_ expiredTransactions in
   correctState l ->
   isError (eval_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l) = false ->
   hmapIsMember msgPubkey custodians = true -> 
   ETR_1 l' u dest value bounce allBalance payload stateInit -> 
-  requestsMask < 5 -> 
+  bitsMask' < MAX_QUEUED_REQUESTS ->
   m_defaultRequiredConfirmations < 2 ->
   allBalance = false ->
   isOnlyMessage messqueue = true /\
@@ -179,10 +200,11 @@ Definition MTS_6_3  l (dest :  address) (value :  uint128) (bounce :  boolean) (
     andb (N.eqb index i) (N.leb ((N.shiftr (uint2N k) 32) + lifetime) tvm_now)
   ) transactions in
   let bitsMask' := bitsMask - length_ expiredTransactions in
+  let MAX_QUEUED_REQUESTS := uint2N (toValue (eval_state (sRReader (MAX_QUEUED_REQUESTS_right rec def) ) l)) in
   correctState l ->
   m_defaultRequiredConfirmations > 1 ->
   hmapIsMember msgPubkey custodians = true ->
-  bitsMask' < 5 ->
+  bitsMask' < MAX_QUEUED_REQUESTS ->
   length_ newTransactions = 1 /\
   mask = N.shiftl 1 i /\
   creator = msgPubkey /\

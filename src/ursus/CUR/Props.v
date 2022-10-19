@@ -66,22 +66,27 @@ Definition CUR_1 l (codeHash : optional uint256) (owners : optional (listArray u
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   correctState l ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
-  hmapIsMember msgPubkey custodians = true.
+  hmapIsMember msgPubkey custodians = true \/
+  xMaybeIsSome owners = false.
 
 Definition CUR_2 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
   correctState l ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
-  xMaybeIsSome codeHash = true ->
+  (xMaybeIsSome codeHash = true ->
   xMaybeIsSome owners = true /\
-  length_ (xMaybeMapDefault Datatypes.id owners default) > 0.
+  length_ (xMaybeMapDefault Datatypes.id owners default) > 0) \/
+  (xMaybeIsSome owners = true ->
+  length_ (xMaybeMapDefault Datatypes.id owners default) > 0).
 
 Definition CUR_3 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
   let MAX_CUSTODIAN_COUNT := uint2N (toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l)) in
   correctState l ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
-  xMaybeIsSome codeHash = true ->
+  (xMaybeIsSome codeHash = true ->
   xMaybeIsSome owners = true /\
-  length_ (xMaybeMapDefault Datatypes.id owners default) <= MAX_CUSTODIAN_COUNT. 
+  length_ (xMaybeMapDefault Datatypes.id owners default) <= MAX_CUSTODIAN_COUNT) \/
+  (xMaybeIsSome owners = true ->
+  length_ (xMaybeMapDefault Datatypes.id owners default) <= MAX_CUSTODIAN_COUNT). 
 
 Definition CUR_4 id l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
   let MAX_CUSTODIAN_COUNT := uint2N (toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l)) in
@@ -123,7 +128,7 @@ Definition CUR_6_2 l (codeHash : optional uint256) (owners : optional (listArray
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
-  correctState l -> 
+  correctState l -> ∀ f, params : f ∈ MiltisigFunctions ⟶ params.this ∈ Multisig ⟶ f ≠ constructor ⟶ f ≠ executeUpdate ⟶ (∀ u1, u2 : u1 ≠ u2 ⟶ tu In params.this.m_updateRequests ⟶  t2 In params.this.m_updateRequests ⟶ t1.id ≠ t2.id) ⟶ (let result = f(params) in (∀ u1, u2 : u1 ≠ u2 ⟶ t1 In result.this.m_updateRequests ⟶  u2 In result.this.m_updateRequests ⟶ u1.id ≠ u2.id))
   hmapIsMember msgPubkey custodians = true ->
   (xMaybeIsSome owners = true ->
     length_ (xMaybeMapDefault Datatypes.id owners default) > 0 /\

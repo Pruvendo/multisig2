@@ -100,7 +100,7 @@ Definition INT_3_5 l (dest :  address) (value :  uint128) (bounce :  boolean) (f
   correctState l ->
   INT_3_common l l'.
 
-(* INT_4_1 is checked as part of INT_7_2 *)
+(* INT_4_1 is checked as part of INT_8_2 *)
 
 (* INT_4_2 is checked as part of INT_3_x *)
 
@@ -148,6 +148,7 @@ Definition INT_8_2 l (owners : listArray uint256) (reqConfirms :  uint8) (lifeti
   checkMap1 custodians = true /\
   (* (∀ i : i ≥ 0 ⟶ i < params.owners.size ⟶ (exists j : result.m_custodians[params.owners[i]] = Some(j))) *)
   checkMap2 custodians (N.to_nat owners_sz) owners = true /\
+  (* INT 4_1 *)
   (* result.m_defaultRequiredConfirmations = min (result.this.m_custodians.size, params.reqConfirms) *)
   toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l') = reqConfirms' /\
   (* result.m_ownerKey = params.this.owners[0] *)
