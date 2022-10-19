@@ -171,7 +171,6 @@ MTS_5 (quickFixState {$$
 (* OK *)
 QuickCheck MTS_5_propb.
 
-
 Definition MTS_6_3_propb l
                 (dest :  address) 
                 (value :  uint128) 

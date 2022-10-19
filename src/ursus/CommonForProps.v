@@ -71,6 +71,12 @@ Definition incr_time (l: LedgerLRecord rec) (dt: N) :=
    let newst := {$$ st with VMState_ι_now := Build_XUBInteger (uint2N t + dt) $$} in
    {$$ l with Ledger_VMState := newst $$}.
 
+Definition incr_timestamp (l: LedgerLRecord rec)  :=
+   let st := getPruvendoRecord Ledger_VMState l in 
+   let t := getPruvendoRecord VMState_ι_timestamp st in
+   let newst := {$$ st with VMState_ι_timestamp := Build_XUBInteger (uint2N t + 1) $$} in
+   {$$ l with Ledger_VMState := newst $$}.
+
 #[global, program]
 Instance IDefault_booleq : XBoolEquable bool IDefault.
 Next Obligation.
@@ -201,14 +207,14 @@ Fixpoint dedupRequests (reqs: Datatypes.list (uint64 * UpdateRequestLRecord))  (
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
   let requests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
   let transactions':= (CommonInstances.wrap Map (dedupTransactions (map 
-    (fun tx : (uint64 * TransactionLRecord) => (fst tx, 
-      {$$ {$$ snd tx with Transaction_ι_id := fst tx $$}
+    (fun tx : (uint64 * TransactionLRecord) => (Build_XUBInteger (N.shiftl (uint2N(fst tx)) 32), 
+      {$$ {$$ snd tx with Transaction_ι_id := Build_XUBInteger (N.shiftl (uint2N(fst tx)) 32) $$}
          with Transaction_ι_signsReceived := (Build_XUBInteger (computeCorrectSignsReceived (snd tx)))
       $$} : TransactionLRecord))
   (unwrap transactions)) (CommonInstances.wrap Map Datatypes.nil))) in
   let requests' := (CommonInstances.wrap Map (dedupRequests (map 
-    (fun req : (uint64 * UpdateRequestLRecord) => (fst req, 
-      {$$ {$$ snd req with UpdateRequest_ι_id := fst req $$}
+    (fun req : (uint64 * UpdateRequestLRecord) => (Build_XUBInteger (N.shiftl (uint2N(fst req)) 32), 
+      {$$ {$$ snd req with UpdateRequest_ι_id := Build_XUBInteger (N.shiftl (uint2N(fst req)) 32) $$}
         with UpdateRequest_ι_signs := (Build_XUBInteger (computeCorrectSignsUpdateRequest (snd req)))
       $$} : UpdateRequestLRecord))
   (unwrap requests)) (CommonInstances.wrap Map Datatypes.nil))) in

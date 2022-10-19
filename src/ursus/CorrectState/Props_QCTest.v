@@ -50,7 +50,7 @@ Require Import CommonForProps.
 
 Require Import  SetcodeMultisig. 
 
-Definition CS_1_propb
+Definition CS_1_propb l
               (updateId :  uint64)
             (acc: bool)
             (pk: uint256)
@@ -59,10 +59,12 @@ Definition CS_1_propb
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
-let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (4000 + now) $$} in
+let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (now) $$} in
 let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
-CS_1 {$$ LedgerDefault with Ledger_VMState := v4 $$}
+CS_1 (quickFixState {$$ 
+{$$ LedgerDefault with Ledger_MainState := l $$}
+                    with Ledger_VMState := v4 $$})
        updateId  ? .
 
 (* OK *)
@@ -88,7 +90,7 @@ CS_0 {$$ LedgerDefault with Ledger_VMState := v4 $$}
 (* OK *)
 QuickCheck CS_0_propb.
 
-Definition CS_2_propb
+Definition CS_2_propb l
        (codeHash : optional uint256) 
        (owners : optional (listArray uint256)) 
        (reqConfirms : optional uint8)
@@ -100,16 +102,18 @@ Definition CS_2_propb
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
-let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (4000 + now) $$} in
+let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (now) $$} in
 let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
-CS_2 {$$ LedgerDefault with Ledger_VMState := v4 $$}
+CS_2 (quickFixState {$$ 
+{$$ LedgerDefault with Ledger_MainState := l $$}
+                    with Ledger_VMState := v4 $$})
        codeHash owners reqConfirms lifetime ? .
 
 (* OK *)
 QuickCheck CS_2_propb.
 
-Definition CS_3_propb
+Definition CS_3_propb l
             (transactionId :  uint64) 
             (acc: bool)
             (pk: uint256)
@@ -118,16 +122,18 @@ Definition CS_3_propb
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
-let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (4000 + now) $$} in
+let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (now) $$} in
 let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
-CS_3 {$$ LedgerDefault with Ledger_VMState := v4 $$}
+CS_3 (quickFixState {$$ 
+{$$ LedgerDefault with Ledger_MainState := l $$}
+                    with Ledger_VMState := v4 $$})
        transactionId ? .
 
 (* OK *)
 QuickCheck CS_3_propb.
 
-Definition CS_4_propb
+Definition CS_4_propb l
        (dest :  address) 
        (value :  uint128) 
        (bounce :  boolean) 
@@ -141,10 +147,12 @@ Definition CS_4_propb
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := pk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_msg_pubkey := pk $$} in
-let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (4000 + now) $$} in
+let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (now) $$} in
 let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
-CS_4 {$$ LedgerDefault with Ledger_VMState := v4 $$}
+CS_4 (quickFixState {$$ 
+{$$ LedgerDefault with Ledger_MainState := l $$}
+                    with Ledger_VMState := v4 $$})
        dest value bounce allBalance payload stateInit ? .
 
 (* OK *)
@@ -164,7 +172,7 @@ Definition CS_5_propb l
 let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in     
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
-let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (4000 + now) $$} in
+let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (now) $$} in
 let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 let custodians := CommonInstances.wrap Map (Datatypes.cons (mpk, Build_XUBInteger 0) Datatypes.nil) in
 
@@ -189,7 +197,7 @@ let v0 := {$$ VMStateDefault with VMState_ι_msg_pubkey := mpk $$} in
 let v1 := {$$ v0 with VMState_ι_accepted := acc $$} in
 let v2 := {$$ v1 with VMState_ι_balance := Build_XUBInteger (10 * bal) $$} in
 let custodians := CommonInstances.wrap Map (Datatypes.cons (mpk, Build_XUBInteger 0) Datatypes.nil) in
-let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (4000 + now) $$} in
+let v3 := {$$ v2 with VMState_ι_now := Build_XUBInteger (now) $$} in
 let v4 := {$$ v3 with VMState_ι_timestamp := timestamp $$} in
 
 CS_6 (quickFixState {$$ 

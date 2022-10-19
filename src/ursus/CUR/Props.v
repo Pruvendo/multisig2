@@ -126,8 +126,17 @@ Definition CUR_5 l id (codeHash : optional uint256) (owners : optional (listArra
 Definition CUR_6_2 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint32 )) : Prop :=
   let MAX_CUSTODIAN_COUNT := uint2N (toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l)) in 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
+  let updateRequestMask := toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) l) in
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
   let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
+  let requests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
+  let bit := N.land (N.shiftr (uint2N updateRequestMask) i) 1 in
+  let lifetime' := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let expired := xHMapFilter (fun k v =>
+    let index := uint2N (getPruvendoRecord UpdateRequest_ι_index v) in
+    andb (N.eqb index i) (N.leb ((N.shiftr (uint2N k) 32) + lifetime') tvm_now)
+  ) requests in
   correctState l -> 
   hmapIsMember msgPubkey custodians = true ->
   (xMaybeIsSome owners = true ->
@@ -136,7 +145,7 @@ Definition CUR_6_2 l (codeHash : optional uint256) (owners : optional (listArray
   ) ->
   (xMaybeIsSome owners = false ->
    xMaybeIsSome codeHash = false) ->
-  (*that.m_updateRequestsMask[i] = false*)
+  (bit = 0 \/ length_ expired > 0) ->
   isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false
   .
 
@@ -177,7 +186,7 @@ Definition CUR_6_3 l (codeHash : optional uint256) (owners : optional (listArray
   uint2N index = i /\
   uint2N signs = 1 /\
   creator = msgPubkey /\
-  codeHash' = codeHash /\ owners' = owners /\ 
+  (* TODO: codeHash' = codeHash /\ *) owners' = owners /\ 
   reqConfirms' = reqConfirms /\ lifetime' = lifetime /\
   uint2N mask = N.shiftl 1 i /\
   N.land (N.shiftr updateRequestMask i) 1 = 1 /\

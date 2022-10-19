@@ -431,11 +431,11 @@ Ursus Definition _confirmTransaction (txn : (TransactionLRecord)) (custodianInde
     }
     {
         :://  {txn}->Transaction_ι_confirmationsMask := _setConfirmed(^txn->Transaction_ι_confirmationsMask, #custodianIndex) .
-        :://  txn->Transaction_ι_signsReceived ++ |.
-        (* :://  m_transactions[^txn->Transaction_ι_id] := ^txn  |. TODO *)
+        :://  txn->Transaction_ι_signsReceived ++.
+        :://  m_transactions := m_transactions->set(^txn->Transaction_ι_id, ^txn)  |.
     }
     :://  return_ {} |.
-Defined.
+Defined. Sync.
 
 
 
@@ -480,7 +480,7 @@ Defined. Sync.
 Ursus Definition submitTransaction (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  TvmCell) (stateInit :  optional  ( TvmCell )): UExpression ( uint64) true .
     ?::// new 'senderKey :  uint256  := msg->pubkey();_|.
     ?::// new 'index :  uint8  := _findCustodian(^senderKey);_|.
-    :://  _removeExpiredTransactions( ) .
+    (*:://  _removeExpiredTransactions( ) .*)
     :://  require_((_getMaskValue(m_requestsMask, ^{index}) < MAX_QUEUED_REQUESTS), #{113}) .
     :://  tvm->accept() .
     :://  new ('flags: uint8 , 'realValue: uint128 ) @ (  "flags" ,  "realValue" )  := _getSendFlags(#{value}, #{allBalance}) ;_|.
