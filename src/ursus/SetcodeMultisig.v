@@ -78,7 +78,8 @@ UseLocal Definition _ := [
      UpdateRequestLRecord[];
      (* temporary *) optional TvmBuilder;
      CustodianInfoLRecord [];
-     TransactionLRecord []
+     TransactionLRecord [];
+     address
 ].
 
 Local Open Scope ursus_scope_UpdateRequest.
@@ -705,18 +706,30 @@ Defined.
 Sync.
 
 #[public, nonpayable]
-Ursus Definition submitTransaction (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  TvmCell) (stateInit :  (*optional*)  ( TvmCell )): UExpression ( uint64) true .
+Ursus Definition submitTransaction (*dest :  address*) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  TvmCell) (stateInit :  (*optional*)  ( TvmCell )): UExpression ( uint64) true .
 {
     ?::// new 'senderKey :  uint256  := msg->pubkey();_|.
     ?::// new 'index :  uint8  := _findCustodian(senderKey);_|.
-    :://  _removeExpiredTransactions() .
-    :://  require_((_getMaskValue(m_requestsMask, index) < MAX_QUEUED_REQUESTS), #{113}) .
+    :://  _removeExpiredTransactions( ) .
+    :://  require_((_getMaskValue(m_requestsMask, {index}) < MAX_QUEUED_REQUESTS), #{113}) .
     :://  tvm->accept() .
-    :://  new ('flags:  uint8 , 'realValue:  uint128) := _getSendFlags({value}, {allBalance});_|.
-    :://  m_requestsMask := _incMaskValue(m_requestsMask, index) .
-    ?::// new 'trId :  uint64  := _generateId();_|.
-    ?::// new 'txn : (TransactionLRecord)  := Transaction(trId, #{0}, m_defaultRequiredConfirmations, #{0}, senderKey, index, {dest}, realValue, flags, {payload}, {bounce}, {stateInit});_|.
-    :://  _confirmTransaction(txn, index) .
+    :://  new ('flags:  uint8 , 'realValue:  uint128) @ ("flags", "realValue") := _getSendFlags({value}, {allBalance});_|.
+    :://  m_requestsMask := _incMaskValue(m_requestsMask, {index}) .
+    ?::// new 'trId :  uint64  := _generateId( );_|.
+    (* ?::// new 'txn : (TransactionLRecord)  := Transaction(trId, #{0}, m_defaultRequiredConfirmations, #{0}, senderKey, index, {dest}, realValue, flags, {payload}, {bounce}, {stateInit});_|. *)
+    (* ?::// new 'txn :  TransactionLRecord := [$  {trId}, 
+                                                uint32(#{0}), 
+                                                m_defaultRequiredConfirmations, 
+                                                uint8(#{0}), 
+                                                {senderKey}, 
+                                                {index}, 
+                                                {} (*{dest}*), 
+                                                {realValue}, 
+                                                uint16({flags}), 
+                                                {payload}, 
+                                                {bounce}, 
+                                                {stateInit} $];_|. *)
+    :://  _confirmTransaction({} (*txn*), {index}) .
     :://  return_ trId |.
 }
 return.
@@ -724,12 +737,12 @@ Defined.
 Sync.
 
 #[public, view]
-Ursus Definition sendTransaction (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint8) (payload :  TvmCell): UExpression PhantomType true .
+Ursus Definition sendTransaction (*dest :  address*) (value :  uint128) (bounce :  boolean) (flags :  uint8) (payload :  TvmCell): UExpression PhantomType true .
 {
-    :://  require_((m_custodianCount == #{1}), #{108}) .
+    :://  require_((m_custodianCount == uint8(#{1})), #{108}) .
     :://  require_((msg->pubkey() == m_ownerKey), #{100}) .
     :://  tvm->accept() .
-    :://  tvm->transfer({dest}, {value}, {bounce}, ({flags} | FLAG_IGNORE_ERRORS), {payload})  |.
+    :://  tvm->transfer( {} (*{dest}*), {value}, {bounce}, (uint16({flags}) \ FLAG_IGNORE_ERRORS), {payload})  |.
 }
 return.
 Defined.
@@ -740,17 +753,17 @@ Sync.
 #[public, nonpayable]
 Ursus Definition constructor (owners :  uint256[]) (reqConfirms :  uint8) (lifetime :  uint32): UExpression PhantomType true .
 {
-    :://  require_((({owners}->length > #{0}) && ({owners}->length <= MAX_CUSTODIAN_COUNT)), #{117}) .
-    :://  if ( (msg->sender->value == #{0}) ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
+    :://  require_(((uint256({owners}->length) > uint256(#{0})) && (uint256({owners}->length) <= MAX_CUSTODIAN_COUNT)), #{117}) .
+    :://  if ( (msg->sender->value == uint8(#{0})) ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
     {
         :://  require_((msg->pubkey() == tvm->pubkey()), #{100})  |.
     }
     {
-        :://  require_(({owners}->length == #{1}), #{126}) .
-        :://  require_(({owners}[#{0}] == tvm->pubkey()), #{127})  |.
+        :://  require_((uint256({owners}->length) == uint256(#{1})), #{126}) .
+        :://  require_(( (owners[#{0}]->get_default())== uint256(tvm->pubkey())), #{127})  |.
     }
     :://  tvm->accept() .
-    :://  _initialize({owners}, {reqConfirms}, {lifetime})  |.
+    :://  _initialize(some({owners}), {reqConfirms}, {lifetime})  |.
 }
 return.
 Defined.
