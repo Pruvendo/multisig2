@@ -44,8 +44,6 @@ Definition MIN_LIFETIME : uint32 := Build_XUBInteger (10)
 Definition DEFAULT_LIFETIME : uint32 := Build_XUBInteger (3600)
 Definition MAX_QUEUED_REQUESTS : uint8 := Build_XUBInteger (5);
 Record Contract := {
-    #[static] FIXME: uint256;
-    #[static] andruiman: uint256;
     m_ownerKey: uint256;
     m_requestsMask: uint256;
     m_transactions: mapping  ( uint64 )((_ResolveName "Transaction") );
@@ -62,8 +60,12 @@ UseLocal Definition _ := [
      boolean;
      uint64;
     (UpdateRequestLRecord);
-     TvmCell;
      uint8;
+     uint32;
+     slice_;
+     optional  ( uint256[] );
+     builder_;
+     TvmCell;
      optional  ((UpdateRequestLRecord) );
      uint256;
     (TransactionLRecord);
@@ -71,128 +73,263 @@ UseLocal Definition _ := [
      optional  (tuple ( uint64)( (TransactionLRecord) ) );
      uint128;
      optional  ( uint8 );
-     uint32;
      uint256[];
 
-     UpdateRequestLRecord [];
-     uint256;
-     optional  ( uint256 );
+     UpdateRequestLRecord[];
+     (* temporary *) optional TvmBuilder;
      CustodianInfoLRecord [];
      TransactionLRecord []
 ].
 
-Context `{listInfiniteFunRec_gen XList}.
+Local Open Scope ursus_scope_UpdateRequest.
+Local Open Scope ursus_scope_CustodianInfo.
+Local Open Scope ursus_scope_Transaction.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(* ********************************** move me  ************************************* *)
+Definition URValue' b X := (URValue X b).
+Definition URValue'_false := fun X => URValue X false.
+Print ULValueL.
+
+Definition ULValueL' := fun Ledger LedgerMainState LedgerLocalState LedgerVMState
+          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X  => 
+          @ULValueL (* boolean XUInteger optional tuple mapping *) Ledger LedgerMainState LedgerLocalState LedgerVMState
+          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X.
+Definition URValueL'_false := fun Ledger LedgerMainState LedgerLocalState LedgerVMState
+          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X  => 
+          @URValueL (* boolean XUInteger optional tuple mapping *) Ledger LedgerMainState LedgerLocalState LedgerVMState
+          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X false.
+
+Notation ULValueL'' := (ULValueL' _ _ _ _ _ _ _ _).
+Notation URValueL'' := (URValueL'_false _ _ _ _ _ _ _ _).
+Check ULValueL''.
+Check URValueL''.
+
+(* fun (x₁:T₁)..(xₙ:Tₙ) => D t₁..tₘ *)
+(* Print ULValueL. *)
+
+Identity Coercion aaa: URValueL'_false >-> URValueL.
+Identity Coercion bbb: ULValueL' >-> ULValueL. 
+
+(* Variable f :> forall Ledger LedgerMainState LedgerLocalState LedgerVMState
+          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X  
+          (x: ULValueL' Ledger LedgerMainState LedgerLocalState LedgerVMState
+          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X), 
+          URValueL'_false Ledger LedgerMainState LedgerLocalState LedgerVMState
+          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X.  *) 
+
+Definition ULtoRValue' : forall Ledger LedgerMainState LedgerLocalState LedgerVMState
+          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X  
+          (x: ULValueL' Ledger LedgerMainState LedgerLocalState LedgerVMState
+          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X), 
+          URValueL'_false Ledger LedgerMainState LedgerLocalState LedgerVMState
+          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X.
+    intros.
+    refine (ULtoRValue x).
+Defined.
+
+About URValueP.
+
+Definition ULtoRValue'' : forall Ledger LedgerMainState LedgerLocalState LedgerVMState
+          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X  
+          (x: @ULValueL Ledger LedgerMainState LedgerLocalState LedgerVMState
+          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X), 
+          @URValueP boolean XUInteger optional tuple mapping Ledger LedgerMainState LedgerLocalState LedgerVMState
+          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X false.
+    intros.
+    refine (ULtoRValue x).
+Defined.
+
+Coercion ULtoRValue' : ULValueL' >-> URValueL'_false.
+Coercion ULtoRValue'' : ULValueL >-> URValueP.
+
+Notation URValue_false X := (URValue X false).
+(* Notation ULValue' X := (ULValue X). *)
+Definition IdType (X: Type)  := X.
+(* Definition sRInject' {X} (x:X): URValue_false X := sRInject _ _ _ _ x. *)
+(* Print URValue. *)
+Definition sRInject'' (* Ledger LedgerMainState LedgerLocalState LedgerVMState
+          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC *) (X:Type) (x: IdType X): 
+          URValueL'_false LedgerLRecord ContractLRecord LocalStateLRecord VMStateLRecord
+          MessagesAndEventsLRecord GlobalParamsLRecord OutgoingMessageParamsLRecord LedgerLLedgerClass X.
+      intros.
+      :: (sRInject _ _ _ _ x).
+      Defined. 
+(* Definition ULtoRValue' (X:Type) (x: ULValue X): URValue_false X := ULtoRValue x. *)
+(* Variable ULtoRValue'' :> forall (X:Type) (x: ULValue X), URValue_false X. *)
+
+Notation N' := (IdType N).
+Definition N2N' (a:N):N' := a.
+
+Coercion N2N': N >-> N'.
+Coercion sRInject'': IdType >-> URValueL'_false.
+
+Check (_: ULValueL'' _): URValueL'' _.
+(* ********************************** move me  ************************************* *)
+
+
+
+
+
+
+
+
+
+
+
 #[private, nonpayable]
 Ursus Definition _deleteUpdateRequest (updateId :  uint64) (index :  uint8): UExpression PhantomType false .
-    :://  m_updateRequestsMask &= ( (~) ( (uint32(#{1}) << #{index}))) .
-    :://  m_updateRequests[#updateId] ->delete .
-    :://  return_ {} |.
-Defined. Sync. 
+{
+    :://  m_updateRequestsMask &= ( ~ ( (uint32(1) << {index}))) .
+    :://  m_updateRequests[updateId] ->delete  |.
+}
+return.
+Defined.
+Sync.
 
 #[private, view]
 Ursus Definition _getExpirationBound : UExpression ( uint64) false .
-    :://  return_ ((uint64(now) - uint64(m_lifetime)) << #{32}) |.
-Defined. Sync. 
+{ :://  return_  {} |. }
+return || ((uint64(now) - uint64(m_lifetime)) << {32}) ||.
+Defined.
+Sync.
 
 #[private, nonpayable]
 Ursus Definition _removeExpiredUpdateRequests : UExpression PhantomType true .
+{
     ?::// new 'marker :  uint64  := _getExpirationBound( );_|.
     :://  if ( m_updateRequests->empty() ) then { {_:UExpression _ true} } .
     {
         :://  exit_ {} |.
     }
-    ::// new ('updateId : uint64, 'req : UpdateRequestLRecord ) @ ( "updateId" , "req" )  := m_updateRequests->min()->get() ; _| . 
-    ?::// new 'needCleanup :  boolean  := (^updateId <= ^marker);_|.
-    :://  if ( ^needCleanup ) then { {_:UExpression _ true} } .
+    ?::// new ('updateId : uint64, 'req : UpdateRequestLRecord ) @ ( _ , "req" )  := m_updateRequests->min()->get() ; _| . 
+    ?::// new 'needCleanup :  boolean  := (updateId <= marker);_|.
+    :://  if ( needCleanup ) then { {_:UExpression _ true} }  |.
     {
         :://  tvm->accept() .
-        :://  while (^needCleanup) do { {_:UExpression _  true} }  ;_|.
-            :://  _deleteUpdateRequest(^updateId, ^req->UpdateRequest_ι_index) .
-            ?::// new 'reqOpt :  optional  (tuple ( uint64)( (UpdateRequestLRecord) ) )  := m_updateRequests->next(^updateId);_|.
-            :://  if ( ^reqOpt->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ false} }  |.
+        :://  while (needCleanup) do { {_:UExpression _  true} }  ;_|.
+            :://  _deleteUpdateRequest(updateId, ({req} -> UpdateRequest_ι_index)) .
+            ?::// new 'reqOpt :  optional (tuple ( uint64)( UpdateRequestLRecord ))   := m_updateRequests->next(updateId);_|.
+            :://  if ( reqOpt->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ false} }  |.
             {
-                :://  [updateId, req] := ^reqOpt->get() .
-                :://  needCleanup := (^updateId <= ^marker)  |.
+                :://  [updateId, req] := reqOpt->get() .
+                :://  needCleanup := (updateId <= marker)  |.
             }
             {
                 :://  needCleanup := @false  |.
             }
         :://  tvm->commit()  |.
     }
-    :://  return_ {} |.
-Defined. Sync. 
+}
+return.
+Defined.
+Sync.
 
 #[private, pure]
 Ursus Definition _setConfirmed (mask :  uint32) (custodianIndex :  uint8): UExpression ( uint32) false .
-    vararg mask "mask".
-    :://  mask |= (uint32(#{1}) << #custodianIndex) .
-    :://  return_ ^mask |.
-Defined. Sync. 
+{
+    :://  {mask} |= (uint32(#{1}) << {custodianIndex}) |.
+}
+    return || {mask} ||.
+
+Defined.
+Sync.
 
 #[private, nonpayable]
 Ursus Definition _confirmUpdate (updateId :  uint64) (custodianIndex :  uint8): UExpression PhantomType false .
-    ?::// new 'request : (UpdateRequestLRecord)  := m_updateRequests[#updateId];_|.
+{
+    ?::// new 'request : (UpdateRequestLRecord)  := m_updateRequests[{updateId}];_|.
     :://  request->UpdateRequest_ι_signs ++ .
-    :://  request->UpdateRequest_ι_confirmationsMask := _setConfirmed(^request->UpdateRequest_ι_confirmationsMask, #custodianIndex) .
-    :://  m_updateRequests := m_updateRequests->set(#updateId, ^request) .
-    :://  return_ {} |.
-Defined. Sync. 
-
+    :://  request->UpdateRequest_ι_confirmationsMask := _setConfirmed(request->UpdateRequest_ι_confirmationsMask, {custodianIndex}) .
+    :://  m_updateRequests := m_updateRequests->set(updateId, request) |.
+}
+return.
+Defined.
+Sync.
+Context `{boolFunRec_gen (uint256) []}.
 #[private, nonpayable]
-Ursus Definition _initialize (ownersOpt :  optional  ( uint256[] )) (reqConfirmsOpt :  optional  ( uint8 )) (lifetimeOpt :  optional  ( uint32 )): UExpression PhantomType true .
-    :://  if ( #ownersOpt->hasValue() ) then { {_:UExpression _ true} } .
+Ursus Definition _initialize (ownersOpt :  optional  ( uint256[] )) (reqConfirms :  uint8) (lifetime :  uint32): UExpression PhantomType true .
+{
+    :://  if ( {ownersOpt}->hasValue() ) then { {_:UExpression _ true} } .
     {
         ?::// new 'ownerCount :  uint8  := uint8(#{0});_|.
-        ?::// new 'owners : _ := #{ownersOpt}->get() ;_|.
+        ?::// new 'owners :  uint256[]  := {ownersOpt}->get();_|.
+        :://  if ( (owners->length == #{0}) ) then { {_:UExpression _ false} } .
+        {
+            :://  owners->push(tvm->pubkey())  |.
+        }
         :://  m_ownerKey := !{owners}[(#{0})]->get() ;_|.
-        ?::// new 'len :  uint256  := uint256(^owners->length);_|.
+        ?::// new 'len :  uint256  := uint256(owners->length);_|.
         :://  m_custodians := #{wrap Map (Datatypes.nil)} ;_|.
         ?::// new 'i : uint256  := uint256(#{0}) ;_|.
-        (* TODO *)
-        ::// while (((^i < ^len) && (^ownerCount < MAX_CUSTODIAN_COUNT))) do { {_:UExpression _ true} }  .
+        ::// while (((i < len) && (ownerCount < MAX_CUSTODIAN_COUNT))) do { {_:UExpression _ true} }  .
         {
-            ?::// new 'key :  uint256  := (!{owners}[!{i}])->get() ;_|.
-            :://  if ( ( (!) ( m_custodians->exists(^key))) ) then { {_:UExpression _ false} }  .
+            ?::// new 'key :  uint256  := (owners[i])->get() ;_|.
+            :://  if ( ( ! ( m_custodians->exists(key))) ) then { {_:UExpression _ false} }  .
             {
-                ::// m_custodians:= m_custodians ->set(!{key}, !{ownerCount}).
-                ::// {ownerCount} ++ |.
+                ::// m_custodians:= m_custodians ->set(key, ownerCount).
+                ::// ownerCount++ |.
             }
-            :://i ++|.
+            :://  i ++|.
         }
-        :://  m_custodianCount := ^ownerCount  |.
+        :://  m_custodianCount := ownerCount  |.
     }
-    :://  if ( #reqConfirmsOpt->hasValue() ) then { {_:UExpression _ true} } .
-    {
-        :://  m_defaultRequiredConfirmations := math->min(m_custodianCount, #reqConfirmsOpt->get())  |.
-    }
+    :://  m_defaultRequiredConfirmations := math->min(m_custodianCount, {reqConfirms}) .
     :://  m_requiredVotes := (m_custodianCount <= uint8(#{2})) ? m_custodianCount : (((m_custodianCount * #{2}) + #{1}) / #{3}) .
-    :://  if ( #lifetimeOpt->hasValue() ) then { {_:UExpression _ true} } .
+    ?::// new 'minLifetime :  uint32  := (uint32(m_custodianCount) * uint32(MIN_LIFETIME));_|.
+    :://  if ( ({lifetime} == uint32(#{0})) ) then { {_:UExpression _ false} } else { {_:UExpression _ false} }  |.
     {
-        ?::// new 'newLifetime :  uint32  := #lifetimeOpt->get();_|.
-        :://  if ( (^newLifetime == uint32(#{0})) ) then { {_:UExpression _ false} } else { {_:UExpression _ false} } .
-        {
-            :://  newLifetime := DEFAULT_LIFETIME  |.
-        }
-        {
-            :://  newLifetime := math->max((uint32(m_custodianCount) * MIN_LIFETIME), math->min(^newLifetime, uint32((now & #{0xFFFFFFFF}))))  |.
-        }
-        :://  m_lifetime := ^newLifetime  |.
+        :://  m_lifetime := DEFAULT_LIFETIME  |.
     }
-    :://  return_ {} |.
-Defined. Sync. 
+    {
+        :://  m_lifetime := math->max(minLifetime, math->min({lifetime}, uint32((now & #{0xFFFFFFFF}))))  |.
+    }
+}
+return.
+Defined.
+Sync.
 
 #[private, nonpayable]
-Ursus Definition onCodeUpgrade (newOwners :  uint256[]) (reqConfirms :  uint8): UExpression PhantomType true .
+Ursus Definition onCodeUpgrade (data :  TvmCell): UExpression PhantomType true .
+{
     :://  tvm->resetStorage() .
-    :://  _initialize(some(#newOwners), some(#reqConfirms), some(DEFAULT_LIFETIME)) .
-    :://  return_ {} |.
-Defined. Sync. 
+    ?::// new 'owners :  optional  (listArray uint256) := {} ;_|.
+    (* Not Yet Implemented: HOAS universe polymorphism *)
+    (*::// new 'slice :  TvmSlice @ "slice"  := (^{data}->toSlice());_|.*)
+    ?::// new 'ownersAsArray :  boolean  := {} (*slice->decode(bool)*);_|.
+    :://  if ( ownersAsArray ) then { {_:UExpression _ false} } else { {_:UExpression _ false} } .
+    {
+        :://  owners := {} (*slice->decode(uint256[null])*)  |.
+    }
+    {
+        :://  [m_custodians, m_custodianCount, m_ownerKey] := {} (*slice->decode(null, uint8, uint256)*)  |.
+    }
+    
+    :://  new ('reqConfirms:  uint8 , 'lifetime:  uint32) @ ( "reqConfirms" , "lifetime" ) := {} (*slice->decode(uint8, uint32)*);_|.
+    :://  _initialize(owners, reqConfirms, lifetime)  |.
+}
+return.
+Defined.
+Sync.
 
 #[external, view]
 Ursus Definition getUpdateRequests : UExpression ((UpdateRequestLRecord[])) false .
+{
     ?::// new 'updates_ : listArray UpdateRequestLRecord   := newArray(0);_| .
     ?::// new 'bound :  uint64  := _getExpirationBound( );_|.
-    :://  for ( 'item : m_updateRequests ) do { {_:UExpression _ false} } .
+    :://  for ( 'item : m_updateRequests ) do { {_:UExpression _ false} } |.
     {   
         ::// new ('updateId: uint64 , 'req: UpdateRequestLRecord ) @ ("updateId", "req") := item ;_|.
         :://  if ( (^updateId > ^bound) ) then { {_:UExpression _ false} }  |.
@@ -200,123 +337,175 @@ Ursus Definition getUpdateRequests : UExpression ((UpdateRequestLRecord[])) fals
             :://  updates_->push(^req)  |.
         }
     }
-    :://return_ !{updates_} |.
-Defined. Sync. 
+}
+return.
+Defined.
+Sync.
 
+(*                                        вообще то тут ---> optional, однако ошибка find_ctx_hyp_by_name: term not found               *)
 #[public, nonpayable]
-Ursus Definition executeUpdate (updateId :  uint64) (code :  optional  ( TvmCell )): UExpression PhantomType true .
+Ursus Definition executeUpdate (updateId :  uint64) (code :           ( TvmCell )): UExpression PhantomType true .
+{
     :://  require_(m_custodians->exists(msg->pubkey()), #{100}) .
     :://  _removeExpiredUpdateRequests( ) .
-    ?::// new 'requestOpt :  optional  ((UpdateRequestLRecord) )  := m_updateRequests->fetch(#updateId);_|.
-    :://  require_(^requestOpt->hasValue(), #{115}) .
-    ?::// new 'request : (UpdateRequestLRecord)  := ^requestOpt->get();_|.
-    :://  if ( ^request->UpdateRequest_ι_codeHash->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
+    ?::// new 'requestOpt :  optional  ((UpdateRequestLRecord) )  := m_updateRequests->fetch(updateId);_|.
+    :://  require_(requestOpt->hasValue(), #{115}) .
+    ?::// new 'request : (UpdateRequestLRecord)  := requestOpt->get();_|.
+    
+    :://  if ( {_ :URValue XBool _ }  ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
+        refine ||request->UpdateRequest_ι_codeHash->hasValue()||.
     {
-        :://  require_(#code->hasValue(), #{119}) .
-        :://  require_((tvm->hash(#code->get_default())  == ^request->UpdateRequest_ι_codeHash->get_default()), #{119})  |.
+        (* :://  require_({code}->hasValue(), #{119}) . *)
+        :://  require_(({_:URValue XBool _ }), #{119})  |.
+        refine ||(tvm->hash({code} (*->get()*))  == request->UpdateRequest_ι_codeHash->get_default())||.
     }
     {
-        :://  require_(( (!) ( #code->hasValue())), #{125})  |.
+        :://  require_(( ! ( {} (*{code}->hasValue()*))), #{125})  |.
     }
-    :://  require_((^request->UpdateRequest_ι_signs >= m_requiredVotes), #{120}) .
+    :://  require_({_: URValue boolean _}, #{120}) .
+        refine || (request->UpdateRequest_ι_signs >= m_requiredVotes) ||.
     :://  tvm->accept() .
-    :://  _deleteUpdateRequest(#updateId, ^request->UpdateRequest_ι_index) .
-    :://  if ( ^request->UpdateRequest_ι_codeHash->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
+    :://  _deleteUpdateRequest({updateId}, request->UpdateRequest_ι_index) .
+    :://  tvm->commit() .
+    :://  if ( {_ :URValue XBool _ } ) then { {_:UExpression _ false} } .
+        refine || request->UpdateRequest_ι_codeHash->hasValue() ||.
     {
-        :://  tvm->commit() .
-        
-        ?::// new 'newReqConfirms :  uint8  := ^{request}->UpdateRequest_ι_reqConfirms->hasValue() ? ^request->UpdateRequest_ι_reqConfirms->get() : m_defaultRequiredConfirmations;_|.
-        ?::// new 'newcode :  TvmCell  := #code->get();_|.
-        :://  tvm->setcode(^newcode)  .
-        :://  tvm->setCurrentCode(^newcode)  .
-        :://  onCodeUpgrade(^request->UpdateRequest_ι_custodians->get(), ^newReqConfirms)  |.
+        ?::// new 'newcode :  TvmCell  := code (*->get()*);_|.
+        :://  tvm->setcode(newcode)  .
+        :://  tvm->setCurrentCode(newcode)   |.
+    }
+    ?::// new 'data :  builder_ := {} ;_|.
+    :://  if ( {_:URValue boolean _} ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
+            refine || request->UpdateRequest_ι_custodians->hasValue()||.
+    {
+        :://   data->store({} (*@true, request->UpdateRequest_ι_custodians->get()*))  |.
     }
     {
-        :://  _initialize(^request->UpdateRequest_ι_custodians, ^request->UpdateRequest_ι_reqConfirms, ^request->UpdateRequest_ι_lifetime)  |.
+        :://  data->store({} (*@false, m_custodians, m_custodianCount, m_ownerKey*))  |.
     }
-    :://  return_ {} |.
-Defined. Sync. 
+    :://  if ({_ :URValue XBool _ }  ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
+        refine ||request->UpdateRequest_ι_reqConfirms->hasValue()||.
+    {
+        :://  data->store({}(*request->UpdateRequest_ι_reqConfirms->get()*))  |.
+    }
+    {
+        :://  data->store(m_defaultRequiredConfirmations)  |.
+    }
+    :://  if ( {_ :URValue XBool _ }  ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
+        refine ||request->UpdateRequest_ι_lifetime->hasValue()||.
+    {
+        :://  data->store({} (*request->UpdateRequest_ι_lifetime->get()*))  |.
+    }
+    {
+        :://  data->store(m_lifetime)  |.
+    }
+    :://  onCodeUpgrade(data->toCell())  |.
+}
+return.
+Defined.
+Sync.
 
 #[private, view]
 Ursus Definition _findCustodian (senderKey :  uint256): UExpression ( uint8) true .
-    ?::// new 'custodianIndex :  optional  ( uint8 )  := m_custodians->fetch(#senderKey);_|.
-    :://  require_(^custodianIndex->hasValue(), #{100}) .
-    :://  return_ ^custodianIndex->get() |.
-Defined. Sync. 
+{
+    ?::// new 'custodianIndex :  optional  ( uint8 )  := m_custodians->fetch({senderKey});_|.
+    :://  require_(custodianIndex->hasValue(), #{100}) .
+    :://  return_ custodianIndex->get() |.
+}
+return.
+Defined.
+Sync.
 
 #[private, pure]
 Ursus Definition _checkBit (mask :  uint32) (index :  uint8): UExpression ( boolean) false .
-    :://  return_ ((#mask & (uint32(#{1}) << #{index})) != uint32(#{0})) |.
-Defined. Sync. 
+{ :://  return_  {} |. }
+return || (({mask} & (uint32(#{1}) << ^{index})) != uint32(#{0})) ||.
+Defined.
+Sync.
 
 #[private, pure]
 Ursus Definition _isConfirmed (mask :  uint32) (custodianIndex :  uint8): UExpression ( boolean) false .
-    :://  return_ _checkBit(#{mask}, #{custodianIndex}) |.
-Defined. Sync. 
+{ :://  return_  {} |. }
+return || _checkBit({mask}, {custodianIndex})||.
+Defined.
+Sync.
 
 #[public, nonpayable]
 Ursus Definition confirmUpdate (updateId :  uint64): UExpression PhantomType true .
+{
     ?::// new 'index :  uint8  := _findCustodian(msg->pubkey());_|.
     :://  _removeExpiredUpdateRequests( ) .
-    ?::// new 'requestOpt :  optional  ((UpdateRequestLRecord) )  := m_updateRequests->fetch(#updateId);_|.
-    :://  require_(^requestOpt->hasValue(), #{115}) .
-    :://  require_(( (!) ( _isConfirmed(^requestOpt->get_default()->UpdateRequest_ι_confirmationsMask, ^{index}))), #{116}) .
+    ?::// new 'requestOpt :  optional  ((UpdateRequestLRecord) )  := m_updateRequests->fetch({updateId});_|.
+    :://  require_(requestOpt->hasValue(), #{115}) .
+    :://  require_(( ! ({_:URValue boolean _} )), #{116}) .
+        refine || _isConfirmed(requestOpt->get_default()->UpdateRequest_ι_confirmationsMask, ^{index})||.
     :://  tvm->accept() .
-    :://  _confirmUpdate(#updateId, ^{index}) .
-    :://  return_ {} |.
-Defined. Sync. 
+    :://  _confirmUpdate({updateId}, ^{index})  |.
+}
+return.
+Defined.
+Sync.
 
 #[private, pure]
 Ursus Definition _generateId : UExpression ( uint64) false .
-    :://  return_ ((uint64(now) << #{32}) \ (tx->timestamp & #{0xFFFFFFFF})) |.
-Defined. Sync. 
+{ :://  return_  {} |. }
+return ||((uint64(now) << (#{32})) \ (tx->timestamp & #{0xFFFFFFFF})) ||.
+Defined.
+Sync.
 
 #[private, pure]
 Ursus Definition _isSubmitted (mask :  uint32) (custodianIndex :  uint8): UExpression ( boolean) false .
-    :://  return_ _checkBit(#mask, #custodianIndex) |.
-Defined. Sync. 
+{ :://  return_  {} |. }
+return || _checkBit({mask}, {custodianIndex}) ||.
+Defined.
+Sync.
 
 #[public, nonpayable]
-Ursus Definition submitUpdate (codeHash :  optional  ( uint256 )) (owners :  optional  ( uint256[] )) (reqConfirms :  optional  ( uint8 )) (lifetime :  optional  ( uint32 )): UExpression ( uint64) true .
-    vararg codeHash "codeHash".
+(*                                       optional                        optional                       optional                   optionals                 *)
+Ursus Definition submitUpdate (codeHash :         ( uint256 )) (owners :    ( uint256[] )) (reqConfirms :    ( uint8 )) (lifetime :    ( uint32 )): UExpression ( uint64) true .
+{
     ?::// new 'sender :  uint256  := msg->pubkey();_|.
-    ?::// new 'index :  uint8  := _findCustodian(^sender);_|.
-    :://  if ( ^codeHash->hasValue() ) then { {_:UExpression _ true} } .
+    ?::// new 'index :  uint8  := _findCustodian(sender);_|.
+    :://  if ( {_:URValue boolean _ } ) then { {_:UExpression _ true} } .
+    refine ||  {} (*^{owners}->hasValue()*) ||.
     {
-        :://  require_(#owners->hasValue(), #{124})  |.
-    }
-    :://  if ( #owners->hasValue() ) then { {_:UExpression _ true} } .
-    {
-        ?::// new 'newOwnerCount :  uint256  := uint256(#owners->get()->length);_|.
-        :://  require_(((^newOwnerCount > uint256(#{0})) && (^newOwnerCount <= MAX_CUSTODIAN_COUNT)), #{117})  |.
+        ?::// new 'newOwnerCount :  uint256  := uint256({owners} (*->get()*)->length);_|.
+        :://  require_(((newOwnerCount > uint256(#{0})) && (newOwnerCount <= MAX_CUSTODIAN_COUNT)), #{117})  |.
     }
     :://  _removeExpiredUpdateRequests( ) .
-    :://  require_(( (!) ( _isSubmitted(m_updateRequestsMask, ^{index}))), #{113}) .
+    :://  require_(( ! ( _isSubmitted(m_updateRequestsMask, ^{index}))), #{113}) .
     :://  tvm->accept() .
-    :://  if ( ^codeHash->hasValue() ) then { {_:UExpression _ true} } .
+    :://  if ( {} (*{codeHash}->hasValue()*) ) then { {_:UExpression _ false} } .
     {
-        :://  if ( (^codeHash->get() == tvm->hash(tvm->code()) ) ) then { {_:UExpression _ false} }  |.
+        :://  if ( ({codeHash} (*->get_default()*) == tvm->hash(tvm->code()) ) ) then { {_:UExpression _ false} }  |.
         {
-            :://  codeHash->reset()  |.
+            :://  (*{codeHash}->reset()*) return_ {}  |.
         }
     }
-    :://  m_updateRequestsMask := _setConfirmed(m_updateRequestsMask, ^{index}) .
+    :://  m_updateRequestsMask := _setConfirmed(m_updateRequestsMask, {index}) .
     ?::// new 'updateId :_  := _generateId( ) ;_|.
-    :://  updateId := _generateId( ) .
-    :://m_updateRequests := m_updateRequests->set(!{updateId}, [ !{updateId} , !{index}  ,
-                                                                    uint8(#{0})  , 
-                                                                    uint32(#{0})  ,
-                                                                    !{sender}  , 
-                                                                    !{codeHash}  ,
-                                                                    #{owners}  , 
-                                                                    #{reqConfirms}  , 
-                                                                    #{lifetime} ] ) ;_| .
-    :://  _confirmUpdate(^updateId, ^{index})  .
-    ::// return_ !{updateId} |.
-Defined. Sync. 
+    
+    (* :://m_updateRequests := m_updateRequests->set(  updateId, 
+                                                    [ updateId, 
+                                                      ^{index},
+                                                      uint8(#{0}), 
+                                                      uint32(#{0}),
+                                                      sender,
+                                                      codeHash,
+                                                      owners,
+                                                      reqConfirms, 
+                                                      lifetime ] ) ;_| . *)
+    
+    :://  _confirmUpdate(updateId, {index})  |.
+}
+return.
+Defined.
+Sync.
 
+Context `{ XDefault CustodianInfoLRecord []}.
 #[external, view]
 Ursus Definition getCustodians : UExpression ((CustodianInfoLRecord[])) false .
+{
     ?::// new 'custodians : listArray CustodianInfoLRecord := newArray(0) ;_|.
     ::// for ( 'item : m_custodians ) do { {_:UExpression _ false} } .
     {
@@ -324,12 +513,17 @@ Ursus Definition getCustodians : UExpression ((CustodianInfoLRecord[])) false .
         ::// {custodians}->push([ ^{index}, ^key ])|.
     }
     :://return_ ^{custodians} |.
-Defined. Sync. 
+}
+return || {} ||.
+Defined.
+Sync.
 
 
-
+Context `{boolFunRec_gen TransactionLRecord []}.
+Context `{XDefault TransactionLRecord []}.
 #[external, view]
 Ursus Definition getTransactions : UExpression ((TransactionLRecord[])) false .
+{
     ?::// new 'transactions: (listArray TransactionLRecord) := newArray(0);_|.
     ?::// new 'bound :  uint64  := _getExpirationBound( );_|.
     ::// for ( 'item : m_transactions ) do { {_:UExpression _ false} } .
@@ -341,192 +535,224 @@ Ursus Definition getTransactions : UExpression ((TransactionLRecord[])) false .
         }
     }
     :://return_ !{transactions} |.
-Defined. Sync. 
+}
+return || {} ||.
+Defined.
+Sync.
 
+
+Context `{XDefault TransactionLRecord}.
 #[external, view]
 Ursus Definition getTransaction (transactionId :  uint64): UExpression ((TransactionLRecord)) true .
-    ?::// new 'txnOpt :  optional  ((TransactionLRecord) )  := m_transactions->fetch(#transactionId);_|.
-    :://  require_(^txnOpt->hasValue(), #{102}) .
-    :://  return_ (*trans :=*) ^txnOpt->get()  |.
-Defined. Sync. 
+{
+    ?::// new 'txnOpt :  optional  ((TransactionLRecord) )  := m_transactions->fetch({transactionId});_|.
+    :://  require_(txnOpt->hasValue(), #{102}) .
+    :://  return_ (*trans :=*) txnOpt->get()  |.
+}
+return || {} ||.
+Defined.
+Sync.
 
 #[external, view]
 Ursus Definition getParameters : UExpression ( uint8 **  uint8 **  uint64 **  uint128 **  uint8 **  uint8) false .
+{
     (* :://  maxQueuedTransactions := MAX_QUEUED_REQUESTS .
     :://  maxCustodianCount := MAX_CUSTODIAN_COUNT .
     :://  expirationTime := m_lifetime .
-    :://  minValue := #0 .
+    :://  minValue := #{0} .
     :://  requiredTxnConfirms := m_defaultRequiredConfirmations .
     :://  requiredUpdConfirms := m_requiredVotes  |. *)
     ::// return_ [  MAX_QUEUED_REQUESTS,  MAX_CUSTODIAN_COUNT,  uint64(m_lifetime),  uint128(#{0}), m_defaultRequiredConfirmations, m_requiredVotes] |.
-Defined. Sync. 
+}
+return (*|| {} ||*).
+Defined.
+Sync.
 
 #[external, pure]
 Ursus Definition isConfirmed (mask :  uint32) (index :  uint8): UExpression ( boolean) false .
-    :://  return_ (*confirmed :=*) _isConfirmed(#mask, #{index})  |.
-Defined. Sync. 
+{ ::// return_ {}|. }
+return ||_isConfirmed({mask}, {index})||.
+Defined.
+Sync.
 
 #[private, pure]
 Ursus Definition _decMaskValue (mask :  uint256) (index :  uint8): UExpression ( uint256) false .
-    :://  return_ (#mask - (#{1} << (#{8} * uint256(#{index})))) |.
-Defined. Sync. 
+
+{ ::// return_ {}|. }
+
+return ||  ({mask} - (#{1} << (#{8} * uint256({index})))) ||.
+Defined.
+Sync.
 
 #[private, nonpayable]
 Ursus Definition _removeExpiredTransactions : UExpression PhantomType true .
+{
     ?::// new 'marker :  uint64  := _getExpirationBound( );_|.
     :://  if ( m_transactions->empty() ) then { {_:UExpression _ true} } .
     {
         :://  exit_ {} |.
     }
-    ::// new ('trId: uint64 , 'txn: TransactionLRecord ) @ (  "trId" ,"txn"  )  := m_transactions->min() ->get();_| .
-    ?::// new 'needCleanup :  boolean  := (^trId <= ^marker);_|.
-    :://  if ( ^needCleanup ) then { {_:UExpression _ true} } .
+    :://  new ('trId:  uint64 , 'txn: (TransactionLRecord)) @ ("trId", "txn"):= m_transactions->min() ->get();_|.
+    ?::// new 'needCleanup :  boolean  := (trId <= marker);_|.
+    :://  if ( needCleanup ) then { {_:UExpression _ true} }  |.
     {
         :://  tvm->accept() .
         ?::// new 'i :  uint256  := uint256(#{0});_|.
-        :://  while ((^needCleanup && (^i < MAX_CLEANUP_TXNS))) do { {_:UExpression _  true} }  ;_|.
+        :://  while ((needCleanup && (i < MAX_CLEANUP_TXNS))) do { {_:UExpression _  true} }  ;_|.
             :://  i ++ .
-            :://  m_requestsMask := _decMaskValue(m_requestsMask, ^{txn}->Transaction_ι_index) .
-            :://  m_transactions[^trId] ->delete .
-            ?::// new 'nextTxn :  optional  (tuple ( uint64)( (TransactionLRecord) ) )  := m_transactions->next(^trId);_|.
-            :://  if ( ^nextTxn->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ false} }  |.
-            {   
-                ?::// new 'botch3 : TransactionLRecord := {} ; _ |.
-                ::// [ {trId}, {botch3} ] := !{nextTxn}->get() .
-                :://  needCleanup := (^trId <= ^marker)  |.
+            :://  m_requestsMask := _decMaskValue(m_requestsMask, txn->Transaction_ι_index) .
+            :://  m_transactions[trId] ->delete .
+            ?::// new 'nextTxn :  optional  (tuple ( uint64)( (TransactionLRecord) ) )  := m_transactions->next(trId);_|.
+            :://  if ( nextTxn->hasValue() ) then { {_:UExpression _ true} } else { {_:UExpression _ false} }  |.
+            {
+                :://  [trId, txn] := nextTxn->get() .
+                :://  needCleanup := (trId <= marker)  |.
             }
             {
                 :://  needCleanup := @false  |.
             }
         :://  tvm->commit()  |.
     }
-    :://  return_ {} |.
-Defined. Sync. 
-
-
+}
+return.
+Defined.
+Sync.
 
 #[private, nonpayable]
 Ursus Definition _confirmTransaction (txn : (TransactionLRecord)) (custodianIndex :  uint8): UExpression PhantomType false .
-    vararg txn "txn".
-    :://  if ( ((^txn->Transaction_ι_signsReceived + #{1}) >= ^txn->Transaction_ι_signsRequired) ) then { {_:UExpression _ false} } else { {_:UExpression _ false} } .
+{
+    :://  if ( {_:URValue boolean false} ) 
+            then { {_:UExpression _ false} } 
+            else { {_:UExpression _ false} }  |.
+            refine ||(({txn}->Transaction_ι_signsReceived + (#{1})) >= {txn}->Transaction_ι_signsRequired) ||.
     {
-        :://  if ( ^txn->Transaction_ι_stateInit->hasValue() ) then { {_:UExpression _ false} } else { {_:UExpression _ false} } .
-        {
-            :://  tvm->transfer(^txn->Transaction_ι_dest, 
-                                ^txn->Transaction_ι_value, 
-                                ^txn->Transaction_ι_bounce, 
-                                ^txn->Transaction_ι_sendFlags, 
-                                ^txn->Transaction_ι_payload) |.
-                                (* ^txn->Transaction_ι_stateInit->get())  |. TODO *)
-        }
-        {
-            :://  tvm->transfer(^txn->Transaction_ι_dest, 
-                                ^txn->Transaction_ι_value, 
-                                ^txn->Transaction_ι_bounce, 
-                                ^txn->Transaction_ι_sendFlags, 
-                                ^txn->Transaction_ι_payload) |.
-        }
-        :://  m_requestsMask := _decMaskValue(m_requestsMask, ^txn->Transaction_ι_index) .
-        :://  m_transactions[^txn->Transaction_ι_id] ->delete  |.
+        :://  if ( {_:URValue boolean false} ) then { {_:UExpression _ false} } else { {_:UExpression _ false} } .
+            refine ||{txn}->Transaction_ι_stateInit->hasValue()||.
+            {
+                :://  tvm->transfer(^txn->Transaction_ι_dest, 
+                                    ^txn->Transaction_ι_value, 
+                                    ^txn->Transaction_ι_bounce, 
+                                    ^txn->Transaction_ι_sendFlags, 
+                                    ^txn->Transaction_ι_payload) |.
+                                    (* ^txn->Transaction_ι_stateInit->get())  |. TODO *)
+            }
+            {
+                :://  tvm->transfer(^txn->Transaction_ι_dest, 
+                                    ^txn->Transaction_ι_value, 
+                                    ^txn->Transaction_ι_bounce, 
+                                    ^txn->Transaction_ι_sendFlags, 
+                                    ^txn->Transaction_ι_payload) |.
+            }
+        :://  m_requestsMask := _decMaskValue(m_requestsMask, {txn}->Transaction_ι_index) .
+        :://  m_transactions[{txn}->Transaction_ι_id] ->delete  |.
     }
     {
-        :://  {txn}->Transaction_ι_confirmationsMask := _setConfirmed(^txn->Transaction_ι_confirmationsMask, #custodianIndex) .
-        :://  txn->Transaction_ι_signsReceived ++.
+        :://  {txn}->Transaction_ι_confirmationsMask := _setConfirmed({txn}->Transaction_ι_confirmationsMask, {custodianIndex}) .
+        :://  {txn}->Transaction_ι_signsReceived ++ .
         :://  m_transactions := m_transactions->set(^txn->Transaction_ι_id, ^txn)  |.
     }
-    :://  return_ {} |.
-Defined. Sync.
-
-
-
-
+}
+return.
+Defined.
+Sync.
 
 #[public, nonpayable]
 Ursus Definition confirmTransaction (transactionId :  uint64): UExpression PhantomType true .
+{
     ?::// new 'index :  uint8  := _findCustodian(msg->pubkey());_|.
     :://  _removeExpiredTransactions( ) .
-    ?::// new 'txnOpt :  optional  ((TransactionLRecord) )  := m_transactions->fetch(#transactionId);_|.
-    :://  require_(^txnOpt->hasValue(), #{102}) .
-    ?::// new 'txn : (TransactionLRecord)  := ^txnOpt->get();_|.
-    :://  require_(( (!) ( _isConfirmed(^txn->Transaction_ι_confirmationsMask, ^{index}))), #{103}) .
+    ?::// new 'txnOpt :  optional  ((TransactionLRecord) )  := m_transactions->fetch({transactionId});_|.
+    :://  require_(txnOpt->hasValue(), #{102}) .
+    ?::// new 'txn : (TransactionLRecord)  := txnOpt->get();_|.
+    :://  require_(( ! ( {} (*_isConfirmed(txn->Transaction_ι_confirmationsMask, {index}))*))), #{103}) .
     :://  tvm->accept() .
-    :://  _confirmTransaction(^txn, ^{index}) .
-    :://  return_ {} |.
-Defined. Sync. 
+    :://  _confirmTransaction(txn, {index})  |.
+}
+return.
+Defined.
+Sync.
 
 #[private, pure]
 Ursus Definition _getSendFlags (value :  uint128) (allBalance :  boolean): UExpression ( uint8 **  uint128) false .
-    vararg value "value".
+{
     ?::// new 'flags :  uint8  := (FLAG_IGNORE_ERRORS \ FLAG_PAY_FWD_FEE_FROM_BALANCE);_|.
-    :://  if ( #allBalance ) then { {_:UExpression _ false} } .
+    :://  if ( {allBalance} ) then { {_:UExpression _ false} } .
     {
         :://  flags := (FLAG_IGNORE_ERRORS \ FLAG_SEND_ALL_REMAINING) .
         :://  {value} := uint128(#{0})  |.
     }
-    :://  return_ [^flags, ^{value}] |.
-Defined. Sync. 
+    :://  return_ [flags, {value}] |.
+}
+return.
+Defined.
+Sync.
 
 #[private, pure]
 Ursus Definition _incMaskValue (mask :  uint256) (index :  uint8): UExpression ( uint256) false .
-    :://  return_ (#mask + (#{1} << (#{8} * uint256(#{index})))) |.
-Defined. Sync. 
+{
+    :://  return_ ({mask} + (#{1} << (#{8} * uint256({index})))) |.
+}
+return.
+Defined.
+Sync.
 
 #[private, pure]
 Ursus Definition _getMaskValue (mask :  uint256) (index :  uint8): UExpression ( uint256) false .
-    :://  return_ uint256(((#mask >> (#{8} * uint256(#{index}))) & #{0xFF})) |.
-Defined. Sync. 
+{ ::// return_ {}|. }
+
+return  ||   (uint256(((mask >> (#{8} * uint256({index}))) & #{0xFF}))) ||.
+Defined.
+Sync.
 
 #[public, nonpayable]
-Ursus Definition submitTransaction (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  TvmCell) (stateInit :  optional  ( TvmCell )): UExpression ( uint64) true .
+Ursus Definition submitTransaction (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  TvmCell) (stateInit :  (*optional*)  ( TvmCell )): UExpression ( uint64) true .
+{
     ?::// new 'senderKey :  uint256  := msg->pubkey();_|.
-    ?::// new 'index :  uint8  := _findCustodian(^senderKey);_|.
-    (*:://  _removeExpiredTransactions( ) .*)
-    :://  require_((_getMaskValue(m_requestsMask, ^{index}) < MAX_QUEUED_REQUESTS), #{113}) .
+    ?::// new 'index :  uint8  := _findCustodian(senderKey);_|.
+    :://  _removeExpiredTransactions() .
+    :://  require_((_getMaskValue(m_requestsMask, index) < MAX_QUEUED_REQUESTS), #{113}) .
     :://  tvm->accept() .
-    :://  new ('flags: uint8 , 'realValue: uint128 ) @ (  "flags" ,  "realValue" )  := _getSendFlags(#{value}, #{allBalance}) ;_|.
-    :://  m_requestsMask := _incMaskValue(m_requestsMask, ^{index}) .
-    ?::// new 'trId :  uint64  := _generateId( );_|.
-    ?::// new 'txn :  TransactionLRecord  := [!{trId}, 
-                                                uint32(#{0}), 
-                                                m_defaultRequiredConfirmations, 
-                                                uint8(#{0}), 
-                                                !{senderKey}, 
-                                                !{index}, 
-                                                #{dest}, 
-                                                !{realValue}, 
-                                                uint16(!{flags}), 
-                                                #{payload}, 
-                                                #{bounce}, 
-                                                #{stateInit} ];_|.
-    :://  _confirmTransaction(^txn, ^{index}) .
-    :://  return_ ^trId |.
-Defined. Sync. 
+    :://  new ('flags:  uint8 , 'realValue:  uint128) := _getSendFlags({value}, {allBalance});_|.
+    :://  m_requestsMask := _incMaskValue(m_requestsMask, index) .
+    ?::// new 'trId :  uint64  := _generateId();_|.
+    ?::// new 'txn : (TransactionLRecord)  := Transaction(trId, #{0}, m_defaultRequiredConfirmations, #{0}, senderKey, index, {dest}, realValue, flags, {payload}, {bounce}, {stateInit});_|.
+    :://  _confirmTransaction(txn, index) .
+    :://  return_ trId |.
+}
+return.
+Defined.
+Sync.
 
 #[public, view]
 Ursus Definition sendTransaction (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint8) (payload :  TvmCell): UExpression PhantomType true .
-    :://  require_((m_custodianCount == uint8(#{1})), #{108}) .
+{
+    :://  require_((m_custodianCount == #{1}), #{108}) .
     :://  require_((msg->pubkey() == m_ownerKey), #{100}) .
     :://  tvm->accept() .
-    :://  tvm->transfer(#dest, #{value}, #bounce, (uint16(#{flags}) \ FLAG_IGNORE_ERRORS), #payload) .
-    :://  return_ {} |.
-Defined. Sync. 
+    :://  tvm->transfer({dest}, {value}, {bounce}, ({flags} | FLAG_IGNORE_ERRORS), {payload})  |.
+}
+return.
+Defined.
+Sync.
 
 
 
 #[public, nonpayable]
 Ursus Definition constructor (owners :  uint256[]) (reqConfirms :  uint8) (lifetime :  uint32): UExpression PhantomType true .
-    :://  require_(((uint8(#owners->length) > uint8(#{0})) && (uint8(#owners->length) <= MAX_CUSTODIAN_COUNT)), #{117}) .
-    :://  if ( (msg->sender->value == uint256(#{0})) ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
+{
+    :://  require_((({owners}->length > #{0}) && ({owners}->length <= MAX_CUSTODIAN_COUNT)), #{117}) .
+    :://  if ( (msg->sender->value == #{0}) ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
     {
         :://  require_((msg->pubkey() == tvm->pubkey()), #{100})  |.
     }
     {
-        :://  require_((#owners->length == #{1}), #{126}) .
-        
-        :://  require_(( (#owners[#{0}]->get_default())== uint256(tvm->pubkey())), #{127})  |.
+        :://  require_(({owners}->length == #{1}), #{126}) .
+        :://  require_(({owners}[#{0}] == tvm->pubkey()), #{127})  |.
     }
     :://  tvm->accept() .
-    :://  _initialize(some(#owners), some(#reqConfirms), some(#lifetime)) .
-    :://  return_ {} |.
-Defined. Sync. 
+    :://  _initialize({owners}, {reqConfirms}, {lifetime})  |.
+}
+return.
+Defined.
+Sync.
 EndContract Implements (*интерфейсы*) .
