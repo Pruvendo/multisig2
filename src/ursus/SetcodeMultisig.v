@@ -90,15 +90,6 @@ Local Open Scope ursus_scope_Transaction.
 
 
 
-
-
-
-
-
-
-
-
-
 (* ********************************** move me  ************************************* *)
 Definition URValue' b X := (URValue X b).
 Definition URValue'_false := fun X => URValue X false.
