@@ -501,13 +501,6 @@ contract MultisigWallet {
         optional(uint8) reqConfirms,
         optional(uint32) lifetime
     ) public returns (uint64 updateId) {
-        UpdateRequest[] botch0;
-        optional(TvmBuilder) botch1;
-        CustodianInfo botch2;
-        Transaction[] botch3;
-        address botch4;
-
-
         uint256 sender = msg.pubkey();
         uint8 index = _findCustodian(sender);
         if (owners.hasValue()) {
