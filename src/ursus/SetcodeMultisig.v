@@ -96,7 +96,8 @@ UseLocal Definition _ := [
     optional
      ((uint8 * uint32) **
       tvmTypes.TvmSlice);
-    uint8 ** uint32
+    uint8 ** uint32;
+    uint8**uint128
 ].
 
 Local Open Scope ursus_scope_UpdateRequest.
@@ -421,14 +422,13 @@ return.
 Defined.
 Sync.
 
-#[private, view]
+#[private, view, returns=_result]
 Ursus Definition _findCustodian (senderKey :  uint256): UExpression ( uint8) true .
 {
     ?::// new 'custodianIndex :  optional  ( uint8 )  := m_custodians->fetch({senderKey});_|.
     :://  require_(custodianIndex->hasValue(), #{100}) .
-    :://  return_ custodianIndex->get() |.
+    :://  _result := custodianIndex->get() |.
 }
-(* TODO 1 *)
 return (*||custodianIndex->get()||*) .
 Defined.
 Sync.
@@ -569,8 +569,7 @@ Sync.
 #[external, view]
 Ursus Definition getParameters : UExpression ( uint8 **  uint8 **  uint64 **  uint128 **  uint8 **  uint8) false .
 { ::// return_ {}|. }
-(* TODO 4 *)
-return (*|| [  MAX_QUEUED_REQUESTS ,  MAX_CUSTODIAN_COUNT,  uint64(m_lifetime),  uint128(#{0}), m_defaultRequiredConfirmations, m_requiredVotes] ||*).
+return || [  MAX_QUEUED_REQUESTS ,  MAX_CUSTODIAN_COUNT,  uint64(m_lifetime),  uint128(#{0}), m_defaultRequiredConfirmations, m_requiredVotes] ||.
 Defined.
 Sync.
 
@@ -680,8 +679,10 @@ return.
 Defined.
 Sync.
 
-#[private, pure]
-Ursus Definition _getSendFlags (value :  uint128) (allBalance :  boolean): UExpression ( uint8 **  uint128) false .
+
+
+#[private, pure, returns=flags_value]
+Ursus Definition _getSendFlags (value :  uint128) (allBalance :  boolean): UExpression ( uint8**uint128 ) false .
 {
     ?::// new 'flags :  uint8  := (FLAG_IGNORE_ERRORS \ FLAG_PAY_FWD_FEE_FROM_BALANCE);_|.
     :://  if ( {allBalance} ) then { {_:UExpression _ false} } .
@@ -689,10 +690,9 @@ Ursus Definition _getSendFlags (value :  uint128) (allBalance :  boolean): UExpr
         :://  flags := (FLAG_IGNORE_ERRORS \ FLAG_SEND_ALL_REMAINING) .
         :://  {value} := uint128(#{0})  |.
     }
-    :://  return_ [flags, {value}] |.
+    :://  flags_value := [flags, {value}] |.
 }
-(* TODO 1 *)
-return (*|| [flags, {value}] ||*).
+return.
 Defined .
 Sync.
 
@@ -710,7 +710,7 @@ return  ||   (uint256(((mask >> (#{8} * uint256({index}))) & #{0xFF}))) ||.
 Defined.
 Sync.
 
-#[public, nonpayable]
+#[public, nonpayable, returns=_result]
 Ursus Definition submitTransaction (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  TvmCell) (stateInit :  optional  ( TvmCell )): UExpression ( uint64) true .
 {
     ?::// new 'senderKey :  uint256  := msg->pubkey();_|.
@@ -734,9 +734,8 @@ Ursus Definition submitTransaction (dest :  address) (value :  uint128) (bounce 
                                                 {bounce}, 
                                                 {stateInit} ];_|.
     :://  _confirmTransaction( {txn}, {index}) .
-    :://  return_ trId |.
+    :://  _result := trId |.
 }
-(* TODO 1 *)
 return (*|| ^{trId} ||*).
 Defined.
 Sync.
