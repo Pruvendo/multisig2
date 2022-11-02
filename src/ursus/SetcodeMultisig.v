@@ -280,7 +280,7 @@ Ursus Definition _initialize (ownersOpt :  optional  ( uint256[] )) (reqConfirms
         {
             :://  owners->push(tvm->pubkey())  |.
         }
-        :://  m_ownerKey := !{owners}[(#{0})]->get() ;_|.
+        :://  m_ownerKey := {owners}[(#{0})]->get() ;_|.
         ?::// new 'len :  uint256  := uint256(owners->length);_|.
         :://  m_custodians := #{wrap Map (Datatypes.nil)} ;_|.
         ?::// new 'i : uint256  := uint256(#{0}) ;_|.
@@ -317,7 +317,7 @@ Ursus Definition onCodeUpgrade (data :  TvmCell): UExpression PhantomType true .
 {
     :://  tvm->resetStorage() .
     ?::// new 'owners :  optional  (listArray uint256) := {} ;_|.
-    ::// new 'slice :  TvmSlice @ "slice"  := (^{data}->toSlice());_|.
+    ::// new 'slice :  TvmSlice @ "slice"  := ({data}->toSlice());_|.
     ::// new 'ownersAsArray :  boolean @  "ownersAsArray" :=  slice->decode(bool);_|.
     :://  if ( ownersAsArray ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
     {
@@ -436,7 +436,7 @@ Sync.
 #[private, pure]
 Ursus Definition _checkBit (mask :  uint32) (index :  uint8): UExpression ( boolean) false .
 { :://  return_  {} |. }
-return || (({mask} & (uint32(#{1}) << ^{index})) != uint32(#{0})) ||.
+return || (({mask} & (uint32(#{1}) << {index})) != uint32(#{0})) ||.
 Defined.
 Sync.
 
@@ -456,9 +456,9 @@ Ursus Definition confirmUpdate (updateId :  uint64): UExpression PhantomType tru
     :://  require_(requestOpt->hasValue(), #{115}) .
     (* TODO 2 *)
     :://  require_(( ! ({_:URValue boolean _} )), #{116}) .
-        refine || _isConfirmed(requestOpt->get_default()->UpdateRequest_ι_confirmationsMask, ^{index})||.
+        refine || _isConfirmed(requestOpt->get_default()->UpdateRequest_ι_confirmationsMask, {index})||.
     :://  tvm->accept() .
-    :://  _confirmUpdate({updateId}, ^{index})  |.
+    :://  _confirmUpdate({updateId}, {index})  |.
 }
 return.
 Defined.
@@ -491,7 +491,7 @@ Ursus Definition submitUpdate (codeHash : optional ( uint256 )) (owners : option
         :://  require_(((newOwnerCount > uint256(#{0})) && (newOwnerCount <= MAX_CUSTODIAN_COUNT)), #{117})  |.
     }
     :://  _removeExpiredUpdateRequests( ) .
-    :://  require_(( ! ( _isSubmitted(m_updateRequestsMask, ^{index}))), #{113}) .
+    :://  require_(( ! ( _isSubmitted(m_updateRequestsMask, {index}))), #{113}) .
     :://  tvm->accept() .
     :://  if ( codeHash->hasValue() ) then { {_:UExpression _ false} } .
     {
@@ -526,7 +526,7 @@ Ursus Definition getCustodians : UExpression ((CustodianInfoLRecord[])) false .
     ::// for ( 'item : m_custodians ) do { {_:UExpression _ false} } |.
     {
         ::// new ('key: uint256 , 'index: uint8 ) @ ("key", "index") := item ;_|.
-        ::// {custodians}->push([ ^{index}, ^key ])|.
+        ::// {custodians}->push([ {index}, ^key ])|.
     }
 }
 return.
@@ -721,22 +721,22 @@ Ursus Definition submitTransaction (dest :  address) (value :  uint128) (bounce 
     :://  new ('flags:  uint8 , 'realValue:  uint128) @ ("flags", "realValue") := _getSendFlags({value}, {allBalance});_|.
     :://  m_requestsMask := _incMaskValue(m_requestsMask, {index}) .
     ?::// new 'trId :  uint64  := _generateId( );_|.
-    ?::// new 'txn :  TransactionLRecord := [!{trId}, 
+    ?::// new 'txn :  TransactionLRecord := [{trId}, 
                                                 uint32(#{0}), 
                                                 m_defaultRequiredConfirmations, 
                                                 uint8(#{0}), 
-                                                !{senderKey}, 
-                                                !{index}, 
+                                                {senderKey}, 
+                                                {index}, 
                                                 {dest}, 
-                                                !{realValue}, 
-                                                uint16(!{flags}), 
+                                                {realValue}, 
+                                                uint16({flags}), 
                                                 {payload}, 
                                                 {bounce}, 
                                                 {stateInit} ];_|.
     :://  _confirmTransaction( {txn}, {index}) .
     :://  _result := trId |.
 }
-return (*|| ^{trId} ||*).
+return (*|| {trId} ||*).
 Defined.
 Sync.
 
