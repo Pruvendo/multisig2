@@ -501,7 +501,7 @@ Ursus Definition submitUpdate (codeHash : optional ( uint256 )) (owners : option
         }
     }
     :://  m_updateRequestsMask := _setConfirmed(m_updateRequestsMask, {index}) .
-    ?::// new 'updateId :_  := _generateId( ) ;_|.
+    ::// updateId := _generateId( ) ;_|.
     
     :://m_updateRequests := m_updateRequests->set(  updateId, 
                                                     [ updateId, 

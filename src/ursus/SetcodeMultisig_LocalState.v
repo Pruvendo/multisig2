@@ -1,5 +1,4 @@
 (*/Users/petrlarockin/Downloads/TON/solidity-coq-translator/ref*)
-
 Require Import UrsusEnvironment.Solidity.current.Environment.
 Require Import UrsusEnvironment.Solidity.current.LocalGenerator.
 Require Import SetcodeMultisig.
