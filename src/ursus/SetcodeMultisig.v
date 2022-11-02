@@ -84,7 +84,19 @@ UseLocal Definition _ := [
      optional ( uint256 );
      optional ( uint256[] ); 
      optional ( uint8 ); 
-     optional ( uint32 )
+     optional ( uint32 );
+
+     optional
+     (bool **
+      tvmTypes.TvmSlice);
+    optional ((uint256) [] ** tvmTypes.TvmSlice);
+    optional
+     ((mapping uint256 uint8 * (uint8 * uint256)) ** tvmTypes.TvmSlice);
+    mapping uint256 uint8 ** (uint8 ** uint256);
+    optional
+     ((uint8 * uint32) **
+      tvmTypes.TvmSlice);
+    uint8 ** uint32
 ].
 
 Local Open Scope ursus_scope_UpdateRequest.
@@ -298,49 +310,44 @@ return.
 Defined.
 Sync.
 
+
 #[private, nonpayable]
 Ursus Definition onCodeUpgrade (data :  TvmCell): UExpression PhantomType true .
 {
     :://  tvm->resetStorage() .
     ?::// new 'owners :  optional  (listArray uint256) := {} ;_|.
     ::// new 'slice :  TvmSlice @ "slice"  := (^{data}->toSlice());_|.
-    (* TODO 0 *)
-    ?::// new 'ownersAsArray :  boolean  := {} (* slice->decode(bool)*);_|.
-    :://  if ( ownersAsArray ) then { {_:UExpression _ false} } else { {_:UExpression _ false} } .
+    ::// new 'ownersAsArray :  boolean @  "ownersAsArray" :=  slice->decode(bool);_|.
+    :://  if ( ownersAsArray ) then { {_:UExpression _ true} } else { {_:UExpression _ true} } .
     {
-        (* TODO 0 *)
-        :://  owners := {} (*slice->decode(uint256[null])*)  |.
+        :://  owners ->set (slice->decode(uint256[]))  |.
     }
     {
-        (* TODO 0 *)
-        :://  [m_custodians, m_custodianCount, m_ownerKey] := {} (*slice->decode(null, uint8, uint256)*)  |.
+        (* Locate "**". *)
+        :://  [m_custodians, m_custodianCount, m_ownerKey] := slice->decode(mapping uint256 uint8, uint8, uint256)  |.
     }
-    (* TODO 0 *)
-    :://  new ('reqConfirms:  uint8 , 'lifetime:  uint32) @ ( "reqConfirms" , "lifetime" ) := {} (*slice->decode(uint8, uint32)*);_|.
+    :://  new ('reqConfirms:  uint8 , 'lifetime:  uint32) @ ( "reqConfirms" , "lifetime" ) := slice->decode(uint8, uint32);_|.
     :://  _initialize(owners, reqConfirms, lifetime)  |.
 }
 return.
 Defined.
-Sync.
 
-#[external, view]
+Context `{ boolFunRec_gen UpdateRequestLRecord []}.
+#[external, view, returns = updates]
 Ursus Definition getUpdateRequests : UExpression ((UpdateRequestLRecord[])) false .
 {
-    ?::// new 'updates_ : listArray UpdateRequestLRecord   := newArray(0);_| .
     ?::// new 'bound :  uint64  := _getExpirationBound( );_|.
     :://  for ( 'item : m_updateRequests ) do { {_:UExpression _ false} } |.
     {   
         ::// new ('updateId: uint64 , 'req: UpdateRequestLRecord ) @ ("updateId", "req") := item ;_|.
         :://  if ( (updateId > bound) ) then { {_:UExpression _ false} }  |.
         {
-            :://  updates_->push(req)  |.
+            :://  updates->push(req)  |.
         }
     }
 }
-(* TODO 1 *)
-return (*|| updates_ ||*).
+return.
 Defined.
-Sync.
 
 
 #[public, nonpayable]
@@ -471,8 +478,7 @@ return || _checkBit({mask}, {custodianIndex}) ||.
 Defined.
 Sync.
 
-#[public, nonpayable]
-
+#[public, nonpayable, returns=updateId]
 Ursus Definition submitUpdate (codeHash : optional ( uint256 )) (owners : optional ( uint256[] )) (reqConfirms : optional ( uint8 )) (lifetime : optional ( uint32 )): UExpression ( uint64) true .
 {
     ?::// new 'sender :  uint256  := msg->pubkey();_|.
@@ -514,31 +520,27 @@ Defined.
 Sync.
 
 Context `{ XDefault CustodianInfoLRecord []}.
-#[external, view]
+#[external, view, returns=custodians]
 Ursus Definition getCustodians : UExpression ((CustodianInfoLRecord[])) false .
 {
-    ?::// new 'custodians : listArray CustodianInfoLRecord := newArray(0) ;_|.
-    ::// for ( 'item : m_custodians ) do { {_:UExpression _ false} } .
+    ::// for ( 'item : m_custodians ) do { {_:UExpression _ false} } |.
     {
         ::// new ('key: uint256 , 'index: uint8 ) @ ("key", "index") := item ;_|.
         ::// {custodians}->push([ ^{index}, ^key ])|.
     }
-    :://return_ ^{custodians} |.
 }
-(* TODO 1 *)
-return || {} (*^{custodians} *)||.
+return.
 Defined.
 Sync.
 
 
 Context `{boolFunRec_gen TransactionLRecord []}.
 Context `{XDefault TransactionLRecord []}.
-#[external, view]
+#[external, view, returns=transactions]
 Ursus Definition getTransactions : UExpression ((TransactionLRecord[])) false .
 {
-    ?::// new 'transactions: (listArray TransactionLRecord) := newArray(0);_|.
     ?::// new 'bound :  uint64  := _getExpirationBound( );_|.
-    ::// for ( 'item : m_transactions ) do { {_:UExpression _ false} } .
+    ::// for ( 'item : m_transactions ) do { {_:UExpression _ false} } |.
     {
         ::// new ('id: uint64 , 'txn:  TransactionLRecord ) @ ("updateId", "req") := item ;_|. 
         :://  if ( ( {id} > bound) ) then { {_:UExpression _ false} }  |.
@@ -546,24 +548,21 @@ Ursus Definition getTransactions : UExpression ((TransactionLRecord[])) false .
             :://  transactions->push(txn)  |.
         }
     }
-    :://return_ {transactions} |.
 }
-(* TODO 1 *)
-return || {} (*{transactions}*) ||.
+return.
 Defined.
 Sync.
 
 
 Context `{XDefault TransactionLRecord}.
-#[external, view]
+#[external, view, returns=trans]
 Ursus Definition getTransaction (transactionId :  uint64): UExpression ((TransactionLRecord)) true .
 {
     ?::// new 'txnOpt :  optional  ((TransactionLRecord) )  := m_transactions->fetch({transactionId});_|.
     :://  require_(txnOpt->hasValue(), #{102}) .
-    :://  return_ (*trans :=*) txnOpt->get()  |.
+    :://  trans := txnOpt->get()  |.
 }
-(* TODO 1 *)
-return || {} (*txnOpt->get()*)||.
+return.
 Defined.
 Sync.
 
@@ -641,7 +640,7 @@ Ursus Definition _confirmTransaction (txn : (TransactionLRecord)) (custodianInde
                                     ^txn->Transaction_ι_bounce, 
                                     ^txn->Transaction_ι_sendFlags, 
                                     ^txn->Transaction_ι_payload) |.
-                                    (* ^txn->Transaction_ι_stateInit->get())  |. TODO *)
+                                    (* ^txn->Transaction_ι_stateInit->get())  |. TODO 0 *)
             }
             {
                 :://  tvm->transfer(^txn->Transaction_ι_dest, 
