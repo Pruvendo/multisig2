@@ -15,8 +15,6 @@ Require Import UMLang.GlobalClassGenerator.ClassGenerator.
 Require Import UrsusStdLib.Solidity.All.
 Require Import UrsusStdLib.Solidity.unitsNotations.
 Require Import UrsusTVM.Solidity.All.
-Require Export UrsusContractCreator.UrsusDefinitions.
-Require Export UrsusContractCreator.ReverseTranslatorConstructions.
 
 Import UrsusNotations.
 Local Open Scope xlist_scope.
@@ -107,8 +105,8 @@ Definition INT_3_5 l (dest :  address) (value :  uint128) (bounce :  boolean) (f
 (* INT_5 is checked as part of INT_3_x *)
 
 Definition INT_6 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey()  ) l) in
-  let tvmPubkey := toValue (eval_state (sRReader || tvm->pubkey() ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() || ) l) in
+  let tvmPubkey := toValue (eval_state (sRReader || tvm->pubkey() ||) l) in
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false ->
   msgPubkey = tvmPubkey.
 
@@ -119,8 +117,8 @@ Definition INT_7 (l: LedgerLRecord rec) (owners : listArray uint256) (reqConfirm
 
 Definition INT_8_1 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
   let MAX_CUSTODIANS := toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l) in
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
-  let tvmPubkey := toValue (eval_state (sRReader || tvm->pubkey() ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
+  let tvmPubkey := toValue (eval_state (sRReader || tvm->pubkey() ||) l) in
   length_ owners > 0 ->
   length_ owners <= uint2N MAX_CUSTODIANS ->
   msgPubkey = tvmPubkey ->
@@ -137,7 +135,7 @@ Definition INT_8_2 l (owners : listArray uint256) (reqConfirms :  uint8) (lifeti
   let _lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l')) in
   let MIN_LIFETIME := uint2N (toValue (eval_state (sRReader (MIN_LIFETIME_right rec def) ) l)) in
   let DEFAULT_LIFETIME := uint2N (toValue (eval_state (sRReader (DEFAULT_LIFETIME_right rec def) ) l)) in
-  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ||) l)) in
   let lifetime_lower := MIN_LIFETIME * custodians_sz in
   let lifetime_upper := N.land tvm_now 0xFFFFFFFF in
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false ->

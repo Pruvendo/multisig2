@@ -20,33 +20,33 @@ Sends To (*need fix*) ;
 (* Inherits   ; *)
 Types 
 Record Transaction := {
-  Transaction_ι_id :  uint64;
-  Transaction_ι_confirmationsMask :  uint32;
-  Transaction_ι_signsRequired :  uint8;
-  Transaction_ι_signsReceived :  uint8;
-  Transaction_ι_creator :  uint256;
-  Transaction_ι_index :  uint8;
-  Transaction_ι_dest :  address;
-  Transaction_ι_value :  uint128;
-  Transaction_ι_sendFlags :  uint16;
-  Transaction_ι_payload :  TvmCell;
-  Transaction_ι_bounce :  boolean;
-  Transaction_ι_stateInit :  optional  ( TvmCell )
+  id :  uint64;
+  confirmationsMask :  uint32;
+  signsRequired :  uint8;
+  signsReceived :  uint8;
+  creator :  uint256;
+  index :  uint8;
+  dest :  address;
+  value :  uint128;
+  sendFlags :  uint16;
+  payload :  TvmCell;
+  bounce :  boolean;
+  stateInit :  optional  ( TvmCell )
 }
 Record UpdateRequest := {
-  UpdateRequest_ι_id :  uint64;
-  UpdateRequest_ι_index :  uint8;
-  UpdateRequest_ι_signs :  uint8;
-  UpdateRequest_ι_confirmationsMask :  uint32;
-  UpdateRequest_ι_creator :  uint256;
-  UpdateRequest_ι_codeHash :  optional  ( uint256 );
-  UpdateRequest_ι_custodians :  optional  ( uint256[] );
-  UpdateRequest_ι_reqConfirms :  optional  ( uint8 );
-  UpdateRequest_ι_lifetime :  optional  ( uint32 )
+  id :  uint64;
+  index :  uint8;
+  signs :  uint8;
+  confirmationsMask :  uint32;
+  creator :  uint256;
+  codeHash :  optional  ( uint256 );
+  custodians :  optional  ( uint256[] );
+  reqConfirms :  optional  ( uint8 );
+  lifetime :  optional  ( uint32 )
 }
 Record CustodianInfo := {
-  CustodianInfo_ι_index :  uint8;
-  CustodianInfo_ι_pubkey :  uint256
+  index :  uint8;
+  pubkey :  uint256
 };
 Constants 
 Definition FLAG_SEND_ALL_REMAINING : uint8 := Build_XUBInteger (128)

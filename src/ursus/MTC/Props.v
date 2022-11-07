@@ -15,8 +15,6 @@ Require Import UMLang.GlobalClassGenerator.ClassGenerator.
 Require Import UrsusStdLib.Solidity.All.
 Require Import UrsusStdLib.Solidity.unitsNotations.
 Require Import UrsusTVM.Solidity.All.
-Require Export UrsusContractCreator.UrsusDefinitions.
-Require Export UrsusContractCreator.ReverseTranslatorConstructions.
 
 Import UrsusNotations.
 Local Open Scope xlist_scope.
@@ -48,7 +46,7 @@ Definition ETR_1 l u: Prop :=
   let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
   let MAX_CLEANUP_TXNS := uint2N (toValue (eval_state (sRReader (MAX_CLEANUP_TXNS_right rec def) ) l)) in
   let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
-  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ||) l)) in
   let id := (getPruvendoRecord Transaction_ι_id u) in
   let l' := exec_state (Uinterpreter (_removeExpiredTransactions rec def)) l in 
   let m_transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
@@ -61,7 +59,7 @@ Definition ETR_1 l u: Prop :=
 
 Definition MTC_1 l (transactionId :  uint64) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
   correctState l ->
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false ->
   hmapIsMember msgPubkey custodians = true.
@@ -70,7 +68,7 @@ Definition dummyTransaction : TransactionLRecord := Eval compute in default.
 
 Definition MTC_2 l (transactionId :  uint64) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
   let l' := exec_state (Uinterpreter (confirmTransaction rec def transactionId)) l in 
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
   let u := xMaybeMapDefault (fun x => x) (hmapLookup transactionId transactions) dummyTransaction  in  
@@ -84,7 +82,7 @@ Definition MTC_3 l (transactionId :  uint64) : Prop :=
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
   let transaction := hmapFindWithDefault dummyTransaction transactionId transactions in
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
   let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
   let mask := uint2N (getPruvendoRecord Transaction_ι_confirmationsMask transaction) in
   correctState l ->
@@ -103,11 +101,11 @@ Definition MTC_5_1 l (transactionId : uint64) : Prop :=
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
   let transaction := hmapFindWithDefault dummyTransaction transactionId transactions in
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
   let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
   let mask := uint2N (getPruvendoRecord Transaction_ι_confirmationsMask transaction) in
   let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
-  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ||) l)) in
   let id := (getPruvendoRecord Transaction_ι_id transaction) in
   correctState l ->
   hmapIsMember msgPubkey custodians = true ->
@@ -121,7 +119,7 @@ Definition MTC_5_2 l id (transactionId :  uint64) (dest :  address) (value :  ui
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
   let transaction := hmapFindWithDefault dummyTransaction transactionId transactions in
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
   let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
   let mask := uint2N (getPruvendoRecord Transaction_ι_confirmationsMask transaction) in
   let requiredConfirmations := uint2N (getPruvendoRecord Transaction_ι_signsRequired transaction) in
@@ -132,7 +130,7 @@ Definition MTC_5_2 l id (transactionId :  uint64) (dest :  address) (value :  ui
   let signsReceived' := uint2N (getPruvendoRecord Transaction_ι_signsReceived transaction') in
   let mask' := uint2N (getPruvendoRecord Transaction_ι_confirmationsMask transaction') in
   let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
-  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ||) l)) in
   let expiredTransactions := xHMapFilter (fun k v =>
     N.leb ((N.shiftr (uint2N k) 32) + lifetime) tvm_now
   ) transactions in
@@ -154,13 +152,13 @@ Definition MTC_6 l id (transactionId :  uint64) (dest :  address) (value :  uint
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
   let transaction := hmapFindWithDefault dummyTransaction transactionId transactions in
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
   let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
   let mask := uint2N (getPruvendoRecord Transaction_ι_confirmationsMask transaction) in
   let requiredConfirmations := uint2N (getPruvendoRecord Transaction_ι_signsRequired transaction) in
   let signsReceived := uint2N (getPruvendoRecord Transaction_ι_signsReceived transaction) in
   let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
-  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ||) l)) in
   let l' := exec_state (Uinterpreter (confirmTransaction rec def transactionId)) l in 
   let transactions' := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
   let expiredTransactions := xHMapFilter (fun k v =>
