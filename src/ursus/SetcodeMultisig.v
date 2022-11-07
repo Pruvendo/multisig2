@@ -1,6 +1,20 @@
 (*/Users/petrlarockin/Downloads/TON/solidity-coq-translator/ref*)
+Require Import UrsusContractCreator.IdentParsing.
+Require Import UrsusContractCreator.UrsusCoercions.
+
 Require Import UrsusEnvironment.Solidity.current.Environment.
 Require Import UrsusEnvironment.Solidity.current.LocalGenerator.
+
+Require Import UrsusContractCreator.UrsusFieldUtils.
+
+
+#[pragma = "ton-solidity >=0.61.0;"]
+#[pragma = "AbiHeader time; "]
+#[pragma = "AbiHeader expire;"] 
+#[pragma = "AbiHeader pubkey;"]
+#[translation = on] 
+#[language = solidity] 
+#[Contract = MultisigWallet]
 Contract MultisigWallet ;
 Sends To (*need fix*) ; 
 (* Inherits   ; *)
@@ -104,98 +118,20 @@ Local Open Scope ursus_scope_UpdateRequest.
 Local Open Scope ursus_scope_CustodianInfo.
 Local Open Scope ursus_scope_Transaction.
 
+Tactic Notation "return" :=
+    (match goal with
+    | Returns := BasicNotations.Returns ?r : IReturns |- _ => 
+    multimatch goal with
+    | v : ?T  |-  _ => pose (ident_to_string v) as r1;
+                       let b := eval compute in (string_dec r r1) in
+                       match b with
+                       | left _ => :: (UReturnExpression _ _ _ _ _ _ _ _ _ _ // return_ {ULtoRValue v} |)
+                       end 
+    | |- _ => :: (UReturnExpression _ _ _ _ _ _ _ _ _ _ // return_ {} |)
+    end 
+end).
 
-
-
-
-(* ********************************** move me  ************************************* *)
-Definition URValue' b X := (URValue X b).
-Definition URValue'_false := fun X => URValue X false.
-Print ULValueL.
-
-Definition ULValueL' := fun Ledger LedgerMainState LedgerLocalState LedgerVMState
-          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X  => 
-          @ULValueL (* boolean XUInteger optional tuple mapping *) Ledger LedgerMainState LedgerLocalState LedgerVMState
-          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X.
-Definition URValueL'_false := fun Ledger LedgerMainState LedgerLocalState LedgerVMState
-          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X  => 
-          @URValueL (* boolean XUInteger optional tuple mapping *) Ledger LedgerMainState LedgerLocalState LedgerVMState
-          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X false.
-
-Notation ULValueL'' := (ULValueL' _ _ _ _ _ _ _ _).
-Notation URValueL'' := (URValueL'_false _ _ _ _ _ _ _ _).
-Check ULValueL''.
-Check URValueL''.
-
-(* fun (x₁:T₁)..(xₙ:Tₙ) => D t₁..tₘ *)
-(* Print ULValueL. *)
-
-Identity Coercion aaa: URValueL'_false >-> URValueL.
-Identity Coercion bbb: ULValueL' >-> ULValueL. 
-
-(* Variable f :> forall Ledger LedgerMainState LedgerLocalState LedgerVMState
-          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X  
-          (x: ULValueL' Ledger LedgerMainState LedgerLocalState LedgerVMState
-          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X), 
-          URValueL'_false Ledger LedgerMainState LedgerLocalState LedgerVMState
-          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X.  *) 
-
-Definition ULtoRValue' : forall Ledger LedgerMainState LedgerLocalState LedgerVMState
-          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X  
-          (x: ULValueL' Ledger LedgerMainState LedgerLocalState LedgerVMState
-          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X), 
-          URValueL'_false Ledger LedgerMainState LedgerLocalState LedgerVMState
-          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X.
-    intros.
-    refine (ULtoRValue x).
-Defined.
-
-About URValueP.
-
-Definition ULtoRValue'' : forall Ledger LedgerMainState LedgerLocalState LedgerVMState
-          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X  
-          (x: @ULValueL Ledger LedgerMainState LedgerLocalState LedgerVMState
-          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X), 
-          @URValueP boolean XUInteger optional tuple mapping Ledger LedgerMainState LedgerLocalState LedgerVMState
-          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC X false.
-    intros.
-    refine (ULtoRValue x).
-Defined.
-
-Coercion ULtoRValue' : ULValueL' >-> URValueL'_false.
-Coercion ULtoRValue'' : ULValueL >-> URValueP.
-
-Notation URValue_false X := (URValue X false).
-(* Notation ULValue' X := (ULValue X). *)
-Definition IdType (X: Type)  := X.
-(* Definition sRInject' {X} (x:X): URValue_false X := sRInject _ _ _ _ x. *)
-(* Print URValue. *)
-Definition sRInject'' (* Ledger LedgerMainState LedgerLocalState LedgerVMState
-          LedgerMessagesAndEvents GlobalParams OutgoingMessageParams LC *) (X:Type) (x: IdType X): 
-          URValueL'_false LedgerLRecord ContractLRecord LocalStateLRecord VMStateLRecord
-          MessagesAndEventsLRecord GlobalParamsLRecord OutgoingMessageParamsLRecord LedgerLLedgerClass X.
-      intros.
-      :: (sRInject _ _ _ _ x).
-      Defined. 
-(* Definition ULtoRValue' (X:Type) (x: ULValue X): URValue_false X := ULtoRValue x. *)
-(* Variable ULtoRValue'' :> forall (X:Type) (x: ULValue X), URValue_false X. *)
-
-Notation N' := (IdType N).
-Definition N2N' (a:N):N' := a.
-
-Coercion N2N': N >-> N'.
-Coercion sRInject'': IdType >-> URValueL'_false.
-
-Check (_: ULValueL'' _): URValueL'' _.
-(* ********************************** move me  ************************************* *)
-
-
-
-
-
-
-
-
+Tactic Notation "return" uconstr(x) := (:: (UReturnExpression _ _ _ _ _ _ _ _ _ _ // return_ {x} |)).
 
 
 
