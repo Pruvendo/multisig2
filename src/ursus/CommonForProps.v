@@ -15,8 +15,6 @@ Require Import UMLang.All.
 Require Import UrsusStdLib.Solidity.All.
 Require Import UrsusStdLib.Solidity.unitsNotations.
 Require Import UrsusTVM.Solidity.All.
-Require Export UrsusContractCreator.UrsusDefinitions.
-Require Export UrsusContractCreator.ReverseTranslatorConstructions.
 
 Import UrsusNotations.
 Local Open Scope xlist_scope.
@@ -24,8 +22,6 @@ Local Open Scope record.
 Local Open Scope program_scope.
 Local Open Scope ursus_scope.
 Local Open Scope usolidity_scope.
-
-From elpi Require Import elpi.
 
 
 From QuickChick Require Import QuickChick.
@@ -165,8 +161,8 @@ Definition correctState l :=
     let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
     let requests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
     let requestMask := toValue (eval_state (sRReader (m_requestsMask_right rec def) ) l) in
-    let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
-    let timestamp := uint2N (toValue (eval_state (sRReader || tx->timestamp ) l)) in
+    let tvm_now := uint2N (toValue (eval_state (sRReader || now || ) l)) in
+    let timestamp := uint2N (toValue (eval_state (sRReader || tx->timestamp || ) l)) in
     let lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
     length_ custodians = uint2N custodianCount /\
     hmapIsMember ownerKey custodians = true /\
@@ -265,7 +261,7 @@ Definition checkMap1 (custodians: mapping uint256 uint8) :=
   List.forallb 
     (fun v => Common.eqb (length_ (List.filter
       (fun e => Common.eqb (snd e) v) (unwrap custodians))) 1) 
-      (map Build_XUBInteger (listRange (length_ custodians))).
+      (map (fun x => Build_XUBInteger 8) (listRange (length_ custodians))).
 
 Definition checkMap2' (m: XHMap ( uint256 )( uint8 )) (i: N) (k: option uint256) := 
   let k' := xMaybeMapDefault id k (Build_XUBInteger 0) in

@@ -15,8 +15,6 @@ Require Import UMLang.GlobalClassGenerator.ClassGenerator.
 Require Import UrsusStdLib.Solidity.All.
 Require Import UrsusStdLib.Solidity.unitsNotations.
 Require Import UrsusTVM.Solidity.All.
-Require Export UrsusContractCreator.UrsusDefinitions.
-Require Export UrsusContractCreator.ReverseTranslatorConstructions.
 
 Import UrsusNotations.
 Local Open Scope xlist_scope.
@@ -51,14 +49,14 @@ Definition STS_1 l (dest :  address) (value :  uint128) (bounce :  boolean) (fla
 
 Definition STS_2 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint8) (payload :  cell_) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
   correctState l ->
   isError (eval_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l) = false ->
   hmapIsMember msgPubkey custodians = true.
 
 Definition STS_3_1 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint8) (payload :  cell_) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
   correctState l ->
   length_ custodians = 1 ->
   hmapIsMember msgPubkey custodians = true ->

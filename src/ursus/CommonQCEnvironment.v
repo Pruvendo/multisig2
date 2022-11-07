@@ -149,13 +149,13 @@ Defined.
 
 Definition uint_n_to_uint {n} (x: XUBInteger n) : XUInteger.
 dependent destruction x.
-exact x.
+exact n0.
 Defined.
 
 #[global]
 Instance iso_uint: forall n, IsoTypes (XUBInteger n) (XUInteger).
 intros.
-esplit with (x2y := fun x => uint_n_to_uint x ) (y2x := Build_XUBInteger); try reflexivity.
+esplit with (x2y := fun x => uint_n_to_uint x ) (y2x := fun y => Build_XUBInteger y); try reflexivity.
 extensionality x.
 unfold compose.
 dependent destruction x.
@@ -699,7 +699,7 @@ right. intros Heq. apply eqb_spec_intro in Heq. congruence.
 Defined.
 
 #[global]
-Instance cellEq_Dec (a b: cell_): Dec (a = b).
+Instance cellEq_Dec {K} (a b: TvmCellLike K): Dec (a = b).
 esplit.
 unfold decidable.
 decide equality.
@@ -707,7 +707,7 @@ apply precell_Dec.
 Defined.
 
 #[global]
-Instance cellBoolEq: XBoolEquable bool cell_ .
+Instance cellBoolEq {K}: XBoolEquable bool (TvmCellLike K) .
 esplit.
 intros.
 pose proof (cellEq_Dec H H0).

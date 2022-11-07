@@ -15,8 +15,6 @@ Require Import UMLang.GlobalClassGenerator.ClassGenerator.
 Require Import UrsusStdLib.Solidity.All.
 Require Import UrsusStdLib.Solidity.unitsNotations.
 Require Import UrsusTVM.Solidity.All.
-Require Export UrsusContractCreator.UrsusDefinitions.
-Require Export UrsusContractCreator.ReverseTranslatorConstructions.
 
 Import UrsusNotations.
 Local Open Scope xlist_scope.
