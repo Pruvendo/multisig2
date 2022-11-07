@@ -7,13 +7,13 @@ Require Import UrsusEnvironment.Solidity.current.LocalGenerator.
 
 Require Import UrsusContractCreator.UrsusFieldUtils.
 
+SetUrsusOptions.
 
+#[translation = on] (* keep this for constants for a while *)
 #[pragma = "ton-solidity >=0.61.0;"]
 #[pragma = "AbiHeader time; "]
 #[pragma = "AbiHeader expire;"] 
-#[pragma = "AbiHeader pubkey;"]
-#[translation = on] 
-#[language = solidity] 
+#[pragma = "AbiHeader pubkey;"] 
 #[Contract = MultisigWallet]
 Contract MultisigWallet ;
 Sends To (*need fix*) ; 
