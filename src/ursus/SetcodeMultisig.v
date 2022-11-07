@@ -204,7 +204,9 @@ Ursus Definition _confirmUpdate (updateId :  uint64) (custodianIndex :  uint8): 
 return.
 Defined.
 Sync.
-Context `{boolFunRec_gen (uint256) []}.
+
+
+(* Context `{boolFunRec_gen (uint256) []}. *)
 #[private, nonpayable]
 Ursus Definition _initialize (ownersOpt :  optional  ( uint256[] )) (reqConfirms :  uint8) (lifetime :  uint32): UExpression PhantomType true .
 {
@@ -268,8 +270,9 @@ Ursus Definition onCodeUpgrade (data :  TvmCell): UExpression PhantomType true .
 }
 return.
 Defined.
+Sync.
 
-Context `{ boolFunRec_gen UpdateRequestLRecord []}.
+(* Context `{ boolFunRec_gen UpdateRequestLRecord []}. *)
 #[external, view, returns = updates]
 Ursus Definition getUpdateRequests : UExpression ((UpdateRequestLRecord[])) false .
 {
@@ -285,6 +288,7 @@ Ursus Definition getUpdateRequests : UExpression ((UpdateRequestLRecord[])) fals
 }
 return.
 Defined.
+Sync.
 
 
 #[public, nonpayable]
@@ -352,7 +356,7 @@ Ursus Definition executeUpdate (updateId :  uint64) (code : optional ( TvmCell )
     {
         :://  data->store(m_lifetime)  |.
     }
-    :://  onCodeUpgrade(data->toCell())  |.
+    :://  onCodeUpgrade (data->toCell())  |.
 }
 return.
 Defined.
@@ -455,7 +459,7 @@ return.
 Defined.
 Sync.
 
-Context `{ XDefault CustodianInfoLRecord []}.
+(* Context `{ XDefault CustodianInfoLRecord []}. *)
 #[external, view, returns=custodians]
 Ursus Definition getCustodians : UExpression ((CustodianInfoLRecord[])) false .
 {
@@ -470,8 +474,8 @@ Defined.
 Sync.
 
 
-Context `{boolFunRec_gen TransactionLRecord []}.
-Context `{XDefault TransactionLRecord []}.
+(* Context `{boolFunRec_gen TransactionLRecord []}.
+Context `{XDefault TransactionLRecord []}. *)
 #[external, view, returns=transactions]
 Ursus Definition getTransactions : UExpression ((TransactionLRecord[])) false .
 {
@@ -490,7 +494,7 @@ Defined.
 Sync.
 
 
-Context `{XDefault TransactionLRecord}.
+(* Context `{XDefault TransactionLRecord}. *)
 #[external, view, returns=trans]
 Ursus Definition getTransaction (transactionId :  uint64): UExpression ((TransactionLRecord)) true .
 {
