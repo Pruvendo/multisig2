@@ -562,24 +562,24 @@ Defined.
 Sync.
 
 #[private, nonpayable]
-Ursus Definition _confirmTransaction (txn : (TransactionLRecord)) (custodianIndex :  uint8): UExpression PhantomType false .
+Ursus Definition _confirmTransaction (txn : (TransactionLRecord)) (custodianIndex :  uint8): UExpression PhantomType true .
 {
     (* TODO 2 *)
     :://  if ( {_:URValue boolean false} ) 
-            then { {_:UExpression _ false} } 
+            then { {_:UExpression _ true} } 
             else { {_:UExpression _ false} }  |.
             refine ||(({txn}->Transaction_ι_signsReceived + (#{1})) >= {txn}->Transaction_ι_signsRequired) ||.
     {
         (* TODO 2 *)
-        :://  if ( {_:URValue boolean false} ) then { {_:UExpression _ false} } else { {_:UExpression _ false} } .
+        :://  if ( {_:URValue boolean false} ) then { {_:UExpression _ true} } else { {_:UExpression _ false} } .
             refine ||{txn}->Transaction_ι_stateInit->hasValue()||.
             {
                 :://  tvm->transfer(^txn->Transaction_ι_dest, 
                                     ^txn->Transaction_ι_value, 
                                     ^txn->Transaction_ι_bounce, 
                                     ^txn->Transaction_ι_sendFlags, 
-                                    ^txn->Transaction_ι_payload) |.
-                                    (* ^txn->Transaction_ι_stateInit->get())  |. TODO 0 *)
+                                    ^txn->Transaction_ι_payload,
+                                    ^txn->Transaction_ι_stateInit->get())  |.
             }
             {
                 :://  tvm->transfer(^txn->Transaction_ι_dest, 
