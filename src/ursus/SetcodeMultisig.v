@@ -69,7 +69,7 @@ Record Contract := {
     m_defaultRequiredConfirmations: uint8;
     m_lifetime: uint32
 }.
-UseLocal Definition _ := [
+(* UseLocal Definition _ := [
      optional  (tuple ( uint64)( (UpdateRequestLRecord) ) );
      boolean;
      uint64;
@@ -112,6 +112,43 @@ UseLocal Definition _ := [
       tvmTypes.TvmSlice);
     uint8 ** uint32;
     uint8**uint128
+]. *)
+
+UseLocal Definition _ := [
+     uint64;
+     uint8;
+     optional  (tuple ( uint64)( (UpdateRequestLRecord) ) );
+     boolean;
+    (UpdateRequestLRecord);
+     uint32;
+     slice_;
+     optional  ( uint256[] );
+     TvmCell;
+     uint256[];
+    (UpdateRequestLRecord[]);
+     builder_;
+     optional  ((UpdateRequestLRecord) );
+     optional  ( TvmCell );
+     uint256;
+     optional  ( uint256 );
+     optional  ( uint8 );
+     optional  ( uint32 );
+    (CustodianInfoLRecord[]);
+    (TransactionLRecord);
+    (TransactionLRecord[]);
+     optional  ((TransactionLRecord) );
+     uint128;
+     optional  (tuple ( uint64)( (TransactionLRecord) ) );
+     address;
+
+     optional (tuple(bool) (TvmSlice));
+     optional (tuple(uint256[]) (TvmSlice));
+     optional ((mapping uint256 uint8 ** (uint8 * uint256)) ** TvmSlice);
+     (mapping uint256 uint8 ** (uint8 ** uint256));
+     optional ((uint8 ** uint32) ** TvmSlice);
+     (uint8 ** uint32);
+     (optional TvmBuilder);
+     ( uint8**uint128 )
 ].
 
 Local Open Scope ursus_scope_UpdateRequest.
@@ -331,7 +368,7 @@ Ursus Definition executeUpdate (updateId :  uint64) (code : optional ( TvmCell )
             refine || request->UpdateRequest_ι_custodians->hasValue()||.
     {
         (* TODO 3 *)
-        :://   data->store(@true (*, request->UpdateRequest_ι_custodians->get()*))  |.
+        :://   data->store(@true , request->UpdateRequest_ι_custodians->get())  |.
     }
     {
         :://  data->store(@false, m_custodians, m_custodianCount, m_ownerKey)  |.
@@ -341,7 +378,7 @@ Ursus Definition executeUpdate (updateId :  uint64) (code : optional ( TvmCell )
         refine ||request->UpdateRequest_ι_reqConfirms->hasValue()||.
     {
         (* TODO 3 *)
-        :://  data->store({}(*request->UpdateRequest_ι_reqConfirms->get()*))  |.
+        :://  data->store(request->UpdateRequest_ι_reqConfirms->get())  |.
     }
     {
         :://  data->store(m_defaultRequiredConfirmations)  |.
@@ -351,7 +388,7 @@ Ursus Definition executeUpdate (updateId :  uint64) (code : optional ( TvmCell )
         refine ||request->UpdateRequest_ι_lifetime->hasValue()||.
     {
         (* TODO 3 *)
-        :://  data->store({} (*request->UpdateRequest_ι_lifetime->get()*))  |.
+        :://  data->store(request->UpdateRequest_ι_lifetime->get())  |.
     }
     {
         :://  data->store(m_lifetime)  |.

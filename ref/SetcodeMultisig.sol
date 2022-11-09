@@ -151,6 +151,15 @@ contract MultisigWallet {
         uint8 reqConfirms,
         uint32 lifetime
     ) inline private {
+
+        optional(int) botch1;
+        optional(int8) botch2;
+        optional(int16) botch3;
+        optional(int32) botch4;
+        optional(int64) botch5;
+        optional(int128) botch6;
+        optional(bool) botch7;
+        optional(TvmBuilder) botch8;
         if (ownersOpt.hasValue()) {
             uint8 ownerCount = 0;
             uint256[] owners = ownersOpt.get();
