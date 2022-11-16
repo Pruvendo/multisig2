@@ -107,7 +107,8 @@ Definition MTS_4 l id (dest :  address) (value :  uint128) (bounce :  boolean) (
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
   let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l in
   let messqueue := toValue ((eval_state (sRReader (ULtoRValue (IDefault_left rec def)))) l') in 
-  let mes := EmptyMessage IDefault (Build_XUBInteger 0, (bounce, (Build_XUBInteger (N.lor FLAG_IGNORE_ERRORS FLAG_SEND_ALL_REMAINING) , payload))) in
+  let stateInit' := xMaybeMapDefault (fun x => x) stateInit default in
+  let mes := EmptyMessage IDefault (Build_XUBInteger 0, (bounce, (Build_XUBInteger (N.lor FLAG_IGNORE_ERRORS FLAG_SEND_ALL_REMAINING) , (payload, stateInit')))) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
   let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in
   let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
@@ -140,7 +141,8 @@ Definition MTS_5 l id (dest :  address) (value :  uint128) (bounce :  boolean) (
   let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
   let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l in
   let messqueue := toValue ((eval_state (sRReader (ULtoRValue (IDefault_left rec def)))) l') in 
-  let mes := EmptyMessage IDefault (value, (bounce, ((Build_XUBInteger  (N.lor FLAG_IGNORE_ERRORS FLAG_PAY_FWD_FEE_FROM_BALANCE)), payload))) in
+  let stateInit' := xMaybeMapDefault (fun x => x) stateInit default in
+  let mes := EmptyMessage IDefault (value, (bounce, ((Build_XUBInteger  (N.lor FLAG_IGNORE_ERRORS FLAG_PAY_FWD_FEE_FROM_BALANCE)), (payload, stateInit')))) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
   let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in
   let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in

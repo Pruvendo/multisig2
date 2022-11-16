@@ -261,7 +261,7 @@ Definition checkMap1 (custodians: mapping uint256 uint8) :=
   List.forallb 
     (fun v => Common.eqb (length_ (List.filter
       (fun e => Common.eqb (snd e) v) (unwrap custodians))) 1) 
-      (map (fun x => Build_XUBInteger 8) (listRange (length_ custodians))).
+      (map (fun x => Build_XUBInteger x) (listRange (length_ custodians))).
 
 Definition checkMap2' (m: XHMap ( uint256 )( uint8 )) (i: N) (k: option uint256) := 
   let k' := xMaybeMapDefault id k (Build_XUBInteger 0) in

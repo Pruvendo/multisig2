@@ -9,6 +9,7 @@ Require Import mathcomp.ssreflect.ssreflect.
 From mathcomp Require Import seq ssreflect ssrbool ssrnat eqtype.
 
 Require Import FinProof.All.
+Require Import FinProof.CommonInstances.
 
 Require Import UMLang.ExecGenerator.
 Require Import UMLang.ExecGen.GenFlags.

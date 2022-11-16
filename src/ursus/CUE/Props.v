@@ -147,13 +147,11 @@ Definition CUE_6_2 l (updateId :  uint64)  (code : optional cell_) : Prop :=
   checkMap2 m_custodians (N.to_nat (length_ (xMaybeMapDefault Datatypes.id owners default))) (xMaybeMapDefault Datatypes.id owners default) = true /\
   (xMaybeIsSome owners = false -> m_custodians = m_custodians_old /\ m_ownerKey = m_ownerKey_old) /\
   (xMaybeIsSome reqConfirms = true -> uint2N m_defaultRequiredConfirmations = N.min (length_ m_custodians) (uint2N (xMaybeMapDefault Datatypes.id reqConfirms default))) /\
-  (xMaybeIsSome reqConfirms = false -> m_defaultRequiredConfirmations = m_defaultRequiredConfirmations_old).
-  (* BUG in multisig!! *)
-  (*(xMaybeIsSome lifetime = false -> m_lifetime = m_lifetime_old) /\
+  (xMaybeIsSome reqConfirms = false -> m_defaultRequiredConfirmations = m_defaultRequiredConfirmations_old) /\
+  (xMaybeIsSome lifetime = false -> m_lifetime = m_lifetime_old) /\
   (xMaybeIsSome lifetime = true -> uint2N (xMaybeMapDefault Datatypes.id lifetime default) > 0 -> m_lifetime = (xMaybeMapDefault Datatypes.id lifetime default)) /\
-  (xMaybeIsSome lifetime = true -> uint2N (xMaybeMapDefault Datatypes.id lifetime default) = 0 -> m_lifetime = DEFAULT_LIFETIME) /\ *)
-  (* NOT SUPPORTED in multisig! *)
-  (*N.land (uint2N m_updateRequestsMask) (0xFFFFFFFF) = 0 /\
+  (xMaybeIsSome lifetime = true -> uint2N (xMaybeMapDefault Datatypes.id lifetime default) = 0 -> m_lifetime = DEFAULT_LIFETIME) /\
+  N.land (uint2N m_updateRequestsMask) (0xFFFFFFFF) = 0 /\
   m_transactions = default /\
   m_updateRequests = default /\
-  uint2N m_requestsMask = 0. *)
+  uint2N m_requestsMask = 0.

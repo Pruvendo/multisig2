@@ -110,10 +110,14 @@ Definition INT_6 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false ->
   msgPubkey = tvmPubkey.
 
+Definition equalExceptLocal (l l': LedgerLRecord rec) := 
+  ledgerEqb {$$ l with Ledger_LocalState := getPruvendoRecord Ledger_LocalState l' 
+$$} l'.
+
 Definition INT_7 (l: LedgerLRecord rec) (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
   let l' := exec_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l in 
   isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = true ->
-  ledgerEqb l l' = true. 
+  equalExceptLocal l l' = true. 
 
 Definition INT_8_1 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
   let MAX_CUSTODIANS := toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l) in

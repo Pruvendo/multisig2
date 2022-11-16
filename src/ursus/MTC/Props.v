@@ -148,7 +148,7 @@ Definition MTC_5_2 l id (transactionId :  uint64) (dest :  address) (value :  ui
   length_ commonTransactions = length_ transactions - 1 - length_ expiredTransactions
   .
 
-Definition MTC_6 l id (transactionId :  uint64) (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) (stateInit :  optional  ( TvmCell )): Prop := 
+Definition MTC_6 l (transactionId :  uint64) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l) in
   let transaction := hmapFindWithDefault dummyTransaction transactionId transactions in
@@ -173,8 +173,8 @@ Definition MTC_6 l id (transactionId :  uint64) (dest :  address) (value :  uint
   let bounce := getPruvendoRecord Transaction_ι_bounce transaction in
   let flags := getPruvendoRecord Transaction_ι_sendFlags transaction in
   let payload := getPruvendoRecord Transaction_ι_payload transaction in
-  let mes := (EmptyMessage IDefault (value, (bounce, (flags, payload)))) in
-  let u := xMaybeMapDefault (fun x => x) (hmapLookup id transactions) dummyTransaction  in  
+  let stateInit := xMaybeMapDefault (fun x => x) (getPruvendoRecord Transaction_ι_stateInit transaction : option TvmCell) default in
+  let mes := (EmptyMessage IDefault (value, (bounce, (flags, (payload, stateInit))))) in
   correctState l ->
   isError (eval_state (Uinterpreter (confirmTransaction rec def transactionId)) l) = false ->
   requiredConfirmations <= signsReceived + 1 ->
