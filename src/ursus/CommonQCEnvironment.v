@@ -149,13 +149,13 @@ Defined.
 
 Definition uint_n_to_uint {n} (x: XUBInteger n) : XUInteger.
 dependent destruction x.
-exact x.
+exact n0.
 Defined.
 
 #[global]
 Instance iso_uint: forall n, IsoTypes (XUBInteger n) (XUInteger).
 intros.
-esplit with (x2y := fun x => uint_n_to_uint x ) (y2x := Build_XUBInteger); try reflexivity.
+esplit with (x2y := fun x => uint_n_to_uint x ) (y2x := fun y => Build_XUBInteger y); try reflexivity.
 extensionality x.
 unfold compose.
 dependent destruction x.
@@ -369,13 +369,18 @@ Defined.
 #[global]
 Instance ShrinkPrecell: Shrink Precell.
 exists. intros c.
-refine nil.
+exact (Datatypes.cons c Datatypes.nil).
+Defined.
+
+Definition dummyPrecell (f: nat) : Precell.
+refine (Build_Precell (cval:=(Build_PrecellTree (Datatypes.cons (CellSizedV f (CPNat f)) Datatypes.nil) Null Null Null Null)) _).
+auto.
 Defined.
 
 #[global]
 Instance GenSizedPrecell: GenSized Precell.
 exists.
-refine (fun _ => elems [EmptyPrecell]).
+refine (fun x => elems [dummyPrecell x]).
 Defined.
 
 (*cell_*)
@@ -461,10 +466,11 @@ Defined.
 
 (*interfaces*)
 
-Require Import multisig.
-Derive Show for Itmp.
-Derive Shrink for Itmp.
-Derive GenSized for Itmp.
+Require Import SetcodeMultisig.
+(* TODO *)
+(* Derive Show for Itmp. *)
+(* Derive Shrink for Itmp. *)
+(* Derive GenSized for Itmp. *)
 
 (*PhantomType*)
 
@@ -605,11 +611,6 @@ intros.
 eapply Dec_conj.
 Defined.
 
-Definition uint2N {n} (x: XUBInteger n) : N.
-dependent destruction x.
-refine x.
-Defined.
-
 #[global] Instance prod_Dec: forall X Y (x1 x2: X) (y1 y2: Y) `{Dec (x1=x2)}`{Dec (y1=y2)}, Dec (pair x1 y1 = pair x2 y2).
 intros.
 esplit.
@@ -698,7 +699,7 @@ right. intros Heq. apply eqb_spec_intro in Heq. congruence.
 Defined.
 
 #[global]
-Instance cellEq_Dec (a b: cell_): Dec (a = b).
+Instance cellEq_Dec {K} (a b: TvmCellLike K): Dec (a = b).
 esplit.
 unfold decidable.
 decide equality.
@@ -706,7 +707,7 @@ apply precell_Dec.
 Defined.
 
 #[global]
-Instance cellBoolEq: XBoolEquable bool cell_ .
+Instance cellBoolEq {K}: XBoolEquable bool (TvmCellLike K) .
 esplit.
 intros.
 pose proof (cellEq_Dec H H0).
@@ -735,7 +736,6 @@ unfold decidable.
 repeat decide equality.
 all: apply precell_Dec.
 Defined.
-
 
 
 
@@ -900,8 +900,9 @@ repeat decide equality.
 apply H.
 Defined.
 
+
 #[global]
-Program Instance MultisigWallet_ι_UpdateRequestLRecord_eqdec : forall (req1 req2 : MultisigWallet_ι_UpdateRequestLRecord),
+Program Instance UpdateRequestLRecord_eqdec : forall (req1 req2 : UpdateRequestLRecord),
 Dec (req1 = req2).
 Next Obligation.
 destruct req1, req2.
@@ -921,11 +922,14 @@ eapply prod_Dec.
 eapply XUBIntegerEq_Dec.
 destruct l, l0.
 eapply prod_Dec.
-eapply XUBIntegerEq_Dec.
+eapply optionEq_Dec.
 destruct l, l0.
 eapply prod_Dec.
-eapply array_Dec.
-eapply XUBIntegerEq_Dec.
+eapply optionEq_Dec.
+destruct l, l0.
+eapply prod_Dec.
+eapply optionEq_Dec.
+eapply optionEq_Dec.
 Defined.
 Fail Next Obligation.
 
@@ -936,7 +940,7 @@ Program Instance int64_deceq : forall n,  Dec_Eq (XUBInteger n).
 Next Obligation.
 eapply XUBIntegerEq_Dec.
 Defined.
-Print Dec_Eq.
+
 #[global]
 Program Instance ListArray_deceq : forall x, Dec_Eq x ->  Dec_Eq (listArray x).
 Next Obligation.
@@ -944,7 +948,7 @@ eapply array_Dec.
 Defined.
 
 #[global]
-Program Instance MultisigWallet_ι_TransactionLRecord_eqdec : forall (req1 req2 : MultisigWallet_ι_TransactionLRecord),
+Program Instance TransactionLRecord_eqdec : forall (req1 req2 : TransactionLRecord),
 Dec (req1 = req2).
 Next Obligation.
 destruct req1, req2.
@@ -977,8 +981,12 @@ eapply XUBIntegerEq_Dec.
 destruct l, l0.
 eapply prod_Dec.
 eapply cellEq_Dec.
-esplit.
-unfold decidable.
+destruct l, l0.
+eapply prod_Dec.
+destruct x15, x17;
+esplit;
+unfold decidable;
 decide equality.
+eapply optionEq_Dec.
 Defined.
 Fail Next Obligation.

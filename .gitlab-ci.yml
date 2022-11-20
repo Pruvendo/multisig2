@@ -1,0 +1,25 @@
+stages:
+  - translating
+
+before_script:
+  - cat /etc/os-release
+
+
+translating-build-job:
+  stage: translating
+  script:
+    - cd ref
+    - cwd=$(pwd)
+    - cd ../../solidity-coq-translator
+    - python3 translate_build.py
+    - bash CI_translating.sh $cwd
+    - dune clean
+    - opam clean 
+  only:
+    changes:
+      - ref/*
+  artifacts:
+    paths:
+      - translated.zip
+    expire_in: 1 week 
+

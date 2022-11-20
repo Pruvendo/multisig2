@@ -15,8 +15,6 @@ Require Import UMLang.GlobalClassGenerator.ClassGenerator.
 Require Import UrsusStdLib.Solidity.All.
 Require Import UrsusStdLib.Solidity.unitsNotations.
 Require Import UrsusTVM.Solidity.All.
-Require Import UrsusTVM.Solidity.UrsusDefinitions.
-Require Import UrsusTVM.Solidity.ReverseTranslatorConstructions.
 
 Import UrsusNotations.
 Local Open Scope xlist_scope.
@@ -32,7 +30,7 @@ From elpi Require Import elpi.
 Local Open Scope struct_scope.
 Local Open Scope N_scope.
 Local Open Scope string_scope.
-Require Import multisig. 
+Require Import SetcodeMultisig. 
 
 Require Import UMLang.ExecGenerator.
 Require Import UMLang.ExecGen.GenFlags.
@@ -40,16 +38,16 @@ Require Import UMLang.ExecGen.ExecGenDefs.
 Require Import FinProof.CommonInstances.
 
 Require Import CommonQCEnvironment.
-Require Import LocalState.
+Require Import SetcodeMultisig_LocalState. 
 Require Import CommonForProps.
 
-Definition INT_1 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
-  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = false ->
+Definition INT_1 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32): Prop := 
+  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false ->
   length_ owners > 0.
 
-Definition INT_2 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition INT_2 l (owners : listArray uint256) (reqConfirms : uint8)  lifetime: Prop := 
   let MAX_CUSTODIANS := toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l) in
-  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = false ->
+  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false ->
   length_ owners <= uint2N MAX_CUSTODIANS.
 
 (* --constructor--
@@ -68,17 +66,20 @@ Definition INT_3_common l l': Prop :=
     toValue (eval_state (sRReader (m_custodianCount_right rec def) ) l') /\
   toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l) =
     toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l') /\
-  (* INT_5_2 *)
+  (* INT_4_2 *)
   toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l) =
-    toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l').
+    toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l') /\
+  (* INT_5 *)
+  toValue (eval_state (sRReader (m_lifetime_right rec def) ) l) =
+    toValue (eval_state (sRReader (m_lifetime_right rec def) ) l').
 
 Definition INT_3_1 l (updateId :  uint64) : Prop :=
   let l' := exec_state (Uinterpreter (confirmUpdate rec def updateId)) l in 
   correctState l ->
   INT_3_common l l'.
 
-Definition INT_3_2 l (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop :=
-  let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l in 
+Definition INT_3_2 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime : optional uint32) : Prop :=
+  let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l in 
   correctState l ->
   INT_3_common l l'.
 
@@ -87,64 +88,69 @@ Definition INT_3_3 l (transactionId :  uint64) : Prop :=
   correctState l ->
   INT_3_common l l'.
 
-Definition INT_3_4 l (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) : Prop :=
-  let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload)) l in 
+Definition INT_3_4 l (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) (stateInit :  optional  ( TvmCell )): Prop :=
+  let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload stateInit)) l in 
   correctState l ->
   INT_3_common l l'.
 
-Definition INT_3_5 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_) : Prop :=
+Definition INT_3_5 l (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint8) (payload :  cell_) : Prop :=
   let l' := exec_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l in 
   correctState l ->
   INT_3_common l l'.
 
-(* INT_4_1 is checked as part of INT_7_2 *)
+(* INT_4_1 is checked as part of INT_8_2 *)
 
 (* INT_4_2 is checked as part of INT_3_x *)
 
-Definition INT_5 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey()  ) l) in
-  let tvmPubkey := toValue (eval_state (sRReader || tvm->pubkey() ) l) in
-  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = false ->
+(* INT_5 is checked as part of INT_3_x *)
+
+Definition INT_6 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() || ) l) in
+  let tvmPubkey := toValue (eval_state (sRReader || tvm->pubkey() ||) l) in
+  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false ->
   msgPubkey = tvmPubkey.
 
-Definition INT_6 (l: LedgerLRecord rec) (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
-  let l' := exec_state (Uinterpreter (constructor rec def owners reqConfirms)) l in 
-  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = true ->
-  ledgerEqb l l' = true. 
+Definition equalExceptLocal (l l': LedgerLRecord rec) := 
+  ledgerEqb {$$ l with Ledger_LocalState := getPruvendoRecord Ledger_LocalState l' 
+$$} l'.
 
-Definition INT_7_1 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition INT_7 (l: LedgerLRecord rec) (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
+  let l' := exec_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l in 
+  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = true ->
+  equalExceptLocal l l' = true. 
+
+Definition INT_8_1 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
   let MAX_CUSTODIANS := toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l) in
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
-  let tvmPubkey := toValue (eval_state (sRReader || tvm->pubkey() ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
+  let tvmPubkey := toValue (eval_state (sRReader || tvm->pubkey() ||) l) in
   length_ owners > 0 ->
   length_ owners <= uint2N MAX_CUSTODIANS ->
   msgPubkey = tvmPubkey ->
-  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = false.
+  uint2N lifetime > 0 -> (* NOT IN SPEC *)
+  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false.
 
-Definition checkMap' (m: XHMap ( uint256 )( uint8 )) (i: N) (k: option uint256) := 
-  let k' := xMaybeMapDefault id k (Build_XUBInteger 0) in
-  let with_i := xHMapFilter (fun _k v => Common.eqb v (Build_XUBInteger i)) m in 
-  andb 
-    (andb (xMaybeIsSome k) (hmapIsMember k' m))
-    ((eqb (length_ with_i) 1)).
-
-Fixpoint checkMap m n (owners: listArray uint256):= 
-  match n with 
-  | O => true
-  | S n' => andb (checkMap m n' owners) (checkMap' m (N.of_nat n') (arrLookup (N.of_nat n') owners))
-  end.
-
-Definition INT_7_2 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop := 
-  let l' := exec_state (Uinterpreter (constructor rec def owners reqConfirms)) l in
+Definition INT_8_2 l (owners : listArray uint256) (reqConfirms :  uint8) (lifetime :  uint32) : Prop := 
+  let l' := exec_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l in
   let owners_sz := length_ owners in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l') in
   let custodians_sz := length_ custodians in
-  let reqConfirms' := if N.ltb custodians_sz owners_sz then (Build_XUBInteger custodians_sz) else (Build_XUBInteger owners_sz) in
+  let reqConfirms' := if N.ltb custodians_sz (uint2N reqConfirms) then (Build_XUBInteger custodians_sz) else reqConfirms in
   let ownerKey := toValue (eval_state (sRReader (m_ownerKey_right rec def) ) l') in
-  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms)) l) = false ->
+  let _lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l')) in
+  let MIN_LIFETIME := uint2N (toValue (eval_state (sRReader (MIN_LIFETIME_right rec def) ) l)) in
+  let DEFAULT_LIFETIME := uint2N (toValue (eval_state (sRReader (DEFAULT_LIFETIME_right rec def) ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ||) l)) in
+  let lifetime_lower := MIN_LIFETIME * custodians_sz in
+  let lifetime_upper := N.land tvm_now 0xFFFFFFFF in
+  isError (eval_state (Uinterpreter (constructor rec def owners reqConfirms lifetime)) l) = false ->
   (* result.m_custodians.size <= params.owners.size *)
   custodians_sz <= owners_sz /\
-  checkMap custodians (N.to_nat owners_sz) owners = true /\
+  (* (∀ i : i ≥ 0 ⟶ i < result.m_custodians.size ⟶ (exists c : c In result.m_custodians.keys ⋀ result.m_custodians[c] = Some(i))) /\
+     (∀ c1, c2, v : ⟶ result.m_custodians[c1] = result.m_custodians[c2] ⟶ result.m_custodians[c1] = Some(v) ⟶ c1 = c2 )*)
+  checkMap1 custodians = true /\
+  (* (∀ i : i ≥ 0 ⟶ i < params.owners.size ⟶ (exists j : result.m_custodians[params.owners[i]] = Some(j))) *)
+  checkMap2 custodians (N.to_nat owners_sz) owners = true /\
+  (* INT 4_1 *)
   (* result.m_defaultRequiredConfirmations = min (result.this.m_custodians.size, params.reqConfirms) *)
   toValue (eval_state (sRReader (m_defaultRequiredConfirmations_right rec def) ) l') = reqConfirms' /\
   (* result.m_ownerKey = params.this.owners[0] *)
@@ -160,4 +166,10 @@ Definition INT_7_2 l (owners : listArray uint256) (reqConfirms :  uint8) : Prop 
   (* (∀ i : i ≥ 0 ⟶ i < 32 ⟶ result.m_updateRequestsMask[i] = false) *)
   N.land 
     (uint2N (toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) l')))
-     0xFFFFFFFF = 0.
+     0xFFFFFFFF = 0 /\
+  (* result.m_lifetime = params.this.lifetime *)
+  ((uint2N lifetime > 0) ->
+  (uint2N lifetime >= lifetime_lower -> uint2N lifetime <= lifetime_upper -> _lifetime = uint2N lifetime) /\
+  (uint2N lifetime < lifetime_lower -> _lifetime = lifetime_lower) /\
+  (uint2N lifetime > lifetime_upper -> _lifetime = lifetime_upper)) /\
+  (uint2N lifetime = 0 -> _lifetime = DEFAULT_LIFETIME).

@@ -15,8 +15,6 @@ Require Import UMLang.GlobalClassGenerator.ClassGenerator.
 Require Import UrsusStdLib.Solidity.All.
 Require Import UrsusStdLib.Solidity.unitsNotations.
 Require Import UrsusTVM.Solidity.All.
-Require Import UrsusTVM.Solidity.UrsusDefinitions.
-Require Import UrsusTVM.Solidity.ReverseTranslatorConstructions.
 
 Import UrsusNotations.
 Local Open Scope xlist_scope.
@@ -32,7 +30,7 @@ From elpi Require Import elpi.
 Local Open Scope struct_scope.
 Local Open Scope N_scope.
 Local Open Scope string_scope.
-Require Import multisig. 
+Require Import SetcodeMultisig. 
 
 Require Import UMLang.ExecGenerator.
 Require Import UMLang.ExecGen.GenFlags.
@@ -40,125 +38,165 @@ Require Import UMLang.ExecGen.ExecGenDefs.
 Require Import FinProof.CommonInstances.
 
 Require Import CommonQCEnvironment.
-Require Import LocalState.
+Require Import SetcodeMultisig_LocalState. 
 Require Import CommonForProps.
 
 
-Definition dummyTransaction : MultisigWallet_ι_TransactionLRecord := Eval compute in default. 
+Definition dummyTransaction : TransactionLRecord := Eval compute in default. 
 
-Definition REU_1 l id (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
-  let EXPIRATION_TIME := uint2N (toValue (eval_state (sRReader (EXPIRATION_TIME_right rec def) ) l)) in
-  let tvm_now := uint2N (toValue (eval_state (sRReader || now ) l)) in
+Definition REU_1 l id (codeHash :  option uint256) (owners :  optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
+  let m_lifetime := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ||) l)) in
   let l' := exec_state (Uinterpreter (_removeExpiredTransactions rec def)) l in 
   let ret_l := exec_state (Uinterpreter (_removeExpiredUpdateRequests rec def)) l in 
   let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
   let m_updateRequests' := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) ret_l) in
   let m_updateRequestsMask := toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) ret_l) in
-  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l) = false -> 
+  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false -> 
   hmapIsMember id m_updateRequests = true ->
-  N.shiftr 32 (uint2N id) + EXPIRATION_TIME <= tvm_now <-> 
+  N.shiftr 32 (uint2N id) + m_lifetime <= tvm_now <-> 
+  hmapIsMember id m_updateRequests = true /\
   hmapIsMember id m_updateRequests' = false /\
-  N.shiftl (uint2N id) (uint2N m_updateRequestsMask) = 0
-  .
+  N.shiftl (uint2N id) (uint2N m_updateRequestsMask) = 0.
 
-Definition CUR_1 l (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition CUR_1 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
   correctState l ->
-  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l) = false ->
-  hmapIsMember msgPubkey custodians = true.
+  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
+  hmapIsMember msgPubkey custodians = true \/
+  xMaybeIsSome owners = false.
 
-Definition CUR_2 l (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition CUR_2 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
   correctState l ->
-  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l) = false ->
-  length_ owners > 0 .
+  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
+  (xMaybeIsSome codeHash = true ->
+  xMaybeIsSome owners = true /\
+  length_ (xMaybeMapDefault Datatypes.id owners default) > 0) \/
+  (xMaybeIsSome owners = true ->
+  length_ (xMaybeMapDefault Datatypes.id owners default) > 0).
 
-Definition CUR_3 l (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition CUR_3 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
   let MAX_CUSTODIAN_COUNT := uint2N (toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l)) in
   correctState l ->
-  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l) = false ->
-  length_ owners <= MAX_CUSTODIAN_COUNT . 
+  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
+  (xMaybeIsSome codeHash = true ->
+  xMaybeIsSome owners = true /\
+  length_ (xMaybeMapDefault Datatypes.id owners default) <= MAX_CUSTODIAN_COUNT) \/
+  (xMaybeIsSome owners = true ->
+  length_ (xMaybeMapDefault Datatypes.id owners default) <= MAX_CUSTODIAN_COUNT). 
 
-Definition CUR_4 id l (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition CUR_4 id l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
   let MAX_CUSTODIAN_COUNT := uint2N (toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l)) in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
-  let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
+  let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
   correctState l ->
-  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l) = false ->
+  xMaybeIsSome codeHash = true ->
+  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
   hmapIsMember msgPubkey custodians = true ->
-  length_ owners > 0 ->
-  length_ owners <= MAX_CUSTODIAN_COUNT ->
+  xMaybeIsSome owners = true ->
+  length_ (xMaybeMapDefault Datatypes.id owners default) > 0 ->
+  length_ (xMaybeMapDefault Datatypes.id owners default) <= MAX_CUSTODIAN_COUNT ->
   hmapIsMember id transactions = true ->
-  REU_1 l' id codeHash owners reqConfirms.
+  REU_1 l' id codeHash owners reqConfirms lifetime.
 
-Definition CUR_5 l id (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition CUR_5 l id (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
   let MAX_CUSTODIAN_COUNT := uint2N (toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l)) in
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
-  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ) l) in
-  let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
+  let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l in
   let m_updateRequestsMask := (uint2N (toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) l'))) in
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
   correctState l ->
-  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l) = false ->
+  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
   hmapIsMember msgPubkey custodians = true ->
-  length_ owners > 0 ->
-  length_ owners <= MAX_CUSTODIAN_COUNT ->
+  xMaybeIsSome owners = true -> 
+  length_ (xMaybeMapDefault Datatypes.id owners default) > 0 ->
+  length_ (xMaybeMapDefault Datatypes.id owners default) <= MAX_CUSTODIAN_COUNT ->
   hmapIsMember id transactions = true ->
-  REU_1 l' id codeHash owners reqConfirms ->
+  REU_1 l' id codeHash owners reqConfirms lifetime ->
   N.land m_updateRequestsMask (uint2N id) = 0.
 
+(* CUR_6_1 checked as part of correctState *)
 
-Definition CUR_7 l id (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop := 
+Definition CUR_6_2 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint32 )) : Prop :=
+  let MAX_CUSTODIAN_COUNT := uint2N (toValue (eval_state (sRReader (MAX_CUSTODIAN_COUNT_right rec def) ) l)) in 
   let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
-  let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l in 
+  let updateRequestMask := toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
+  let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
+  let requests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
+  let bit := N.land (N.shiftr (uint2N updateRequestMask) i) 1 in
+  let lifetime' := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ||) l)) in
+  let expired := xHMapFilter (fun k v =>
+    let index := uint2N (getPruvendoRecord UpdateRequest_ι_index v) in
+    andb (N.eqb index i) (N.leb ((N.shiftr (uint2N k) 32) + lifetime') tvm_now)
+  ) requests in
+  correctState l -> 
+  hmapIsMember msgPubkey custodians = true ->
+  (xMaybeIsSome owners = true ->
+    length_ (xMaybeMapDefault Datatypes.id owners default) > 0 /\
+    length_ (xMaybeMapDefault Datatypes.id owners default) <= MAX_CUSTODIAN_COUNT
+  ) ->
+  (xMaybeIsSome owners = false ->
+   xMaybeIsSome codeHash = false) ->
+  (bit = 0 \/ length_ expired > 0) ->
+  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false
+  .
+
+Definition dummyRequest : UpdateRequestLRecord := Eval compute in default. 
+
+Definition CUR_6_3 l (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional  ( uint32 )) : Prop :=
+  let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l in
+  let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
+  let msgPubkey := toValue (eval_state (sRReader || msg->pubkey() ||) l) in
+  let i := uint2N (hmapFindWithDefault (Build_XUBInteger 0) msgPubkey custodians) in
+  let requests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
+  let requests' := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l') in
+  let lifetime_old := uint2N (toValue (eval_state (sRReader (m_lifetime_right rec def) ) l)) in
+  let tvm_now := uint2N (toValue (eval_state (sRReader || now ||) l)) in
+  let newRequests := xHMapFilter (fun k v =>
+    negb (hmapIsMember k requests)
+  ) requests' in
+  let expiredRequests := xHMapFilter (fun k v =>
+    N.leb ((N.shiftr (uint2N k) 32) + lifetime_old) tvm_now
+  ) requests in
+  let commonRequests := xHMapFilter (fun k v => 
+    andb (hmapIsMember k requests)
+    (Common.eqb v (hmapFindWithDefault dummyRequest k requests
+  ))) requests' in
+  let request := snd (hd (Build_XUBInteger 0, dummyRequest) (unwrap newRequests)) in
+  let index := getPruvendoRecord UpdateRequest_ι_index request in
+  let signs := getPruvendoRecord UpdateRequest_ι_signs request in
+  let creator := getPruvendoRecord UpdateRequest_ι_creator request in
+  let codeHash' := getPruvendoRecord UpdateRequest_ι_codeHash request in
+  let owners' := getPruvendoRecord UpdateRequest_ι_custodians request in
+  let reqConfirms' := getPruvendoRecord UpdateRequest_ι_reqConfirms request in
+  let lifetime' := getPruvendoRecord UpdateRequest_ι_lifetime request in
+  let mask := getPruvendoRecord UpdateRequest_ι_confirmationsMask request in
+  let updateRequestMask := uint2N (toValue (eval_state (sRReader (m_updateRequestsMask_right rec def) ) l')) in
+  correctState l ->
+  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = false ->
+  length_ newRequests = 1 /\
+  uint2N index = i /\
+  uint2N signs = 1 /\
+  creator = msgPubkey /\
+  (* TODO: codeHash' = codeHash /\ *) owners' = owners /\ 
+  reqConfirms' = reqConfirms /\ lifetime' = lifetime /\
+  uint2N mask = N.shiftl 1 i /\
+  N.land (N.shiftr updateRequestMask i) 1 = 1 /\
+  length_ requests' = length_ requests + 1 - length_ expiredRequests /\
+  length_ commonRequests = length_ requests - length_ expiredRequests.
+
+Definition CUR_7 l id (codeHash : optional uint256) (owners : optional (listArray uint256)) (reqConfirms : optional uint8) (lifetime :  optional   uint32) : Prop := 
+  let custodians := toValue (eval_state (sRReader (m_custodians_right rec def) ) l) in
+  let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l in 
   let transactions := toValue (eval_state (sRReader (m_transactions_right rec def) ) l') in
   correctState l ->
-  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l) = true ->
+  isError (eval_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms lifetime)) l) = true ->
   hmapIsMember id transactions = true ->
-  REU_1 l' id codeHash owners reqConfirms. 
-
-Definition dummyRequest : MultisigWallet_ι_UpdateRequestLRecord := Eval compute in default. 
-
-Definition CUR_6_1_common l l' k1 k2 k3 k4: Prop := 
-  let m_updateRequests := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l) in
-  let m_updateRequests_2 := toValue (eval_state (sRReader (m_updateRequests_right rec def) ) l') in
-  let req1 := xMaybeMapDefault (fun x => x) (hmapLookup k1 m_updateRequests) dummyRequest  in 
-  let req2 := xMaybeMapDefault (fun x => x) (hmapLookup k2 m_updateRequests) dummyRequest  in 
-  let req3 := xMaybeMapDefault (fun x => x) (hmapLookup k3 m_updateRequests_2) dummyRequest  in 
-  let req4 := xMaybeMapDefault (fun x => x) (hmapLookup k4 m_updateRequests_2) dummyRequest  in 
-  req1 <> req2 ->
-  k1 <> k2 -> 
-  hmapIsMember k1 m_updateRequests = true ->
-  hmapIsMember k2 m_updateRequests_2 = true -> 
-  (req3 <> req4 ->
-  k3 <> k4 -> 
-  hmapIsMember k3 m_updateRequests = true ->
-  hmapIsMember k4 m_updateRequests_2 = true).
-
-Definition CUR_6_1_1 l req1 req2 req3 req4 (updateId :  uint64) : Prop :=
-  let l' := exec_state (Uinterpreter (confirmUpdate rec def updateId)) l in 
-  correctState l ->
-  CUR_6_1_common l l' req1 req2 req3 req4.
-
-Definition CUR_6_1_2 l req1 req2 req3 req4 (codeHash :  uint256) (owners :  listArray uint256) (reqConfirms :  uint8) : Prop :=
-  let l' := exec_state (Uinterpreter (submitUpdate rec def codeHash owners reqConfirms)) l in 
-  correctState l ->
-  CUR_6_1_common l l' req1 req2 req3 req4.
-
-Definition CUR_6_1_3 l req1 req2 req3 req4 (transactionId :  uint64) : Prop :=
-  let l' := exec_state (Uinterpreter (confirmTransaction rec def transactionId)) l in 
-  correctState l ->
-  CUR_6_1_common l l' req1 req2 req3 req4.
-
-Definition CUR_6_1_4 l req1 req2 req3 req4 (dest :  address) (value :  uint128) (bounce :  boolean) (allBalance :  boolean) (payload :  cell_) : Prop :=
-  let l' := exec_state (Uinterpreter (submitTransaction rec def dest value bounce allBalance payload)) l in 
-  correctState l ->
-  CUR_6_1_common l l' req1 req2 req3 req4.
-
-Definition CUR_6_1_5 l req1 req2 req3 req4 (dest :  address) (value :  uint128) (bounce :  boolean) (flags :  uint16) (payload :  cell_) : Prop :=
-  let l' := exec_state (Uinterpreter (sendTransaction rec def dest value bounce flags payload)) l in 
-  correctState l ->
-  CUR_6_1_common l l' req1 req2 req3 req4.
-
+  REU_1 l' id codeHash owners reqConfirms lifetime \/
+  ledgerEqb l l' = true.

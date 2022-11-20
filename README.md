@@ -1,4 +1,4 @@
-The current report validates the smart contract called *Multisig2* (located [here](./ref/multisig/multisig.sol)) and confirms no bugs that can lead to losing or freezing of any funds, as well as to its improper distribution were discovered. The claim above is based on mathematical proving of things rather than on manual inspection that minimizes the chance of missing the potential threats.
+The current report validates the smart contract called *Multisig2* (located [here](./ref/multisig/multisig2.sol)) and confirms no bugs that can lead to losing or freezing of any funds, as well as to its improper distribution were discovered. The claim above is based on mathematical proving of things rather than on manual inspection that minimizes the chance of missing the potential threats.
 
 Thus, the verifier recommends the *Multisig2* smart contract for moving into production.
 
