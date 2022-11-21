@@ -202,14 +202,8 @@ MTC_5_2 (quickFixState {$$
 (* OK *)
 QuickCheck MTC_5_2_propb.
 
-Definition MTC_6_propb l id 
+Definition MTC_6_propb l
             (transactionId :  uint64) 
-            (dest :  address) 
-            (value :  uint128) 
-            (bounce :  boolean) 
-            (allBalance :  boolean) 
-            (payload :  cell_)
-            (stateInit :  optional  TvmCell)
             (mpk: uint256)
             (acc: bool)
             (bal: N)
@@ -228,7 +222,7 @@ MTC_6 (quickFixState {$$
         {$$ LedgerDefault with Ledger_MainState := 
                 {$$ l with  _m_custodians := custodians' $$}
         $$}with Ledger_VMState := v4 $$})
-       id transactionId dest value bounce allBalance payload stateInit ? .
+       transactionId ? .
 
 (* OK *)
 QuickCheck MTC_6_propb.
